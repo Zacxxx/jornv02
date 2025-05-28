@@ -12,8 +12,6 @@ import { gameManager } from "./game.manager";
 import { hudManager } from "./hud.manager";
 import { characterWindowManager } from "./character-window.manager";
 import {
-  TEXT_CONTROLS,
-  TEXT_CREDITS,
   TEXT_IN_GAME,
   TEXT_MAIN_MENU,
   TEXT_VIEWS,
@@ -88,6 +86,47 @@ class UIManager {
     this.init_hud();
     // Initialize Character Window
     this.init_character_window();
+    // Initialize dynamic scaling
+    this.initDynamicScaling();
+  }
+
+  private calculateUIScale(): number {
+    const gameContainer = document.getElementById('game');
+    if (!gameContainer) return 1;
+    
+    const containerWidth = gameContainer.clientWidth;
+    const containerHeight = gameContainer.clientHeight;
+    
+    // Base scale calculation
+    const baseWidth = 1920;
+    const baseHeight = 1080;
+    
+    const scaleX = containerWidth / baseWidth;
+    const scaleY = containerHeight / baseHeight;
+    
+    // Use the smaller scale to maintain aspect ratio
+    const scale = Math.min(scaleX, scaleY);
+    
+    // Clamp scale between reasonable bounds
+    return Math.max(0.5, Math.min(2.0, scale));
+  }
+
+  private applyUIScale() {
+    const scale = this.calculateUIScale();
+    const root = document.documentElement;
+    root.style.setProperty('--ui-scale', scale.toString());
+  }
+
+  private initDynamicScaling() {
+    // Apply initial scaling
+    this.applyUIScale();
+    
+    // Update scaling on window resize
+    window.addEventListener('resize', () => {
+      requestAnimationFrame(() => {
+        this.applyUIScale();
+      });
+    });
   }
 
   // Initialize HUD

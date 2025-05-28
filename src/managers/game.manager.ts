@@ -39,21 +39,39 @@ class GameManager {
   }
   
   private setupResizeHandler() {
+    let resizeTimeout: number | null = null;
+    let isResizing = false;
+    
+    const handleResize = () => {
+      if (!isResizing) {
+        isResizing = true;
+        requestAnimationFrame(() => {
+          this.handleResize();
+          isResizing = false;
+        });
+      }
+    };
+    
     window.addEventListener('resize', () => {
-      // Debounce resize events
-      if (this.resizeTimeout) {
-        clearTimeout(this.resizeTimeout);
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
       }
       
-      this.resizeTimeout = window.setTimeout(() => {
-        this.handleResize();
-      }, 250);
+      resizeTimeout = window.setTimeout(handleResize, 150);
     });
   }
   
   private handleResize() {
     const { width, height } = getGameDimensions();
     
+    // Update canvas size efficiently
+    this.updateCanvasSize(width, height);
+    
+    // Trigger a re-render
+    this.game.currentScene?.camera.update(this.game, 0);
+  }
+
+  private updateCanvasSize(width: number, height: number) {
     // Update canvas size
     if (this.game.canvas) {
       this.game.canvas.width = width;
@@ -67,9 +85,6 @@ class GameManager {
       this.game.screen.resolution = { width, height };
       this.game.screen.viewport = { width, height };
     }
-    
-    // Trigger a re-render
-    this.game.currentScene?.camera.update(this.game, 0);
   }
   init() {
     dataManager.init();
@@ -192,31 +207,13 @@ class EventBus {
   }
 }
 
-// Calculate optimal game size based on viewport
+// Calculate fullscreen game dimensions
 const getGameDimensions = () => {
-  const viewportWidth = window.innerWidth * 0.8; // 80% of viewport (accounting for 10% padding on each side)
-  const viewportHeight = window.innerHeight * 0.8;
+  // Use full viewport dimensions for fullscreen experience
+  const gameWidth = window.innerWidth;
+  const gameHeight = window.innerHeight;
   
-  // Maintain 3:2 aspect ratio (600:400 = 3:2)
-  const aspectRatio = 3 / 2;
-  
-  let gameWidth = viewportWidth;
-  let gameHeight = viewportWidth / aspectRatio;
-  
-  // If height exceeds viewport, scale based on height instead
-  if (gameHeight > viewportHeight) {
-    gameHeight = viewportHeight;
-    gameWidth = viewportHeight * aspectRatio;
-  }
-  
-  // Ensure minimum size for playability
-  const minWidth = 600;
-  const minHeight = 400;
-  
-  gameWidth = Math.max(gameWidth, minWidth);
-  gameHeight = Math.max(gameHeight, minHeight);
-  
-  return { width: Math.floor(gameWidth), height: Math.floor(gameHeight) };
+  return { width: gameWidth, height: gameHeight };
 };
 
 const { width, height } = getGameDimensions();

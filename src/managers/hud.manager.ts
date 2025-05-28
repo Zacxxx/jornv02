@@ -28,27 +28,12 @@ class HUDManager {
     this.container = document.getElementById('hud-container');
     
     if (!this.container) {
-      // Fallback: create container if not found
-      this.container = document.createElement('div');
-      this.container.id = 'hud-root';
-      this.container.style.position = 'fixed';
-      this.container.style.top = '0';
-      this.container.style.left = '0';
-      this.container.style.width = '100%';
-      this.container.style.height = '100%';
-      this.container.style.pointerEvents = 'none';
-      this.container.style.zIndex = '1000';
-      document.body.appendChild(this.container);
-    } else {
-      // Configure the existing container for proper positioning
-      this.container.style.position = 'absolute';
-      this.container.style.top = '0';
-      this.container.style.left = '0';
-      this.container.style.width = '100%';
-      this.container.style.height = '100%';
-      this.container.style.pointerEvents = 'none';
-      this.container.style.zIndex = '1001';
+      // Create fallback container
+      this.container = this.createFallbackContainer();
     }
+    
+    // Configure for container-relative positioning
+    this.configureContainerPositioning();
 
     // Créer le root React
     this.root = createRoot(this.container);
@@ -59,6 +44,33 @@ class HUDManager {
 
     // Rendu initial
     this.render();
+  }
+
+  private createFallbackContainer(): HTMLElement {
+    const container = document.createElement('div');
+    container.id = 'hud-fallback';
+    container.style.position = 'absolute';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '1000';
+    document.body.appendChild(container);
+    return container;
+  }
+
+  private configureContainerPositioning() {
+    if (!this.container) return;
+    
+    // Ensure container is positioned relative to game, not viewport
+    this.container.style.position = 'absolute';
+    this.container.style.top = '0';
+    this.container.style.left = '0';
+    this.container.style.width = '100%';
+    this.container.style.height = '100%';
+    this.container.style.pointerEvents = 'none';
+    this.container.style.zIndex = '1001';
   }
 
   private render() {

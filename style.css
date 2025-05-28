@@ -18,6 +18,20 @@
 
 --font-pixel-1:  "VT323", monospace;
 --font-pixel-2:  "Pixelify Sans", sans-serif;
+
+/* Dynamic scaling variables for fullscreen responsive design */
+--ui-scale: 1;
+--container-width: 100vw;
+--container-height: 100vh;
+
+/* Responsive sizing functions */
+--responsive-small: calc(12px * var(--ui-scale));
+--responsive-medium: calc(16px * var(--ui-scale));
+--responsive-large: calc(24px * var(--ui-scale));
+
+/* Container-relative units */
+--container-padding: calc(20px * var(--ui-scale));
+--container-gap: calc(12px * var(--ui-scale));
 }
 html,
 body {
@@ -36,7 +50,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10vh 10vw;
+  /* Remove padding for fullscreen experience */
+  padding: 0;
   box-sizing: border-box;
   
   /* Optimize for high DPI displays and zoom levels */
@@ -50,15 +65,18 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  width: 100%;
-  height: 100%;
+  /* Set fullscreen dimensions */
+  width: 100vw;
+  height: 100vh;
 
   #main-canvas {
-    border-radius: var(--border-radius);
-    border: 3px solid #333;
+    /* Remove borders for seamless fullscreen */
+    /* border-radius: var(--border-radius); */
+    /* border: 3px solid #333; */
     cursor: var(--cursor);
-    max-width: 100%;
-    max-height: 100%;
+    /* Update canvas sizing for fullscreen */
+    width: 100%;
+    height: 100%;
     
     /* Optimize canvas rendering */
     image-rendering: pixelated;
@@ -75,7 +93,8 @@ body {
     /* background-color: rgba(42, 41, 41, 0.3); */
     width: 100%;
     height: 100%;
-    border-radius: var(--border-radius);
+    /* Remove border-radius for fullscreen */
+    /* border-radius: var(--border-radius); */
 
     display: flex;
     align-items: center;
@@ -383,14 +402,14 @@ body {
         #character_panel_icon{
           z-index: 10;
           position: absolute;
-          top: 1.5%;
-          right: 6%;
+          top: 20px;
+          right: 60px;
 
           display: flex;
           align-items: center;
           justify-content: center;
-          width: clamp(28px, 3vw, 40px);
-          height: clamp(28px, 3vw, 40px);
+          width: clamp(32px, 3vw, 44px);
+          height: clamp(32px, 3vw, 44px);
           background: rgba(75, 85, 99, 0.8);
           backdrop-filter: blur(8px);
           border: 1px solid rgba(156, 163, 175, 0.3);
@@ -430,14 +449,14 @@ body {
         #menu_icon{
           z-index: 10;
           position: absolute;
-          top: 1.5%;
-          right: 1.5%;
+          top: 20px;
+          right: 20px;
 
           display: flex;
           align-items: center;
           justify-content: center;
-          width: clamp(28px, 3vw, 40px);
-          height: clamp(28px, 3vw, 40px);
+          width: clamp(32px, 3vw, 44px);
+          height: clamp(32px, 3vw, 44px);
           background: rgba(0, 0, 0, 0.8);
           backdrop-filter: blur(8px);
           border: 1px solid rgba(255, 255, 255, 0.1);
@@ -544,8 +563,8 @@ body {
         #character_panel {
           display: none;
           position: absolute;
-          top: 6%;
-          right: 1.5%;
+          top: 70px;
+          right: 20px;
           width: clamp(200px, 20vw, 280px);
           min-height: clamp(240px, 25vh, 320px);
           
