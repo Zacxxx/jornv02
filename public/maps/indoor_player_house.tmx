@@ -151,7 +151,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <layer id="2" name="walls" width="54" height="27">
+ <layer id="2" name="walls" width="54" height="27" locked="1">
   <properties>
    <property name="solid" type="bool" value="true"/>
   </properties>

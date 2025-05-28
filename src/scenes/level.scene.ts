@@ -1,4 +1,5 @@
-import { BoundingBox, Color, Engine, Scene, Sound, Vector } from "excalibur";
+import { BoundingBox, Color, Engine, Scene, Sound, Vector, ImageSource, Actor } from "excalibur";
+import { createPixelPerfectTileCollider } from "../managers/tile-collision.manager";
 import { Player } from "../actors/player.actor";
 import { assetManager } from "../managers/asset.manager";
 import {
@@ -48,9 +49,60 @@ export class Level extends Scene {
     try {
       this.map.addTiledMapToScene(engine);
       console.log(`✅ Map loaded successfully: ${this.map_name}`);
+      // Remove all default Tiled collision actors (unnamed or generic)
+      const toRemove = this.actors.filter(a => !a.name || a.name === "" || a.name === "collision" || a.name === "Solid" || a.name.startsWith("Tiled") || a.name.startsWith("Tile"));
+      toRemove.forEach(a => {
+        this.remove(a);
+        console.log("Removed default Tiled collision actor", a);
+      });
     } catch (error) {
       console.error(`❌ Failed to load map: ${this.map_name}`, error);
     }
+
+    // --- Begin: Add pixel-perfect collision actors for each wall tile ---
+    (async () => {
+      const tilesets = this.map.data.tilesets || [];
+      for (const tileset of tilesets) {
+        const firstgid = tileset.firstgid || 0;
+        // Find the corresponding ImageSource for this tileset
+        const tilesetImageKey = Object.keys(assetManager.images).find(key => assetManager.images[key].path && assetManager.images[key].path.includes(tileset.image));
+        if (!tilesetImageKey) continue;
+        const tilesetImage = assetManager.images[tilesetImageKey];
+        const tileWidth = this.map.data.tileWidth;
+        const tileHeight = this.map.data.tileHeight;
+        (this.map.data.layers || []).forEach((layer: any) => {
+          // Only process the 'walls' layer for collision
+          if (layer.type !== "tilelayer" || layer.name !== "walls") return;
+          for (let y = 0; y < layer.height; y++) {
+            for (let x = 0; x < layer.width; x++) {
+              const idx = x + y * layer.width;
+              const gid = layer.data[idx];
+              if (!gid || gid < firstgid) continue;
+              const localId = gid - firstgid;
+              // Compute tile's pixel position in the tileset
+              const tilesPerRow = Math.floor(tileset.imagewidth / tileWidth);
+              const sx = (localId % tilesPerRow) * tileWidth;
+              const sy = Math.floor(localId / tilesPerRow) * tileHeight;
+              // Create a temp ImageSource for this tile
+              const tileCanvas = document.createElement('canvas');
+              tileCanvas.width = tileWidth;
+              tileCanvas.height = tileHeight;
+              const ctx = tileCanvas.getContext('2d')!;
+              ctx.drawImage(tilesetImage.image, sx, sy, tileWidth, tileHeight, 0, 0, tileWidth, tileHeight);
+              const tileImageSource = new ImageSource(tileCanvas.toDataURL());
+              createPixelPerfectTileCollider(x * tileWidth, y * tileHeight, tileImageSource)
+                .then((actor: Actor | undefined) => {
+                  if (actor) {
+                    this.add(actor);
+                    console.log(`Added pixel-perfect wall collider at (${x},${y}) in 'walls' layer`);
+                  }
+                });
+            }
+          }
+        });
+      }
+    })();
+    // --- End: Add pixel-perfect collision actors for each wall tile ---
     
     const map_width = this.map.data.width * this.map.data.tileWidth;
     const map_height = this.map.data.height * this.map.data.tileHeight;
