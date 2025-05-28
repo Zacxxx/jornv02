@@ -230,7 +230,7 @@ import {
 
     private trackPlayerMovement(playerPos: Vector) {
       const movement = playerPos.sub(this.lastPlayerPosition);
-      if (movement.magnitude > 10) { // Player moved significantly
+      if (movement.size > 10) { // Player moved significantly
         this.suspicionLevel = Math.min(this.suspicionLevel + 0.1, 5);
       }
       this.lastPlayerPosition = playerPos.clone();
@@ -406,16 +406,16 @@ import {
       }
       
       // Stop at walls or other solid objects
-      if ((this.isWandering || this.isPatrolling) && this.vel.magnitude === 0) {
+      if ((this.isWandering || this.isPatrolling) && this.vel.size === 0) {
         this.changeDirection();
       }
     }
 
-    onKill() {
+    kill() {
       this.wanderTimer?.cancel();
       this.idleTimer?.cancel();
       this.moodTimer?.cancel();
       this.alertTimer?.cancel();
-      super.onKill();
+      super.kill();
     }
   } 

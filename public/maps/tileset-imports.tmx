@@ -1,0 +1,51 @@
+</tileset>
+ <tileset firstgid="94" name="Water" tilewidth="16" tileheight="16" tilecount="4" columns="4">
+  <image source="tiles/Water.png" width="64" height="16"/>
+ </tileset>
+ <tileset firstgid="98" name="Hills" tilewidth="16" tileheight="16" tilecount="77" columns="11">
+  <image source="tiles/Hills.png" width="176" height="112"/>
+ </tileset>
+ <tileset firstgid="175" name="Wood_Bridge" tilewidth="16" tileheight="16" tilecount="15" columns="5">
+  <image source="tiles/Wood_Bridge.png" width="80" height="48"/>
+ </tileset>
+ <tileset firstgid="190" name="Basic_Grass_Biom_things" tilewidth="16" tileheight="16" tilecount="45" columns="9">
+  <image source="tiles/Basic_Grass_Biom_things.png" width="144" height="80"/>
+ </tileset>
+ <tileset firstgid="235" name="Basic_Plants" tilewidth="16" tileheight="16" tilecount="12" columns="6">
+  <image source="tiles/Basic_Plants.png" width="96" height="32"/>
+ </tileset>
+ <tileset firstgid="247" name="Tilled_Dirt" tilewidth="16" tileheight="16" tilecount="77" columns="11">
+  <image source="tiles/Tilled_Dirt.png" width="176" height="112"/>
+ </tileset>
+ <tileset firstgid="324" name="Paths" tilewidth="16" tileheight="16" tilecount="16" columns="4">
+  <image source="tiles/Paths.png" width="64" height="64"/>
+ </tileset>
+ <tileset firstgid="340" name="Wooden House" tilewidth="16" tileheight="16" tilecount="35" columns="7">
+  <image source="tiles/Wooden House.png" width="112" height="80"/>
+  <tile id="7">
+   <objectgroup draworder="index" id="3">
+    <object id="2" x="10.9942" y="0.0292398" width="4.97076" height="15.9357"/>
+   </objectgroup>
+  </tile>
+  <tile id="14">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="11.0234" y="0.0584795" width="5" height="15.9064"/>
+   </objectgroup>
+  </tile>
+  <tile id="21">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="10.9942" y="0.0584795" width="5" height="15.8772"/>
+   </objectgroup>
+  </tile>
+ </tileset>
+ <tileset firstgid="375" name="Basic_Furniture" tilewidth="16" tileheight="16" tilecount="54" columns="9">
+  <image source="tiles/Basic_Furniture.png" width="144" height="96"/>
+ </tileset>
+ <tileset firstgid="429" name="Free_Chicken_House" tilewidth="16" tileheight="16" tilecount="9" columns="3">
+  <image source="tiles/Free_Chicken_House.png" width="48" height="48"/>
+ </tileset>
+ <tileset firstgid="438" name="Serene Village - Outside_blackpng" tilewidth="16" tileheight="16" tilecount="216" columns="8">
+  <image source="tiles/Serene Village - Outside_blackpng.png" width="128" height="432"/>
+ </tileset>
+ <tileset firstgid="654" source="../../../../tiled/Hills.tsx"/>
+ <tileset firstgid="731" source="../../../../tiled/Paths.tsx"/>
