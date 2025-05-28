@@ -1,8 +1,11 @@
 /* Main HUD Layout - Tailwind-based styles */
 .hud-layout {
   @apply fixed top-0 left-0 w-full h-full pointer-events-none z-[1000];
-  @apply flex items-start justify-between;
+  @apply flex items-start;
   @apply p-hud;
+  
+  /* Change from justify-between to a left-aligned layout with gap */
+  gap: 12px; /* Space between portrait and bars */
   
   /* Viewport-coordinated scaling */
   transform: scale(var(--viewport-scale, 1));
@@ -39,6 +42,7 @@
 @media (max-width: 768px) {
   .hud-layout {
     @apply p-4;
+    gap: 8px; /* Reduced gap for smaller screens */
     transform: scale(calc(var(--viewport-scale, 1) * 0.8));
   }
   
@@ -50,6 +54,7 @@
 @media (max-width: 480px) {
   .hud-layout {
     @apply p-2;
+    gap: 6px; /* Further reduced gap for mobile */
     transform: scale(calc(var(--viewport-scale, 1) * 0.7));
   }
 }
@@ -57,6 +62,7 @@
 @media (max-width: 320px) {
   .hud-layout {
     @apply p-2;
+    gap: 4px; /* Minimal gap for very small screens */
     transform: scale(calc(var(--viewport-scale, 1) * 0.6));
   }
 }

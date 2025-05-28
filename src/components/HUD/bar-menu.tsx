@@ -33,13 +33,6 @@ const StatBar: React.FC<{
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
     >
-      <div className="stat-bar-info">
-        <span className="stat-label">{label}</span>
-        <span className="stat-values">
-          {stat.current}/{stat.max}
-        </span>
-      </div>
-      
       <div className="stat-bar-track">
         <motion.div
           className={cn(
@@ -56,6 +49,12 @@ const StatBar: React.FC<{
             delay: 0.1 
           }}
         />
+        <div className="stat-bar-text">
+          <span className="stat-label">{label}</span>
+          <span className="stat-values">
+            {stat.current}/{stat.max}
+          </span>
+        </div>
       </div>
     </motion.div>
   );

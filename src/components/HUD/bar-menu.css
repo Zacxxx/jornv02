@@ -38,7 +38,7 @@
 .bar-menu {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--container-gap, 12px) * 0.75);
+  gap: 1px;
   padding: 0;
   margin: 0;
 }
@@ -47,39 +47,14 @@
 .stat-bar-container {
   display: flex;
   flex-direction: column;
-  gap: 4px;
   min-width: 140px;
 }
 
-/* Stat Bar Info (Label and Values) */
-.stat-bar-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-  font-weight: 600;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-  user-select: none;
-  pointer-events: none;
-}
-
-.stat-label {
-  color: #ffffff;
-  font-family: var(--font-pixel-2, monospace);
-  letter-spacing: 0.5px;
-}
-
-.stat-values {
-  color: #e0e0e0;
-  font-family: var(--font-pixel-2, monospace);
-  font-size: 10px;
-}
-
-/* Stat Bar Track (Background) */
+/* Stat Bar Track (Background) - now contains the text */
 .stat-bar-track {
   position: relative;
   width: 100%;
-  height: 12px;
+  height: 16px;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(20, 20, 20, 0.9) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 2px;
@@ -96,11 +71,48 @@
   left: 0;
   height: 100%;
   transition: box-shadow 0.3s ease;
+  z-index: 1;
   
   /* Add subtle inner glow */
   box-shadow: 
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Text overlay inside the bar */
+.stat-bar-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 6px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.stat-label {
+  color: #ffffff;
+  font-family: var(--font-pixel-2, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.9),
+    0 0 4px rgba(0, 0, 0, 0.8);
+}
+
+.stat-values {
+  color: #ffffff;
+  font-family: var(--font-pixel-2, monospace);
+  font-size: 8px;
+  font-weight: 600;
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.9),
+    0 0 4px rgba(0, 0, 0, 0.8);
 }
 
 /* HP Bar Styling */
@@ -208,7 +220,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .bar-menu {
-    gap: calc(var(--container-gap, 12px) * 0.6);
+    gap: 1px; /* Maintain minimal spacing */
   }
   
   .stat-bar-container {
@@ -216,21 +228,21 @@
   }
   
   .stat-bar-track {
-    height: 10px;
+    height: 14px; /* Reduced from 16px for tablet */
   }
   
-  .stat-bar-info {
-    font-size: 10px;
+  .stat-label {
+    font-size: 8px;
   }
   
   .stat-values {
-    font-size: 9px;
+    font-size: 7px;
   }
 }
 
 @media (max-width: 480px) {
   .bar-menu {
-    gap: calc(var(--container-gap, 12px) * 0.5);
+    gap: 1px; /* Maintain minimal spacing */
   }
   
   .stat-bar-container {
@@ -238,15 +250,19 @@
   }
   
   .stat-bar-track {
-    height: 8px;
+    height: 12px; /* Reduced from 14px for mobile */
   }
   
-  .stat-bar-info {
-    font-size: 9px;
+  .stat-label {
+    font-size: 7px;
   }
   
   .stat-values {
-    font-size: 8px;
+    font-size: 6px;
+  }
+  
+  .stat-bar-text {
+    padding: 0 4px; /* Reduced padding for smaller screens */
   }
 }
 
