@@ -121,11 +121,27 @@ class UIManager {
     // Apply initial scaling
     this.applyUIScale();
     
-    // Update scaling on window resize
+    // Enhanced resize handling with debouncing
+    let resizeTimeout: number | null = null;
+    let isResizing = false;
+    
+    const handleResize = () => {
+      if (!isResizing) {
+        isResizing = true;
+        requestAnimationFrame(() => {
+          this.applyUIScale();
+          isResizing = false;
+        });
+      }
+    };
+    
+    // Update scaling on window resize with debouncing
     window.addEventListener('resize', () => {
-      requestAnimationFrame(() => {
-        this.applyUIScale();
-      });
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
+      
+      resizeTimeout = window.setTimeout(handleResize, 100);
     });
   }
 
@@ -401,6 +417,11 @@ class UIManager {
     } else {
       this.hideHUD();
     }
+    
+    // Update UI scaling when state changes
+    requestAnimationFrame(() => {
+      this.applyUIScale();
+    });
   }
 
   private init_menu() {
@@ -724,6 +745,15 @@ class UIManager {
     } else {
       this.open_character_window(tabId);
     }
+  }
+
+  // Debug and utility methods
+  getCurrentUIScale(): number {
+    return this.calculateUIScale();
+  }
+
+  forceUIScaleUpdate() {
+    this.applyUIScale();
   }
 }
 

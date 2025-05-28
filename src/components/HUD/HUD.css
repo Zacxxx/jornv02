@@ -1,18 +1,25 @@
 /* HUD Layout - Container-relative positioning */
 .hud-layout {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: var(--container-padding);
+  left: var(--container-padding);
   z-index: 1000;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--container-gap);
   pointer-events: none;
   user-select: none;
   transform-origin: top left;
   
-  /* Container-based scaling instead of viewport */
-  transform: scale(1);
+  /* Container-based scaling with dynamic variables */
+  transform: scale(var(--ui-scale));
+  
+  /* Performance optimizations */
+  contain: layout style paint;
+  will-change: transform;
+  
+  /* Smooth transitions for scaling */
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Container-aware responsive design */
@@ -49,19 +56,19 @@
 
 @media (max-width: 768px) {
   .hud-layout {
-    top: 15px;
-    left: 15px;
-    gap: 10px;
-    transform: scale(0.8);
+    top: calc(var(--container-padding) * 0.75);
+    left: calc(var(--container-padding) * 0.75);
+    gap: calc(var(--container-gap) * 0.8);
+    transform: scale(calc(var(--ui-scale) * 0.8));
   }
 }
 
 @media (max-width: 480px) {
   .hud-layout {
-    top: 10px;
-    left: 10px;
-    gap: 8px;
-    transform: scale(0.7);
+    top: calc(var(--container-padding) * 0.5);
+    left: calc(var(--container-padding) * 0.5);
+    gap: calc(var(--container-gap) * 0.6);
+    transform: scale(calc(var(--ui-scale) * 0.7));
   }
 }
 

@@ -402,8 +402,8 @@ body {
         #character_panel_icon{
           z-index: 10;
           position: absolute;
-          top: 20px;
-          right: 60px;
+          top: var(--container-padding);
+          right: calc(var(--container-padding) * 3);
 
           display: flex;
           align-items: center;
@@ -422,6 +422,10 @@ body {
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
           user-select: none;
+          
+          /* Performance optimizations */
+          contain: layout style paint;
+          will-change: transform;
           
           &:hover {
             background: rgba(75, 85, 99, 0.9);
@@ -449,8 +453,8 @@ body {
         #menu_icon{
           z-index: 10;
           position: absolute;
-          top: 20px;
-          right: 20px;
+          top: var(--container-padding);
+          right: var(--container-padding);
 
           display: flex;
           align-items: center;
@@ -469,6 +473,10 @@ body {
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
           user-select: none;
+          
+          /* Performance optimizations */
+          contain: layout style paint;
+          will-change: transform;
           
           &:hover {
             background: rgba(0, 0, 0, 0.9);
@@ -563,8 +571,8 @@ body {
         #character_panel {
           display: none;
           position: absolute;
-          top: 70px;
-          right: 20px;
+          top: calc(var(--container-padding) * 3.5);
+          right: var(--container-padding);
           width: clamp(200px, 20vw, 280px);
           min-height: clamp(240px, 25vh, 320px);
           

@@ -27,7 +27,6 @@ class GameManager {
   scene_state!: Subject;
 
   player!: Player;
-  private resizeTimeout: number | null = null;
 
   constructor(engine: Engine) {
     this.game = engine;
