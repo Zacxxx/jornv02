@@ -27,6 +27,8 @@ import { uiManager } from "../managers/ui.manager";
 import { SceneArea } from "./Areas/scene-area.actor";
 import { hudManager } from "../managers/hud.manager";
 import { combatManager } from "../managers/combat.manager";
+import { floatingHealthBarManager } from "../managers/floating-health-bar.manager";
+import { animationIntegrationSystem } from "../systems/animation-integration.system";
 // import { attackAnimationSystem } from "../systems/attack-animation.system"; // TODO: Phase 2
 
 const ANIM = {
@@ -263,6 +265,12 @@ export class Player extends Actor {
     
     // Register player as combat participant
     combatManager.registerCombatant(this, this.hp.current, this.hp.max, 0);
+    
+    // Initialize floating health bar system
+    floatingHealthBarManager.initialize();
+    
+    // Set camera reference for floating health bars (will be set by scene)
+    // floatingHealthBarManager.setCamera(this.scene?.camera);
   }
   
   // Méthode pour mettre à jour le HUD
@@ -510,7 +518,7 @@ export class Player extends Actor {
   }
 
   //
-  private set_anim(new_anim: any) {
+  public set_anim(new_anim: any) {
     this.current_anim = new_anim;
     this.graphics.use(new_anim);
   }
@@ -646,7 +654,7 @@ export class Player extends Actor {
 
   /**
    * Perform attack action with current weapon
-   * Phase 1 implementation - basic attack logic
+   * Phase 1.5 implementation - with animation integration system
    */
   private async performAttack(): Promise<void> {
     if (this.isAttacking) return;
@@ -658,31 +666,47 @@ export class Player extends Actor {
     try {
       // Find nearby enemies within attack range
       const nearbyEnemies = this.findNearbyEnemies();
+      const target = nearbyEnemies.length > 0 ? nearbyEnemies[0] : null;
       
-      if (nearbyEnemies.length > 0) {
-        const target = nearbyEnemies[0]; // Attack first found enemy
+      if (target) {
         console.log(`Player: Attacking ${target.name}`);
-        
-        // For Phase 1, we'll simulate the attack without actual animations
-        // Phase 2 will implement the full animation system
-        const success = await this.simulateAttack(target);
-        
-        if (success) {
-          console.log(`Player: Attack successful against ${target.name}`);
-        } else {
-          console.log(`Player: Attack failed against ${target.name}`);
-        }
       } else {
         console.log(`Player: No enemies in range - attacking air`);
-        // Still perform attack animation for air swing
-        await this.simulateAttack(null);
       }
+      
+      // Use animation integration system for clean attack execution
+      const success = await animationIntegrationSystem.executeAttack(
+        this,
+        target,
+        this.currentWeapon,
+        this.getFacingDirection()
+      );
+      
+      if (success) {
+        console.log(`Player: Attack successful${target ? ` against ${target.name}` : ' (air swing)'}`);
+      } else {
+        console.log(`Player: Attack failed${target ? ` against ${target.name}` : ' (air swing)'}`);
+      }
+      
     } catch (error) {
       console.error(`Player: Attack error:`, error);
     } finally {
       this.isAttacking = false;
       this.set_state(PLAYER_STATE.IDLE);
       console.log(`Player: Attack completed`);
+    }
+  }
+
+  /**
+   * Get current facing direction as string for attack system
+   */
+  private getFacingDirection(): 'front' | 'back' | 'left' | 'right' {
+    switch (this.facing) {
+      case FACING.FRONT: return 'front';
+      case FACING.BACK: return 'back';
+      case FACING.LEFT: return 'left';
+      case FACING.RIGHT: return 'right';
+      default: return 'front';
     }
   }
 
@@ -717,53 +741,4 @@ export class Player extends Actor {
     
     return nearbyEnemies;
   }
-
-  /**
-   * Simulate attack for Phase 1 (without full animation system)
-   * This will be replaced by attackAnimationSystem.executeAttack in Phase 2
-   */
-  private async simulateAttack(target: Actor | null): Promise<boolean> {
-    console.log(`Player: Simulating attack (Phase 1)`);
-    
-    // Simulate attack timing
-    await new Promise(resolve => setTimeout(resolve, 500)); // 500ms attack duration
-    
-    if (target) {
-      // Use combat manager to process the attack
-      const attackId = combatManager.startAttack({
-        attacker: this,
-        target: target,
-        weaponType: this.currentWeapon,
-        damage: 10, // Basic damage for FISTS
-        attackType: this.currentWeapon === WEAPON_TYPE.FISTS ? ATTACK_TYPE.MELEE : ATTACK_TYPE.MELEE,
-        hitbox: { x: this.pos.x - 16, y: this.pos.y - 16, width: 32, height: 32 }
-      });
-      
-      // Simulate hit processing
-      await new Promise(resolve => setTimeout(resolve, 250)); // Wait for "hit frame"
-      const hitSuccess = combatManager.processHit(attackId);
-      
-      // Complete attack
-      await new Promise(resolve => setTimeout(resolve, 250)); // Complete attack duration
-      combatManager.endAttack(attackId);
-      
-      return hitSuccess;
-    }
-    
-    return false; // Air swing
-  }
-
-  /**
-   * Get current facing direction as string for attack system
-   * TODO: Phase 2 will use this method
-   */
-  // private getFacingDirection(): 'front' | 'back' | 'left' | 'right' {
-  //   switch (this.facing) {
-  //     case FACING.FRONT: return 'front';
-  //     case FACING.BACK: return 'back';
-  //     case FACING.LEFT: return 'left';
-  //     case FACING.RIGHT: return 'right';
-  //     default: return 'front';
-  //   }
-  // }
 }

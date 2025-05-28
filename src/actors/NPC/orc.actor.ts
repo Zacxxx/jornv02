@@ -12,9 +12,10 @@ import {
     Vector,
   } from "excalibur";
   import { assetManager } from "../../managers/asset.manager";
-  import { gameManager } from "../../managers/game.manager";
+  import { gameManager, eventBus } from "../../managers/game.manager";
   import { combatManager } from "../../managers/combat.manager";
-  import { NPC_TYPE, PLAYER_STATE } from "../../models";
+  import { floatingHealthBarManager } from "../../managers/floating-health-bar.manager";
+  import { NPC_TYPE, PLAYER_STATE, COMBAT_EVENT } from "../../models";
   
   const ANIM = {
     IDLE_FRONT: "IDLE_FRONT",
@@ -127,6 +128,12 @@ import {
       // Register as combat participant
       combatManager.registerCombatant(this, this.health.current, this.health.max, this.defense);
       
+      // Register for floating health bar
+      floatingHealthBarManager.registerActor(this, "Orc", true);
+      
+      // Listen to combat events for health updates
+      this.setupCombatEventListeners();
+      
       // Enhanced interaction with mood-based responses
       this.on("pointerdown", () => {
         if (gameManager.player.player_state === PLAYER_STATE.IDLE) {
@@ -137,6 +144,67 @@ import {
 
       // Start advanced AI behaviors
       this.startAdvancedBehavior(engine);
+    }
+
+    private setupCombatEventListeners(): void {
+      // Listen for damage events affecting this orc
+      eventBus.on(COMBAT_EVENT.DAMAGE_DEALT, (data: any) => {
+        if (data.target === this) {
+          console.log(`Orc: Took ${data.damage} damage! Health: ${data.newHealth}/${data.maxHealth}`);
+          
+          // Update health values
+          this.health.current = data.newHealth;
+          this.health.max = data.maxHealth;
+          
+          // Update floating health bar
+          floatingHealthBarManager.updateActorHealth(this);
+          
+          // React to being attacked
+          this.reactToAttack();
+          
+          // Check if defeated
+          if (data.newHealth <= 0) {
+            this.onDefeated();
+          }
+        }
+      });
+    }
+
+    private reactToAttack(): void {
+      // Change mood to agitated when attacked
+      this.currentMood = OrcMood.AGITATED;
+      this.moodColor = Color.Red;
+      this.color = this.moodColor;
+      
+      // Stop current activities
+      this.stopWandering();
+      this.stopPatrolling();
+      
+      // Increase suspicion level
+      this.suspicionLevel = Math.min(this.suspicionLevel + 2, 5);
+      
+      console.log(`Orc: Reacting to attack! Mood: ${this.currentMood}, Suspicion: ${this.suspicionLevel}`);
+    }
+
+    private onDefeated(): void {
+      console.log(`Orc: Defeated!`);
+      
+      // Stop all AI behaviors
+      this.stopWandering();
+      this.stopPatrolling();
+      
+      // Change visual state
+      this.currentMood = OrcMood.CALM;
+      this.color = Color.Gray;
+      
+      // Stop all timers
+      this.wanderTimer?.cancel();
+      this.idleTimer?.cancel();
+      this.moodTimer?.cancel();
+      this.alertTimer?.cancel();
+      
+      // The floating health bar will automatically hide and remove itself
+      // after a delay as handled by the floating health bar manager
     }
 
     private reactToPlayerInteraction() {
@@ -420,10 +488,15 @@ import {
     }
 
     kill() {
+      // Unregister from floating health bar system
+      floatingHealthBarManager.unregisterActor(this);
+      
+      // Cancel timers
       this.wanderTimer?.cancel();
       this.idleTimer?.cancel();
       this.moodTimer?.cancel();
       this.alertTimer?.cancel();
+      
       super.kill();
     }
   } 
