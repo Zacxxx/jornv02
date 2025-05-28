@@ -37,6 +37,11 @@ class AssetManager {
         false,
         ImageFiltering.Pixel
       ),
+      orc: new ImageSource(
+        "/assets/characters/Orc Character Spritesheet.png",
+        false,
+        ImageFiltering.Pixel
+      ),
     };
     for (const key in this.images) {
       this.loader.addResource(this.images[key]);
@@ -70,6 +75,7 @@ class AssetManager {
       town: new TiledMapResource("/maps/town.tmx"),
       forest: new TiledMapResource("/maps/forest.tmx"),
       port: new TiledMapResource("/maps/port.tmx"),
+      my_own_level: new TiledMapResource("/maps/tutorial_02.tmx"),
     };
     for (const key in this.maps) {
       this.loader.addResource(this.maps[key]);

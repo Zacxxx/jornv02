@@ -1,0 +1,407 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Système HUD React
+
+Ce document explique le système d'interface utilisateur (HUD) intégré dans le jeu, utilisant React avec Excalibur.
+
+## Architecture du HUD
+
+Le système HUD est composé de plusieurs couches :
+
+### 1. Composants React (`src/components/HUD/`)
+
+*   **[`bar-menu.tsx`](mdc:src/components/HUD/bar-menu.tsx)** : Composant pour afficher les barres de statistiques (HP, MP, Energy)
+    *   Composant `Bar` : Barre individuelle avec animation et couleurs personnalisables
+    *   Composant `BarMenu` : Container pour toutes les barres
+    *   Animations critiques quand les valeurs sont basses (≤5%)
+    *   Design responsive avec media queries
+
+*   **[`portrait.tsx`](mdc:src/components/HUD/portrait.tsx)** : Composant pour le portrait du joueur
+    *   Affiche l'image de profil du joueur
+    *   Indicateur de niveau avec badge
+    *   Nom du joueur
+    *   Animation de pulsation et effets visuels
+    *   État spécial "low-health" avec animation critique
+
+*   **[`HUD.tsx`](mdc:src/components/HUD/HUD.tsx)** : Composant principal qui combine tous les éléments
+    *   Gère la visibilité globale du HUD
+    *   Détecte automatiquement l'état de santé critique
+    *   Interface `PlayerStats` pour les données du joueur
+
+### 2. Gestionnaire HUD (`src/managers/hud.manager.ts`)
+
+Le [`HUDManager`](mdc:src/managers/hud.manager.ts) fait le pont entre Excalibur et React :
+
+*   **Initialisation** : Crée un conteneur DOM pour React et monte les composants
+*   **Gestion d'état** : Utilise `BehaviourSubject<PlayerStats>` pour les stats du joueur
+*   **Méthodes de mise à jour** :
+    *   `updateHP(current, max?)` : Met à jour les points de vie
+    *   `updateMP(current, max?)` : Met à jour les points de magie
+    *   `updateEnergy(current, max?)` : Met à jour l'énergie
+    *   `updateLevel(level)` : Met à jour le niveau
+    *   `updatePlayerName(name)` : Change le nom du joueur
+    *   `updatePortrait(src)` : Change l'image de portrait
+*   **Contrôle de visibilité** : `showHUD()`, `hideHUD()`, `toggleHUD()`
+
+### 3. Intégration avec le Player (`src/actors/player.actor.ts`)
+
+Le [`Player`](mdc:src/actors/player.actor.ts) a été modifié pour intégrer le HUD :
+
+*   **Propriétés de stats** :
+    ```typescript
+    public hp = { current: 100, max: 100 };
+    public mp = { current: 50, max: 50 };
+    public energy = { current: 75, max: 100 };
+    public level = 1;
+    public playerName = "Player";
+    ```
+
+*   **Méthodes de modification** :
+    *   `modifyHP(amount)` : Modifie les HP et met à jour le HUD
+    *   `modifyMP(amount)` : Modifie les MP et met à jour le HUD
+    *   `modifyEnergy(amount)` : Modifie l'énergie et met à jour le HUD
+    *   `levelUp()` : Augmente le niveau et met à jour le HUD
+
+*   **Mécaniques de jeu** :
+    *   Consommation d'énergie lors des déplacements (1% chance par frame)
+    *   Régénération d'énergie au repos (0.5% chance par frame)
+
+### 4. Configuration Vite et TypeScript
+
+*   **[`vite.config.ts`](mdc:vite.config.ts)** : Configuré avec le plugin React
+*   **[`tsconfig.json`](mdc:tsconfig.json)** : Configuré avec `"jsx": "react-jsx"`
+*   **[`package.json`](mdc:package.json)** : Dépendances React ajoutées
+
+## Utilisation
+
+### Touches de test (mode développement)
+
+*   `1` : Perdre 10 HP
+*   `2` : Gagner 10 HP
+*   `3` : Perdre 5 MP
+*   `4` : Gagner 5 MP
+*   `5` : Level up
+*   `H` : Toggle visibilité du HUD
+
+### Ajouter de nouvelles stats
+
+1. Modifier l'interface `PlayerStats` dans [`src/components/HUD/index.ts`](mdc:src/components/HUD/index.ts)
+2. Ajouter la propriété au `Player` dans [`src/actors/player.actor.ts`](mdc:src/actors/player.actor.ts)
+3. Créer une méthode `updateNewStat()` dans [`src/managers/hud.manager.ts`](mdc:src/managers/hud.manager.ts)
+4. Modifier les composants React pour afficher la nouvelle stat
+
+### Personnaliser l'apparence
+
+*   **Couleurs des barres** : Modifier les props `color` dans [`HUD.tsx`](mdc:src/components/HUD/HUD.tsx)
+*   **Styles CSS** : Modifier [`bar-menu.css`](mdc:src/components/HUD/bar-menu.css) et [`portrait.css`](mdc:src/components/HUD/portrait.css)
+*   **Portraits** : Ajouter des images dans `public/assets/characters/portrait/`
+
+## Assets requis
+
+*   **Portrait par défaut** : [`public/assets/characters/portrait/default-portrait.svg`](mdc:public/assets/characters/portrait/default-portrait.svg)
+*   **Portraits personnalisés** : Placer dans `public/assets/characters/portrait/`
+
+## Intégration dans le Game Manager
+
+Le HUD est initialisé dans [`src/managers/game.manager.ts`](mdc:src/managers/game.manager.ts) :
+
+```typescript
+import { hudManager } from "./hud.manager";
+
+// Dans la méthode init()
+hudManager.init();
+```
+
+Le système est entièrement intégré et réactif, se mettant à jour automatiquement quand les stats du joueur changent.
+
+# HUD System Integration Guide
+
+## Overview
+This guide documents the React-based HUD system integration with the Excalibur.js game engine, managed through the UI Manager for proper positioning and state management.
+
+## Architecture
+
+### Core Components
+
+#### HUD Manager ([hud.manager.ts](mdc:src/managers/hud.manager.ts))
+The `HUDManager` class bridges Excalibur.js and React components:
+
+**Key Methods:**
+- `init()` - Initializes React root and finds/creates container
+- `updateHP(current, max?)` - Updates health points with validation
+- `updateMP(current, max?)` - Updates mana points with validation  
+- `updateEnergy(current, max?)` - Updates energy with validation
+- `updateLevel(level)` - Updates player level
+- `updatePlayerName(name)` - Updates player name
+- `updatePortrait(portraitSrc)` - Updates portrait image
+- `showHUD()` / `hideHUD()` / `toggleHUD()` - Visibility controls
+- `getCurrentStats()` - Returns current player stats
+- `destroy()` - Cleanup method
+
+**Container Strategy:**
+```typescript
+// Uses existing #hud-container from UI manager, fallback to body
+this.container = document.getElementById('hud-container');
+if (!this.container) {
+  // Fallback creation logic
+}
+```
+
+#### UI Manager Integration ([ui.manager.ts](mdc:src/managers/ui.manager.ts))
+The `UIManager` now includes HUD management:
+
+**Integration Methods:**
+- `init_hud()` - Initializes HUD manager during UI setup
+- `showHUD()` / `hideHUD()` / `toggleHUD()` - Proxy methods to HUD manager
+- `update_state(state)` - Shows/hides HUD based on game state
+
+**Template Integration:**
+```html
+<!-- Added to playing template -->
+<div id="hud-container"></div>
+```
+
+**State Management:**
+```typescript
+update_state(state: SCENE_STATE) {
+  this.game_container.className = state;
+  
+  // Show HUD only when playing
+  if (state === SCENE_STATE.PLAYING) {
+    this.showHUD();
+  } else {
+    this.hideHUD();
+  }
+}
+```
+
+### React Components
+
+#### Main HUD Component ([HUD.tsx](mdc:src/components/HUD/HUD.tsx))
+```typescript
+interface PlayerStats {
+  hp: { current: number; max: number };
+  mp: { current: number; max: number };
+  energy: { current: number; max: number };
+  level: number;
+  name: string;
+  portraitSrc: string;
+}
+
+interface HUDProps {
+  playerStats: PlayerStats;
+  visible?: boolean;
+}
+```
+
+**Features:**
+- Low health detection and visual feedback
+- Responsive design with breakpoints
+- Accessibility support (high contrast, reduced motion)
+
+#### Bar Menu Component ([bar-menu.tsx](mdc:src/components/HUD/bar-menu.tsx))
+- Animated stat bars (HP, MP, Energy)
+- Smooth value transitions with visual feedback
+- Perfect text alignment (labels left, values right)
+- Tabular numbers for consistent spacing
+
+#### Portrait Component ([portrait.tsx](mdc:src/components/HUD/portrait.tsx))
+- Player portrait with level indicator
+- Fallback system for missing images
+- Error handling with first letter display
+
+## CSS Architecture
+
+### Positioning Strategy ([HUD.css](mdc:src/components/HUD/HUD.css))
+```css
+.hud-layout {
+  position: absolute; /* Relative to game container */
+  top: 16px;
+  left: 16px;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  pointer-events: none;
+  user-select: none;
+}
+```
+
+### Container Integration ([style.css](mdc:style.css))
+```css
+/* Playing state overrides centering */
+&.SCENE_STATE__PLAYING {
+  #ui {
+    display: flex;
+    background-color: transparent;
+    align-items: flex-start;      /* Override centering */
+    justify-content: flex-start;  /* Override centering */
+    
+    .playing {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      position: relative;         /* Positioning context */
+      
+      #hud-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1001;
+      }
+    }
+  }
+}
+```
+
+## Integration Patterns
+
+### Game Manager Setup ([game.manager.ts](mdc:src/managers/game.manager.ts))
+```typescript
+init() {
+  // ... other managers
+  uiManager.init(); // HUD initialized through UI manager
+}
+```
+
+### Player Actor Integration ([player.actor.ts](mdc:src/actors/player.actor.ts))
+```typescript
+// Update HUD when stats change
+modifyHP(amount: number) {
+  this.hp.current = Math.max(0, Math.min(this.hp.current + amount, this.hp.max));
+  hudManager.updateHP(this.hp.current, this.hp.max);
+}
+
+// Test controls
+onPreUpdate(engine: Engine, delta: number) {
+  if (engine.input.keyboard.wasPressed(Keys.Digit1)) {
+    this.modifyHP(-10); // Test damage
+  }
+  if (engine.input.keyboard.wasPressed(Keys.KeyH)) {
+    hudManager.toggleHUD(); // Toggle visibility
+  }
+}
+```
+
+## Positioning Logic
+
+### Layout Hierarchy
+1. **Game Container** (`#game`) - Centers game in viewport
+2. **UI Container** (`#ui`) - Overlay for all UI elements
+3. **Playing Container** (`.playing`) - Game state specific container
+4. **HUD Container** (`#hud-container`) - React mounting point
+5. **HUD Layout** (`.hud-layout`) - Final positioning
+
+### Corner Strategy
+- **Top-left**: HUD (Portrait + Bars)
+- **Top-right**: Menu icon
+- **Bottom-center**: Tools (when visible)
+
+## Responsive Design
+
+### Breakpoints
+```css
+@media (max-width: 768px) {
+  .hud-layout {
+    top: 12px;
+    left: 12px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hud-layout {
+    gap: 4px;
+  }
+}
+```
+
+## State Management
+
+### BehaviourSubject Pattern
+```typescript
+private playerStats: BehaviourSubject<PlayerStats>;
+private hudVisible: BehaviourSubject<boolean>;
+
+// Reactive updates
+this.playerStats.subscribe(() => this.render());
+this.hudVisible.subscribe(() => this.render());
+```
+
+### Validation
+```typescript
+updateHP(current: number, max?: number) {
+  const stats = this.playerStats.current();
+  stats.hp.current = Math.max(0, Math.min(current, stats.hp.max));
+  if (max !== undefined) {
+    stats.hp.max = Math.max(1, max);
+  }
+  this.playerStats.next(stats);
+}
+```
+
+## Animation System
+
+### Value Change Effects
+- Brightness and scale changes on stat updates
+- Smooth transitions with cubic-bezier easing
+- Animated number counting over 300ms
+- Visual feedback for gains/losses
+
+### CSS Transitions
+```css
+.stat-bar {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.value-change {
+  animation: valueChange 0.3s ease-out;
+}
+```
+
+## Best Practices
+
+### Performance
+- Use `pointer-events: none` for non-interactive elements
+- Minimize re-renders with proper state management
+- Use absolute positioning to avoid layout thrashing
+
+### Accessibility
+- High contrast support
+- Reduced motion preferences
+- Semantic HTML structure
+- Proper ARIA labels
+
+### Error Handling
+- Fallback portrait system
+- Graceful degradation for missing assets
+- Container existence checks
+
+### Testing
+- Number key controls (1-5) for stat changes
+- H key for HUD toggle
+- Responsive design testing at different breakpoints
+
+## Common Issues & Solutions
+
+### Centering Problems
+**Issue**: HUD appears centered instead of top-left
+**Solution**: Override `align-items` and `justify-content` in playing state
+
+### Container Not Found
+**Issue**: `#hud-container` not available during initialization
+**Solution**: Fallback container creation in HUD manager
+
+### Z-Index Conflicts
+**Issue**: HUD appears behind other UI elements
+**Solution**: Use `z-index: 1001` for HUD container
+
+### Positioning Context
+**Issue**: Absolute positioning relative to wrong parent
+**Solution**: Ensure parent containers have `position: relative`

@@ -1,0 +1,376 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# UI Manager Integration Patterns
+
+## Overview
+This guide documents how to integrate new UI components with the existing UI Manager system, following the patterns established by the HUD integration.
+
+## UI Manager Architecture ([ui.manager.ts](mdc:src/managers/ui.manager.ts))
+
+### Core Structure
+```typescript
+class UIManager {
+  // Container references
+  game_container: any;
+  tools_container: any;
+  dialog_container: any;
+  menu_items_container: any;
+  
+  // State management
+  menu_opened = false;
+  current_menu_item = -1;
+  
+  init() {
+    // Template creation
+    this.create_template_*();
+    // Reference linking
+    this.link_template_references();
+    // Component initialization
+    this.init_*();
+  }
+}
+```
+
+### Integration Pattern for New Components
+
+#### 1. Template Creation
+Add template creation method:
+```typescript
+private create_template_[component]() {
+  const container = document.getElementById('[container-id]');
+  container.innerHTML = `
+    <div id="[component]-container"></div>
+  `;
+}
+```
+
+#### 2. Reference Linking
+Add to `link_template_references()`:
+```typescript
+this.[component]_container = document.getElementById('[component]-container');
+```
+
+#### 3. Component Initialization
+Add initialization method:
+```typescript
+private init_[component]() {
+  [componentManager].init();
+}
+```
+
+#### 4. State Management Integration
+Add to `update_state()`:
+```typescript
+update_state(state: SCENE_STATE) {
+  this.game_container.className = state;
+  
+  // Component visibility based on state
+  if (state === SCENE_STATE.[TARGET_STATE]) {
+    this.show[Component]();
+  } else {
+    this.hide[Component]();
+  }
+}
+```
+
+## CSS Integration Patterns ([style.css](mdc:style.css))
+
+### State-Based Styling
+```css
+&.SCENE_STATE__[STATE] {
+  #ui {
+    /* State-specific UI container styles */
+    
+    .[state-class] {
+      /* State-specific content styles */
+      
+      #[component]-container {
+        position: absolute;
+        /* Component positioning */
+        pointer-events: none;
+        z-index: [appropriate-level];
+      }
+    }
+  }
+}
+```
+
+### Container Hierarchy
+1. `#game` - Main game container
+2. `#ui` - UI overlay container
+3. `.[state-class]` - State-specific container
+4. `#[component]-container` - Component mounting point
+
+### Z-Index Management
+- **Base UI**: 1000
+- **HUD**: 1001
+- **Dialogs**: 1002
+- **Menus**: 1003
+- **Modals**: 1004
+
+## Manager Integration Patterns
+
+### Component Manager Structure
+```typescript
+class [Component]Manager {
+  private container: HTMLElement | null = null;
+  private visible: BehaviourSubject<boolean>;
+  
+  constructor() {
+    this.visible = new BehaviourSubject<boolean>(false);
+  }
+  
+  init() {
+    // Find container from UI manager
+    this.container = document.getElementById('[component]-container');
+    
+    if (!this.container) {
+      // Fallback creation
+      this.createFallbackContainer();
+    }
+    
+    // Setup component
+    this.setupComponent();
+  }
+  
+  show() {
+    this.visible.next(true);
+  }
+  
+  hide() {
+    this.visible.next(false);
+  }
+  
+  toggle() {
+    this.visible.next(!this.visible.current());
+  }
+  
+  destroy() {
+    // Cleanup logic
+  }
+}
+```
+
+### Game Manager Integration ([game.manager.ts](mdc:src/managers/game.manager.ts))
+```typescript
+init() {
+  // Initialize managers in order
+  dataManager.init();
+  audioManager.init();
+  assetManager.init();
+  levelManager.init();
+  dialogManager.init();
+  textManager.init();
+  
+  uiManager.init(); // UI manager initializes all UI components
+}
+```
+
+## React Component Integration
+
+### Component Structure
+```typescript
+interface [Component]Props {
+  data: [ComponentData];
+  visible?: boolean;
+}
+
+const [Component]: React.FC<[Component]Props> = ({ data, visible = true }) => {
+  if (!visible) return null;
+  
+  return (
+    <div className="[component]-layout">
+      {/* Component content */}
+    </div>
+  );
+};
+```
+
+### CSS Module Pattern
+```css
+/* [Component].css */
+.[component]-layout {
+  position: absolute;
+  /* Positioning relative to container */
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .[component]-layout {
+    /* Mobile adjustments */
+  }
+}
+```
+
+## State Management Patterns
+
+### BehaviourSubject Usage
+```typescript
+private componentData: BehaviourSubject<[ComponentData]>;
+private componentVisible: BehaviourSubject<boolean>;
+
+// Reactive updates
+this.componentData.subscribe(() => this.render());
+this.componentVisible.subscribe(() => this.render());
+```
+
+### Validation Patterns
+```typescript
+updateData(newData: Partial<[ComponentData]>) {
+  const current = this.componentData.current();
+  
+  // Validate and merge data
+  const validated = {
+    ...current,
+    ...this.validateData(newData)
+  };
+  
+  this.componentData.next(validated);
+}
+
+private validateData(data: Partial<[ComponentData]>): Partial<[ComponentData]> {
+  // Validation logic
+  return data;
+}
+```
+
+## Event Integration Patterns
+
+### Event Bus Usage
+```typescript
+// In game manager init
+eventBus.on('[COMPONENT]_EVENT', (data: any) => {
+  [componentManager].handleEvent(data);
+});
+
+// In component manager
+handleEvent(data: any) {
+  // Process event
+  this.updateData(data);
+}
+```
+
+### Player Actor Integration
+```typescript
+// In player actor
+onPreUpdate(engine: Engine, delta: number) {
+  if (engine.input.keyboard.wasPressed(Keys.[KEY])) {
+    [componentManager].toggle();
+  }
+  
+  // Update component with player data
+  if (this.statsChanged) {
+    [componentManager].updateStats(this.getStats());
+  }
+}
+```
+
+## Best Practices
+
+### Performance
+- Use `pointer-events: none` for non-interactive overlays
+- Minimize DOM queries with cached references
+- Use absolute positioning to avoid layout recalculation
+- Implement proper cleanup in destroy methods
+
+### Accessibility
+- Provide keyboard navigation
+- Support screen readers with proper ARIA labels
+- Respect user preferences (reduced motion, high contrast)
+- Ensure proper focus management
+
+### Error Handling
+- Always provide fallback container creation
+- Graceful degradation for missing assets
+- Validate all input data
+- Handle edge cases in state transitions
+
+### Testing
+- Provide keyboard shortcuts for testing
+- Test all state transitions
+- Verify responsive behavior
+- Test with different screen sizes
+
+## Common Patterns
+
+### Conditional Rendering
+```typescript
+render() {
+  if (!this.root || !this.visible.current()) return;
+  
+  const element = React.createElement([Component], {
+    data: this.componentData.current(),
+    visible: this.visible.current()
+  });
+  
+  this.root.render(element);
+}
+```
+
+### Container Management
+```typescript
+private ensureContainer(): HTMLElement {
+  if (!this.container) {
+    this.container = document.getElementById('[component]-container');
+    
+    if (!this.container) {
+      this.container = this.createFallbackContainer();
+    }
+  }
+  
+  return this.container;
+}
+```
+
+### State Synchronization
+```typescript
+syncWithGameState(gameState: SCENE_STATE) {
+  switch (gameState) {
+    case SCENE_STATE.PLAYING:
+      this.show();
+      break;
+    case SCENE_STATE.MENU:
+      this.hide();
+      break;
+    default:
+      this.hide();
+  }
+}
+```
+
+## Integration Checklist
+
+### Manager Setup
+- [ ] Create component manager class
+- [ ] Implement init(), show(), hide(), toggle() methods
+- [ ] Add to UI manager initialization
+- [ ] Export manager instance
+
+### Template Integration
+- [ ] Add template creation method
+- [ ] Add container to appropriate game state
+- [ ] Link container reference
+- [ ] Add CSS styling
+
+### State Management
+- [ ] Add visibility control to update_state()
+- [ ] Implement proper z-index layering
+- [ ] Handle responsive design
+- [ ] Test state transitions
+
+### Component Development
+- [ ] Create React component
+- [ ] Implement proper TypeScript interfaces
+- [ ] Add CSS module
+- [ ] Handle error states
+
+### Testing
+- [ ] Add keyboard shortcuts
+- [ ] Test all game states
+- [ ] Verify positioning
+- [ ] Test responsive behavior

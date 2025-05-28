@@ -3,6 +3,7 @@ export enum NPC_TYPE {
   COW = "COW",
   CHICKEN = "CHICKEN",
   GUARD = "GUARD",
+  ORC = "ORC",
 }
 export enum PLAYER_STATE {
   IDLE = "IDLE",
@@ -54,6 +55,7 @@ export enum TILED_OBJECT {
   SCENE_AREA = "scene_area",
   PLAYER = "player",
   GUARD = "guard",
+  ORCS = "orcs",
 }
 
 export enum TILED_OBJECT_PROPS {
@@ -70,6 +72,7 @@ export enum MAPS {
   INDOOR_PLAYER_HOUSE = "indoor_player_house",
   INDOOR_FIXED_HOUSE = "indoor_fixed_house",
   INDOOR_WORKOHOLIC_HOUSE = "indoor_workoholic_house",
+  MY_OWN_LEVEL = "my_own_level",
 }
 
 export enum SONGS {

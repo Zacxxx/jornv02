@@ -1,0 +1,57 @@
+---
+description: This is helpful to understand the general structure of the engine we're using
+globs: 
+alwaysApply: false
+---
+# Project Structure Guide
+
+This document outlines the general structure of the codebase.
+
+## Entry Point
+
+The main entry point for the application is [`main.ts`](mdc:src/main.ts). This file imports and initializes the `gameManager` from `src/managers/game.manager.ts`, which effectively starts the game.
+
+## Core Directories
+
+*   **`src/actors`**: Contains all game character and interactive element definitions.
+    *   [`player.actor.ts`](mdc:src/actors/player.actor.ts): Defines the `Player` class, which extends Excalibur's `Actor`. It handles player movement, animations based on state (idle, walking, using tools), collision detection, and interaction with game elements like NPCs and scene areas. It manages player state (`PLAYER_STATE`) and current tool. It uses an `eventBus` for communication, for example, to notify the UI about tool switches. Animations are loaded from sprite sheets defined in `assetManager`.
+    *   `src/actors/NPC/`: Contains definitions for Non-Player Characters.
+        *   [`cow.actor.ts`](mdc:src/actors/NPC/cow.actor.ts): Defines the `Cow` NPC, likely with specific behaviors and dialogues.
+        *   [`chicken.actor.ts`](mdc:src/actors/NPC/chicken.actor.ts): Defines the `Chicken` NPC, also with specific behaviors and dialogues.
+    *   `src/actors/Areas/`: Contains definitions for special interactive areas.
+        *   [`scene-area.actor.ts`](mdc:src/actors/Areas/scene-area.actor.ts): Defines `SceneArea` actors, which are triggers for transitioning between different game scenes (maps).
+*   **`src/managers`**: Houses various manager classes responsible for different aspects of the game. These are typically singleton instances.
+    *   [`game.manager.ts`](mdc:src/managers/game.manager.ts): The central `GameManager` class orchestrates the overall game flow. It initializes all other managers, manages game states (`GAME_STATES`) and scene states (`SCENE_STATE`) using `Subject` (an observable pattern implementation from `src/utils.ts`). It handles transitions between game scenes (maps) and initiates dialogues with NPCs. It also creates and exports an `eventBus` instance for global event communication. The Excalibur `Engine` instance is created and managed here.
+    *   [`level.manager.ts`](mdc:src/managers/level.manager.ts): The `LevelManager` is responsible for defining, loading, and managing game levels (scenes). It holds a configuration array (`levels_config`) which specifies properties for each level, such as its name, associated Tiled map (`MAPS` enum), background song (`SONGS` enum), and dialogues. On initialization, it creates `Level` instances (from `src/scenes/level.scene.ts`) based on this configuration and adds them to the Excalibur game engine. It also provides a `reset_levels` method to reset the state of all loaded levels.
+    *   [`ui.manager.ts`](mdc:src/managers/ui.manager.ts): The `UIManager` controls all aspects of the game's user interface. It dynamically creates and manages HTML elements for different game views like the main menu, game slots, in-game HUD (tools, menu icon), dialogue boxes, and settings. It updates the UI based on game state changes (e.g., `SCENE_STATE.PLAYING`, `SCENE_STATE.TALKING`, `SCENE_STATE.MENU`) and player actions (e.g., tool selection). It handles UI interactions like button clicks for starting games, managing save slots, toggling settings (music, language), and navigating in-game menus. It uses `textManager` for displaying localized text.
+    *   [`asset.manager.ts`](mdc:src/managers/asset.manager.ts): The `AssetManager` handles the loading of all game assets. It defines paths to images (character sprites, NPC sprites), sounds (music tracks), and Tiled maps (`.tmx` files). It uses Excalibur's `Loader` to load these resources. Assets are organized into categories (`images`, `sounds`, `maps`) for easy access by other managers and game components. For instance, `player.actor.ts` and `level.scene.ts` access character/NPC sprites and Tiled maps through this manager.
+    *   [`audio.manager.ts`](mdc:src/managers/audio.manager.ts): The `AudioManager` is responsible for controlling background music. It can play specific songs (defined in `SONGS` enum and loaded by `assetManager`), stop music, and toggle mute functionality. The mute preference is loaded from and saved by `dataManager`. The volume of the music is adjusted based on the mute state.
+    *   [`data.manager.ts`](mdc:src/managers/data.manager.ts): The `DataManager` manages game data persistence using `localStorage`. It handles save slots, storing information like the current map (`current_map`) and timestamp (`ts`) for each slot. It also stores global game preferences, such as language (`lang` from `LANGUAGES` enum) and mute status (`mute`). It provides methods to initialize data (loading from `localStorage` or creating default data), save data, set the active slot, update the current map, and change preferences. Other managers like `audioManager` and `textManager` use it to retrieve and store preferences.
+    *   [`dialog.manager.ts`](mdc:src/managers/dialog.manager.ts): The `DialogManager` controls the flow of dialogues in the game. It can start a dialogue sequence based on a `dialog_id` (often associated with an NPC type and a specific interaction trigger from a Tiled map object property). It retrieves dialogue content, which can be defined within `level.manager.ts` (in `levels_config`) or from a set of `default_dialogs`. It manages the progression of dialogue lines, displaying them one by one via `uiManager`, and signals `gameManager` when a dialogue sequence ends. The `get_dialog_id` utility function helps extract dialog IDs from Tiled map object properties.
+    *   [`text.manager.ts`](mdc:src/managers/text.manager.ts): The `TextManager` handles text localization. It stores a dictionary of text strings (`texts`) organized by view (e.g., `main_menu`, `in_game`, `credits`) and key. Each text key has translations for supported languages (e.g., `en` for English, `es` for Spanish, as defined in `LANGUAGES` enum). It provides a `text(view, key)` method that returns the appropriate localized string based on the current language preference stored in `dataManager`. `UIManager` uses this manager extensively to display all user-facing text.
+*   **`src/scenes`**: Contains scene definitions for the game, which are built using the Excalibur engine's `Scene` class.
+    *   [`level.scene.ts`](mdc:src/scenes/level.scene.ts): Defines the `Level` class, a blueprint for game scenes. It initializes the Tiled map, creates actors (Player, NPCs, SceneAreas) based on object layers in the Tiled map data, sets up the camera, and manages scene-specific logic like dialogues and music. Each instance of `Level` represents a specific map (e.g., farm, town).
+*   **`src/models.ts`**: [`models.ts`](mdc:src/models.ts) defines various constants and enums used throughout the application. This includes:
+    *   `PLAYER_TOOLS`: An array of tools available to the player.
+    *   `NPC_TYPE`: Enum for different types of NPCs (e.g., `COW`, `CHICKEN`).
+    *   `PLAYER_STATE`: Enum for player states (e.g., `IDLE`, `TALKING`, `IN_ACTION`).
+    *   `GAME_STATES`: Enum for overall game states (e.g., `LOADING`, `PLAYING`, `COMPLETED`).
+    *   `MENU`: Enum for menu options.
+    *   `SCENE_STATE`: Enum for states within a scene (e.g., `PLAYING`, `TALKING`, `MENU`).
+    *   `SCENE_EVENTS`: Enum for game events, used with the `eventBus`.
+    *   `TILED_LAYERS`: Enum for names of layers in Tiled maps (e.g., `WATER`, `GROUND`).
+    *   `ACTOR_TYPE`: Enum for types of actors (e.g., `NPC`, `SCENE_NEXT`).
+    *   `TILED_OBJECT`: Enum for names of object types in Tiled maps (e.g., `CHICKEN`, `PLAYER`, `SCENE_AREA`).
+    *   `TILED_OBJECT_PROPS`: Enum for custom properties of Tiled objects (e.g., `scene`, `dialog_id`).
+    *   `MAPS`: Enum for different map identifiers (e.g., `FARM`, `TOWN`).
+    *   `SONGS`: Enum for background music tracks.
+    *   `LANGUAGES`: Enum for supported languages.
+*   **`src/utils.ts`**: [`utils.ts`](mdc:src/utils.ts) contains utility classes, specifically `Subject` and `BehaviourSubject`. These implement the observer pattern, allowing for reactive state management where parts of the application can subscribe to changes in state. `gameManager` uses `Subject` to manage `game_state` and `scene_state`.
+
+## Other Files
+
+*   [`vite-env.d.ts`](mdc:src/vite-env.d.ts): TypeScript declaration file for Vite specific environment variables.
+
+
+
+

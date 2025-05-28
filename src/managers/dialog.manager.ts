@@ -20,6 +20,17 @@ const default_dialogs = [
       },
     ],
   },
+  {
+    id: `${NPC_TYPE.ORC}_DEFAULT`,
+    dialogues: [
+      {
+        text: "Grrr... what you want?",
+      },
+      {
+        text: "Me busy!",
+      },
+    ],
+  },
 ];
 export function get_dialog_id(arr: any) {
   let dialog_type = arr.properties.find(

@@ -23,7 +23,6 @@ import {
 
 import { uiManager } from "../managers/ui.manager";
 import { SceneArea } from "./Areas/scene-area.actor";
-import { hudManager } from "../managers/hud.manager";
 
 const ANIM = {
   IDLE_FRONT: "IDLE_FRONT",
@@ -220,14 +219,6 @@ export class Player extends Actor {
     "axe" || "wateringcan" || "axe" || "pickaxe" || "shovel" || "";
 
   public player_state!: PLAYER_STATE;
-  
-  // Stats du joueur
-  public hp = { current: 100, max: 100 };
-  public mp = { current: 50, max: 50 };
-  public energy = { current: 75, max: 100 };
-  public level = 1;
-  public playerName = "Player";
-
   constructor({ x, y, map_bounds }: any) {
     super({
       name: "Player",
@@ -249,42 +240,7 @@ export class Player extends Actor {
   onInitialize(): void {
     this.set_animations();
     this.set_anim(ANIM.IDLE_FRONT);
-    
-    // Initialiser le HUD avec les stats du joueur
-    this.updateHUD();
   }
-  
-  // Méthode pour mettre à jour le HUD
-  private updateHUD() {
-    hudManager.updateHP(this.hp.current, this.hp.max);
-    hudManager.updateMP(this.mp.current, this.mp.max);
-    hudManager.updateEnergy(this.energy.current, this.energy.max);
-    hudManager.updateLevel(this.level);
-    hudManager.updatePlayerName(this.playerName);
-    hudManager.updatePortrait("/assets/characters/portrait/default-portrait.png");
-  }
-
-  // Méthodes pour modifier les stats
-  public modifyHP(amount: number) {
-    this.hp.current = Math.max(0, Math.min(this.hp.current + amount, this.hp.max));
-    hudManager.updateHP(this.hp.current, this.hp.max);
-  }
-
-  public modifyMP(amount: number) {
-    this.mp.current = Math.max(0, Math.min(this.mp.current + amount, this.mp.max));
-    hudManager.updateMP(this.mp.current, this.mp.max);
-  }
-
-  public modifyEnergy(amount: number) {
-    this.energy.current = Math.max(0, Math.min(this.energy.current + amount, this.energy.max));
-    hudManager.updateEnergy(this.energy.current, this.energy.max);
-  }
-
-  public levelUp() {
-    this.level++;
-    hudManager.updateLevel(this.level);
-  }
-
   onPreUpdate(engine: Engine): void {
     const keyboard = engine.input.keyboard;
 
@@ -296,26 +252,6 @@ export class Player extends Actor {
       keyboard.wasReleased(Input.Keys.E) ||
       keyboard.wasReleased(Input.Keys.T) ||
       keyboard.wasReleased(Input.Keys.F);
-
-    // Touches de test pour le HUD (à supprimer en production)
-    if (keyboard.wasPressed(Input.Keys.Digit1)) {
-      this.modifyHP(-10); // Perdre 10 HP
-    }
-    if (keyboard.wasPressed(Input.Keys.Digit2)) {
-      this.modifyHP(10); // Gagner 10 HP
-    }
-    if (keyboard.wasPressed(Input.Keys.Digit3)) {
-      this.modifyMP(-5); // Perdre 5 MP
-    }
-    if (keyboard.wasPressed(Input.Keys.Digit4)) {
-      this.modifyMP(5); // Gagner 5 MP
-    }
-    if (keyboard.wasPressed(Input.Keys.Digit5)) {
-      this.levelUp(); // Level up
-    }
-    if (keyboard.wasPressed(Input.Keys.H)) {
-      hudManager.toggleHUD(); // Toggle HUD visibility
-    }
 
     this.vel.x = 0;
     this.vel.y = 0;
@@ -559,12 +495,6 @@ export class Player extends Actor {
       this.vel = this.vel.normalize();
       this.vel.x = this.vel.x * WALKING_SPEED;
       this.vel.y = this.vel.y * WALKING_SPEED;
-      
-      // Consommation d'énergie lors du mouvement (très lente)
-      if (Math.random() < 0.01) { // 1% de chance par frame de perdre de l'énergie
-        this.modifyEnergy(-1);
-      }
-      
       switch (this.facing) {
         case FACING.LEFT:
           this.graphics.use(ANIM.WALK_LEFT);
@@ -580,11 +510,6 @@ export class Player extends Actor {
           break;
       }
     } else {
-      // Régénération lente d'énergie quand on ne bouge pas
-      if (Math.random() < 0.005) { // 0.5% de chance par frame de récupérer de l'énergie
-        this.modifyEnergy(1);
-      }
-      
       switch (this.facing) {
         case FACING.LEFT:
           this.graphics.use(ANIM.IDLE_LEFT);

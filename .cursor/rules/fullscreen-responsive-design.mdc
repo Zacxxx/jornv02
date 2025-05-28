@@ -1,0 +1,188 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Fullscreen Responsive Game Design
+
+This rule documents the comprehensive implementation of fullscreen responsive design for the tile-based game engine, including canvas scaling, HUD positioning, and optimal zoom experience.
+
+## Core Implementation Files
+
+### Game Manager Canvas Sizing
+[game.manager.ts](mdc:src/managers/game.manager.ts) - Main canvas sizing and resize handling
+
+### HUD Components
+[HUD.css](mdc:src/components/HUD/HUD.css) - Responsive HUD positioning and scaling
+[hud.manager.ts](mdc:src/managers/hud.manager.ts) - HUD container management
+
+### UI Styling
+[style.css](mdc:style.css) - Global responsive styles and component positioning
+
+## Key Design Principles
+
+### 1. Dynamic Canvas Sizing
+- **Aspect Ratio Preservation**: Maintains 3:2 ratio (600:400 base) for consistent gameplay
+- **Viewport Adaptation**: Uses 80% of viewport (accounting for 10% padding)
+- **Minimum Size Enforcement**: Ensures 600x400 minimum for playability
+- **Responsive Scaling**: Automatically adjusts to window resize events
+
+```typescript
+// Calculate optimal game size based on viewport
+const getGameDimensions = () => {
+  const viewportWidth = window.innerWidth * 0.8;
+  const viewportHeight = window.innerHeight * 0.8;
+  
+  const aspectRatio = 3 / 2;
+  let gameWidth = viewportWidth;
+  let gameHeight = viewportWidth / aspectRatio;
+  
+  if (gameHeight > viewportHeight) {
+    gameHeight = viewportHeight;
+    gameWidth = viewportHeight * aspectRatio;
+  }
+  
+  const minWidth = 600;
+  const minHeight = 400;
+  
+  gameWidth = Math.max(gameWidth, minWidth);
+  gameHeight = Math.max(gameHeight, minHeight);
+  
+  return { width: Math.floor(gameWidth), height: Math.floor(gameHeight) };
+};
+```
+
+### 2. Responsive HUD Positioning
+- **Percentage-Based Positioning**: Uses viewport percentages instead of fixed pixels
+- **Dynamic Scaling**: CSS calc() functions for responsive scaling based on viewport size
+- **Transform Origin**: Proper scaling from top-left corner
+- **Multi-Breakpoint Support**: Different scaling factors for various screen sizes
+
+```css
+.hud-layout {
+  position: absolute;
+  top: 1.5%;
+  left: 1.5%;
+  gap: 0.8%;
+  transform-origin: top left;
+  transform: scale(calc(0.8 + 0.4 * min(100vw / 1920px, 100vh / 1080px)));
+}
+```
+
+### 3. UI Component Scaling
+- **Clamp Functions**: Use CSS clamp() for responsive sizing with min/max bounds
+- **Viewport Units**: vw/vh units for proportional scaling
+- **Container Queries**: Media queries for different screen sizes
+
+```css
+width: clamp(28px, 3vw, 40px);
+height: clamp(28px, 3vw, 40px);
+```
+
+## Implementation Details
+
+### Canvas Resize Handling
+- **Debounced Resize**: 250ms timeout to prevent excessive resize events
+- **Engine Updates**: Updates both canvas and engine screen dimensions
+- **Camera Refresh**: Triggers camera update for proper rendering
+
+### HUD Container Management
+- **Absolute Positioning**: Ensures HUD overlays game canvas properly
+- **Pointer Events**: Disabled to prevent interference with game interaction
+- **Z-Index Management**: Proper layering (HUD: 1001, UI: 1000)
+
+### Responsive Breakpoints
+- **Desktop**: 1920px+ (full scaling)
+- **Large Tablet**: 1200px (reduced scaling)
+- **Tablet**: 768px (mobile-optimized)
+- **Mobile**: 480px (minimal scaling)
+- **High DPI**: Special handling for retina displays
+
+## Zoom Experience Optimization
+
+### For 200% Browser Zoom
+- **Pixelated Rendering**: Maintains crisp pixel art appearance
+- **Transform Origin**: Center-based scaling for smooth zoom
+- **Transition Effects**: Smooth scaling transitions
+- **Image Rendering**: Optimized for pixel art games
+
+```css
+#main-canvas {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  transform-origin: center;
+  transition: transform 0.1s ease-out;
+}
+```
+
+## Performance Considerations
+
+### Resize Optimization
+- **Debouncing**: Prevents excessive resize calculations
+- **RAF Integration**: Uses requestAnimationFrame for smooth updates
+- **Minimal DOM Manipulation**: Efficient style updates
+
+### Memory Management
+- **Timeout Cleanup**: Proper cleanup of resize timeouts
+- **Event Listener Management**: Proper event listener lifecycle
+
+## Testing Guidelines
+
+### Responsive Testing
+1. **Multiple Screen Sizes**: Test on various viewport dimensions
+2. **Zoom Levels**: Verify 50%-300% browser zoom functionality
+3. **Device Rotation**: Test landscape/portrait orientation changes
+4. **High DPI Displays**: Verify retina display compatibility
+
+### Performance Testing
+1. **Resize Performance**: Monitor FPS during window resize
+2. **Memory Usage**: Check for memory leaks during resize events
+3. **Rendering Quality**: Verify pixel-perfect rendering at all scales
+
+## Common Issues and Solutions
+
+### HUD Positioning Problems
+- **Issue**: HUD elements not scaling properly
+- **Solution**: Use percentage-based positioning with transform scaling
+
+### Canvas Sizing Issues
+- **Issue**: Canvas not filling available space
+- **Solution**: Implement dynamic dimension calculation with proper aspect ratio
+
+### Performance Issues
+- **Issue**: Lag during window resize
+- **Solution**: Implement debounced resize handling with RAF
+
+## Future Enhancements
+
+### Adaptive Quality
+- **Dynamic Resolution**: Adjust canvas resolution based on performance
+- **Quality Settings**: User-configurable quality levels
+- **Performance Monitoring**: Automatic quality adjustment
+
+### Advanced Scaling
+- **Non-Uniform Scaling**: Different scaling for UI vs game elements
+- **Density-Aware Scaling**: Automatic scaling based on display density
+- **Accessibility Scaling**: Enhanced scaling for accessibility needs
+
+## Usage Examples
+
+### Adding New UI Elements
+```typescript
+// Use responsive positioning
+element.style.top = '2%';
+element.style.right = '2%';
+element.style.width = 'clamp(24px, 2.5vw, 36px)';
+```
+
+### Handling Custom Resize Logic
+```typescript
+private handleCustomResize() {
+  const { width, height } = getGameDimensions();
+  // Custom resize logic here
+  this.updateCustomElements(width, height);
+}
+```
+
+This implementation provides a robust foundation for fullscreen responsive gaming experiences while maintaining optimal performance and visual quality across all devices and zoom levels.

@@ -19,23 +19,26 @@ export class Subject {
     return { unsubscribe };
   }
 }
-export class BehaviourSubject {
-  value: any;
-  subscribers = new Set();
 
-  constructor(initial_value: any) {
+export class BehaviourSubject<T> {
+  value: T;
+  subscribers = new Set<(value: T, prev?: T) => void>();
+
+  constructor(initial_value: T) {
     this.value = initial_value;
   }
 
-  current() {
+  current(): T {
     return this.value;
   }
-  next(new_value: any) {
+  
+  next(new_value: T) {
     const prev = this.value;
     this.value = new_value;
-    this.subscribers.forEach((cb: any) => cb(this.value, prev));
+    this.subscribers.forEach((cb) => cb(this.value, prev));
   }
-  subscribe(callback: any) {
+  
+  subscribe(callback: (value: T, prev?: T) => void) {
     this.subscribers.add(callback);
     callback(this.value);
     const unsubscribe = () => {

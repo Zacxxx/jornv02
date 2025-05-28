@@ -20,17 +20,56 @@ import { Cow } from "../actors/NPC/cow.actor";
 import { dataManager } from "./data.manager";
 import { textManager } from "./text.manager";
 
+
 class GameManager {
   game!: Engine;
   game_state!: Subject;
   scene_state!: Subject;
 
   player!: Player;
+  private resizeTimeout: number | null = null;
 
   constructor(engine: Engine) {
     this.game = engine;
     this.game_state = new Subject();
     this.scene_state = new Subject();
+    
+    // Add window resize handler
+    this.setupResizeHandler();
+  }
+  
+  private setupResizeHandler() {
+    window.addEventListener('resize', () => {
+      // Debounce resize events
+      if (this.resizeTimeout) {
+        clearTimeout(this.resizeTimeout);
+      }
+      
+      this.resizeTimeout = window.setTimeout(() => {
+        this.handleResize();
+      }, 250);
+    });
+  }
+  
+  private handleResize() {
+    const { width, height } = getGameDimensions();
+    
+    // Update canvas size
+    if (this.game.canvas) {
+      this.game.canvas.width = width;
+      this.game.canvas.height = height;
+      this.game.canvas.style.width = `${width}px`;
+      this.game.canvas.style.height = `${height}px`;
+    }
+    
+    // Update engine screen dimensions
+    if (this.game.screen) {
+      this.game.screen.resolution = { width, height };
+      this.game.screen.viewport = { width, height };
+    }
+    
+    // Trigger a re-render
+    this.game.currentScene?.camera.update(this.game, 0);
   }
   init() {
     dataManager.init();
@@ -153,9 +192,38 @@ class EventBus {
   }
 }
 
+// Calculate optimal game size based on viewport
+const getGameDimensions = () => {
+  const viewportWidth = window.innerWidth * 0.8; // 80% of viewport (accounting for 10% padding on each side)
+  const viewportHeight = window.innerHeight * 0.8;
+  
+  // Maintain 3:2 aspect ratio (600:400 = 3:2)
+  const aspectRatio = 3 / 2;
+  
+  let gameWidth = viewportWidth;
+  let gameHeight = viewportWidth / aspectRatio;
+  
+  // If height exceeds viewport, scale based on height instead
+  if (gameHeight > viewportHeight) {
+    gameHeight = viewportHeight;
+    gameWidth = viewportHeight * aspectRatio;
+  }
+  
+  // Ensure minimum size for playability
+  const minWidth = 600;
+  const minHeight = 400;
+  
+  gameWidth = Math.max(gameWidth, minWidth);
+  gameHeight = Math.max(gameHeight, minHeight);
+  
+  return { width: Math.floor(gameWidth), height: Math.floor(gameHeight) };
+};
+
+const { width, height } = getGameDimensions();
+
 const options: EngineOptions = {
-  width: 600,
-  height: 400,
+  width,
+  height,
   canvasElementId: "main-canvas",
   backgroundColor: Color.Transparent,
   suppressConsoleBootMessage: true,
@@ -166,4 +234,4 @@ const game = new Engine(options);
 // const devtool = new DevTool(game);
 const gameManager = new GameManager(game);
 const eventBus = new EventBus();
-export { gameManager, eventBus };
+export { gameManager, eventBus, getGameDimensions };

@@ -1,0 +1,401 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UI Component Positioning System
+
+This rule documents the comprehensive UI component positioning system that ensures consistent, responsive layout across all screen sizes and zoom levels.
+
+## Core Positioning Files
+
+### Main Stylesheet
+[style.css](mdc:style.css) - Global positioning and responsive styles
+
+### UI Manager
+[ui.manager.ts](mdc:src/managers/ui.manager.ts) - Component initialization and management
+
+## Positioning Philosophy
+
+### Modern CSS Approach
+- **Percentage-Based Positioning**: Viewport-relative positioning for consistency
+- **Clamp Functions**: Responsive sizing with min/max constraints
+- **CSS Custom Properties**: Maintainable and reusable values
+- **Transform Scaling**: Smooth scaling without layout reflow
+
+### Responsive Design Principles
+- **Mobile-First**: Base styles optimized for smallest screens
+- **Progressive Enhancement**: Enhanced features for larger screens
+- **Fluid Scaling**: Smooth transitions between breakpoints
+- **Accessibility**: Maintains usability across all zoom levels
+
+## Component Categories
+
+### 1. Game UI Buttons (Top-Right Corner)
+```css
+/* Character Panel Button */
+#character_panel_icon {
+  position: absolute;
+  top: 1.5%;
+  right: 6%;
+  width: clamp(28px, 3vw, 40px);
+  height: clamp(28px, 3vw, 40px);
+}
+
+/* Menu Button */
+#menu_icon {
+  position: absolute;
+  top: 1.5%;
+  right: 1.5%;
+  width: clamp(28px, 3vw, 40px);
+  height: clamp(28px, 3vw, 40px);
+}
+```
+
+**Key Features:**
+- **Consistent Spacing**: 1.5% from edges for visual balance
+- **Responsive Sizing**: clamp() ensures buttons scale appropriately
+- **Z-Index Management**: Proper layering for interaction
+
+### 2. Panel Components
+```css
+/* Character Panel */
+#character_panel {
+  position: absolute;
+  top: 6%;
+  right: 1.5%;
+  width: clamp(200px, 20vw, 280px);
+  min-height: clamp(240px, 25vh, 320px);
+}
+
+/* Character Window */
+.character-window {
+  position: absolute;
+  top: 8%;
+  left: 8%;
+  right: 8%;
+  bottom: 8%;
+}
+```
+
+**Design Patterns:**
+- **Contextual Positioning**: Panels appear near their trigger buttons
+- **Viewport Constraints**: Use viewport units for responsive sizing
+- **Minimum Sizes**: Ensure usability on small screens
+
+### 3. HUD Components
+```css
+.hud-layout {
+  position: absolute;
+  top: 1.5%;
+  left: 1.5%;
+  gap: 0.8%;
+  transform: scale(calc(0.8 + 0.4 * min(100vw / 1920px, 100vh / 1080px)));
+  transform-origin: top left;
+}
+```
+
+**Advanced Features:**
+- **Dynamic Scaling**: Mathematical scaling based on viewport size
+- **Transform Origin**: Proper scaling anchor point
+- **Gap Management**: Proportional spacing between elements
+
+## Responsive Breakpoint Strategy
+
+### Breakpoint Hierarchy
+```css
+/* Desktop (Default) */
+/* 1920px+ - Full scale, optimal spacing */
+
+/* Large Desktop */
+@media (max-width: 1200px) {
+  /* Reduced scaling for medium-large screens */
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  /* Mobile-optimized layout */
+  .character-window {
+    top: 8%;
+    left: 8%;
+    right: 8%;
+    bottom: 8%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  /* Minimal spacing for small screens */
+  .character-window {
+    top: 5%;
+    left: 5%;
+    right: 5%;
+    bottom: 5%;
+  }
+}
+
+/* High DPI */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Retina display optimizations */
+}
+```
+
+### Scaling Formulas
+
+#### Dynamic HUD Scaling
+```css
+/* Base formula for responsive scaling */
+transform: scale(calc(0.8 + 0.4 * min(100vw / 1920px, 100vh / 1080px)));
+
+/* Breakdown:
+   - 0.8: Minimum scale (80%)
+   - 0.4: Scale range (40% additional)
+   - min(): Takes smaller of width or height ratio
+   - 1920px/1080px: Reference resolution
+*/
+```
+
+#### Responsive Sizing with Clamp
+```css
+/* Clamp syntax: clamp(min, preferred, max) */
+width: clamp(28px, 3vw, 40px);
+
+/* Breakdown:
+   - 28px: Minimum size for touch targets
+   - 3vw: Preferred size (3% of viewport width)
+   - 40px: Maximum size to prevent oversizing
+*/
+```
+
+## Implementation Patterns
+
+### 1. Button Positioning Pattern
+```css
+.ui-button {
+  position: absolute;
+  /* Use percentage positioning */
+  top: 1.5%;
+  right: 1.5%;
+  
+  /* Responsive sizing */
+  width: clamp(28px, 3vw, 40px);
+  height: clamp(28px, 3vw, 40px);
+  
+  /* Visual enhancements */
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  
+  /* Interaction states */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-1px);
+    background: rgba(0, 0, 0, 0.9);
+  }
+}
+```
+
+### 2. Panel Positioning Pattern
+```css
+.ui-panel {
+  position: absolute;
+  /* Contextual positioning relative to trigger */
+  top: 6%;
+  right: 1.5%;
+  
+  /* Responsive dimensions */
+  width: clamp(200px, 20vw, 280px);
+  min-height: clamp(240px, 25vh, 320px);
+  
+  /* Glass morphism styling */
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  
+  /* Animation */
+  animation: panelSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+```
+
+### 3. Modal/Window Positioning Pattern
+```css
+.ui-modal {
+  position: absolute;
+  /* Centered with margin */
+  top: 8%;
+  left: 8%;
+  right: 8%;
+  bottom: 8%;
+  
+  /* Full coverage with responsive margins */
+  /* Automatically adjusts to content */
+  
+  /* High z-index for overlay */
+  z-index: 1500;
+  
+  /* Smooth appearance */
+  animation: windowSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+```
+
+## Advanced Positioning Techniques
+
+### 1. Transform-Based Scaling
+```css
+/* Maintains crisp edges while scaling */
+.scalable-component {
+  transform-origin: top left;
+  transform: scale(var(--scale-factor));
+  
+  /* Prevent blurry scaling */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+```
+
+### 2. Viewport-Aware Positioning
+```css
+/* Adapts to available viewport space */
+.viewport-aware {
+  /* Use viewport units for true responsiveness */
+  top: 2vh;
+  left: 2vw;
+  width: 96vw;
+  height: 96vh;
+  
+  /* Constrain to reasonable limits */
+  max-width: 1200px;
+  max-height: 800px;
+}
+```
+
+### 3. Container Query Simulation
+```css
+/* Responsive based on container size */
+.container-responsive {
+  /* Base styles */
+  font-size: 1rem;
+  padding: 1rem;
+  
+  /* Adjust based on container width */
+  font-size: clamp(0.8rem, 2vw, 1.2rem);
+  padding: clamp(0.5rem, 2vw, 1.5rem);
+}
+```
+
+## Performance Considerations
+
+### 1. Efficient Transforms
+```css
+/* Use transform instead of changing position */
+.animated-element {
+  /* Avoid triggering layout */
+  transform: translateX(100px);
+  
+  /* Instead of */
+  /* left: 100px; */
+}
+```
+
+### 2. Hardware Acceleration
+```css
+/* Trigger GPU acceleration */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  
+  /* Clean up when animation completes */
+  animation-fill-mode: forwards;
+}
+```
+
+### 3. Debounced Resize Handling
+```typescript
+// Efficient resize handling
+private handleResize = debounce(() => {
+  this.updatePositions();
+}, 250);
+```
+
+## Accessibility Considerations
+
+### 1. Touch Target Sizing
+```css
+/* Minimum 44px touch targets */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  
+  /* Use clamp for responsive sizing */
+  width: clamp(44px, 4vw, 60px);
+  height: clamp(44px, 4vw, 60px);
+}
+```
+
+### 2. Focus Management
+```css
+/* Visible focus indicators */
+.focusable:focus {
+  outline: 2px solid #007acc;
+  outline-offset: 2px;
+}
+```
+
+### 3. High Contrast Support
+```css
+/* Respect user preferences */
+@media (prefers-contrast: high) {
+  .ui-element {
+    border: 2px solid;
+    background: white;
+    color: black;
+  }
+}
+```
+
+## Testing Guidelines
+
+### 1. Responsive Testing Checklist
+- [ ] Test at 320px, 768px, 1024px, 1920px widths
+- [ ] Verify 50%, 100%, 200%, 300% zoom levels
+- [ ] Check portrait and landscape orientations
+- [ ] Test on high DPI displays
+- [ ] Validate touch target sizes
+
+### 2. Performance Testing
+- [ ] Monitor layout thrashing during resize
+- [ ] Check paint and composite layers
+- [ ] Verify smooth animations at 60fps
+- [ ] Test memory usage during interactions
+
+### 3. Accessibility Testing
+- [ ] Keyboard navigation functionality
+- [ ] Screen reader compatibility
+- [ ] High contrast mode support
+- [ ] Touch target accessibility
+
+## Common Issues and Solutions
+
+### Issue: Elements Overlapping on Small Screens
+**Solution:** Use clamp() with appropriate minimum sizes
+```css
+width: clamp(200px, 20vw, 400px);
+```
+
+### Issue: Blurry Scaling on High DPI
+**Solution:** Use transform scaling with crisp edges
+```css
+transform: scale(2);
+image-rendering: pixelated;
+```
+
+### Issue: Poor Performance During Resize
+**Solution:** Debounce resize events and use transforms
+```typescript
+const debouncedResize = debounce(handleResize, 250);
+```
+
+This positioning system provides a robust foundation for creating responsive, accessible, and performant UI components that work seamlessly across all devices and zoom levels.
+

@@ -1,0 +1,48 @@
+/* HUD Layout - Responsive positioning */
+.hud-layout {
+  position: absolute;
+  top: 1.5%;
+  left: 1.5%;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8%;
+  pointer-events: none;
+  user-select: none;
+  transform-origin: top left;
+  
+  /* Scale HUD based on viewport size */
+  transform: scale(calc(0.8 + 0.4 * min(100vw / 1920px, 100vh / 1080px)));
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .hud-layout {
+    transform: scale(calc(0.7 + 0.3 * min(100vw / 1200px, 100vh / 800px)));
+  }
+}
+
+@media (max-width: 768px) {
+  .hud-layout {
+    top: 2%;
+    left: 2%;
+    gap: 1%;
+    transform: scale(calc(0.6 + 0.4 * min(100vw / 768px, 100vh / 600px)));
+  }
+}
+
+@media (max-width: 480px) {
+  .hud-layout {
+    top: 2.5%;
+    left: 2.5%;
+    gap: 1.2%;
+    transform: scale(calc(0.5 + 0.5 * min(100vw / 480px, 100vh / 400px)));
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .hud-layout {
+    transform: scale(calc(0.9 + 0.3 * min(100vw / 1920px, 100vh / 1080px)));
+  }
+} 

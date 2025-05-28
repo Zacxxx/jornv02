@@ -1,0 +1,258 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Tutoriel : Ajouter un Nouveau Personnage (NPC)
+
+Ce tutoriel explique comment ajouter un nouveau personnage Non-Joueur (NPC) au jeu, en utilisant l'exemple de l'Orc que nous avons implémenté.
+
+## Vue d'ensemble du processus
+
+L'ajout d'un nouveau personnage nécessite des modifications dans plusieurs fichiers clés :
+1. **Assets** : Charger la spritesheet du personnage
+2. **Modèles** : Définir les types et énumérations
+3. **Acteur** : Créer la classe du personnage
+4. **Dialogues** : Ajouter les dialogues par défaut
+5. **Scène** : Intégrer le spawn du personnage
+6. **Tiled** : Placer le personnage sur les cartes
+
+## Étape 1 : Préparation des Assets
+
+### 1.1 Placement de la Spritesheet
+Placez votre spritesheet dans `public/assets/characters/`. Le fichier doit suivre le format des autres spritesheets (grille 4x4 de sprites 48x48 pixels pour les animations de base).
+
+### 1.2 Mise à jour de [`asset.manager.ts`](mdc:src/managers/asset.manager.ts)
+Ajoutez votre nouveau personnage dans la méthode `setup_images()` :
+
+```typescript
+private setup_images() {
+  this.images = {
+    // ... autres images existantes
+    nom_personnage: new ImageSource(
+      "/assets/characters/Nom_Personnage_Spritesheet.png",
+      false,
+      ImageFiltering.Pixel
+    ),
+  };
+}
+```
+
+## Étape 2 : Définition des Types dans [`models.ts`](mdc:src/models.ts)
+
+### 2.1 Ajouter le type NPC
+```typescript
+export enum NPC_TYPE {
+  COW = "COW",
+  CHICKEN = "CHICKEN",
+  GUARD = "GUARD",
+  ORC = "ORC",
+  NOUVEAU_PERSONNAGE = "NOUVEAU_PERSONNAGE", // Ajoutez ici
+}
+```
+
+### 2.2 Ajouter l'objet Tiled correspondant
+```typescript
+export enum TILED_OBJECT {
+  CHICKEN = "chickens",
+  COW = "cows",
+  SCENE_AREA = "scene_area",
+  PLAYER = "player",
+  GUARD = "guard",
+  ORCS = "orcs",
+  NOUVEAUX_PERSONNAGES = "nouveaux_personnages", // Ajoutez ici
+}
+```
+
+## Étape 3 : Création de la Classe Acteur
+
+Créez un nouveau fichier `src/actors/NPC/nouveau-personnage.actor.ts` :
+
+```typescript
+import {
+  Actor,
+  Animation,
+  CollisionType,
+  Color,
+  Engine,
+  SpriteSheet,
+  range,
+  vec,
+} from "excalibur";
+import { assetManager } from "../../managers/asset.manager";
+import { gameManager } from "../../managers/game.manager";
+import { NPC_TYPE, PLAYER_STATE } from "../../models";
+
+const ANIM = {
+  IDLE_FRONT: "IDLE_FRONT",
+  IDLE_LEFT: "IDLE_LEFT",
+  IDLE_RIGHT: "IDLE_RIGHT",
+  IDLE_BACK: "IDLE_BACK",
+  WALK_FRONT: "WALK_FRONT",
+  WALK_BACK: "WALK_BACK",
+  WALK_LEFT: "WALK_LEFT",
+  WALK_RIGHT: "WALK_RIGHT",
+};
+
+function get_nouveau_personnage_animations() {
+  const spriteSheet = SpriteSheet.fromImageSource({
+    image: assetManager.images.nom_personnage,
+    grid: {
+      rows: 4,
+      columns: 4,
+      spriteWidth: 48,
+      spriteHeight: 48,
+    },
+  });
+
+  return {
+    [ANIM.IDLE_FRONT]: Animation.fromSpriteSheet(spriteSheet, range(0, 1), 400),
+    [ANIM.IDLE_BACK]: Animation.fromSpriteSheet(spriteSheet, range(4, 5), 400),
+    [ANIM.IDLE_LEFT]: Animation.fromSpriteSheet(spriteSheet, range(8, 9), 400),
+    [ANIM.IDLE_RIGHT]: Animation.fromSpriteSheet(spriteSheet, range(12, 13), 400),
+    [ANIM.WALK_FRONT]: Animation.fromSpriteSheet(spriteSheet, range(0, 3), 200),
+    [ANIM.WALK_BACK]: Animation.fromSpriteSheet(spriteSheet, range(4, 7), 200),
+    [ANIM.WALK_LEFT]: Animation.fromSpriteSheet(spriteSheet, range(8, 11), 200),
+    [ANIM.WALK_RIGHT]: Animation.fromSpriteSheet(spriteSheet, range(12, 15), 200),
+  };
+}
+
+export class NouveauPersonnage extends Actor {
+  type = NPC_TYPE.NOUVEAU_PERSONNAGE;
+  dialog_id!: string;
+  animations: any;
+
+  constructor(config: any) {
+    super({
+      name: "NouveauPersonnage",
+      x: config.x,
+      y: config.y,
+      width: 16,
+      height: 16,
+      color: config.color || Color.Blue, // Couleur par défaut
+      collisionType: CollisionType.Fixed,
+    });
+    this.dialog_id = config.dialog_id || `${NPC_TYPE.NOUVEAU_PERSONNAGE}_DEFAULT`;
+    this.scale = vec(0.8, 0.8);
+  }
+
+  onInitialize(_engine: Engine) {
+    this.animations = get_nouveau_personnage_animations();
+    this.graphics.use(this.animations[ANIM.IDLE_FRONT]);
+    
+    this.on("pointerdown", () => {
+      if (gameManager.player.player_state === PLAYER_STATE.IDLE) {
+        gameManager.start_talk(this as any);
+      }
+    });
+  }
+
+  // Ajoutez ici des comportements spécifiques au personnage
+}
+```
+
+## Étape 4 : Dialogues par Défaut dans [`dialog.manager.ts`](mdc:src/managers/dialog.manager.ts)
+
+Ajoutez un dialogue par défaut dans le tableau `default_dialogs` :
+
+```typescript
+const default_dialogs = [
+  // ... autres dialogues existants
+  {
+    id: `${NPC_TYPE.NOUVEAU_PERSONNAGE}_DEFAULT`,
+    dialogues: [
+      {
+        text: "Salut ! Je suis un nouveau personnage !",
+      },
+      {
+        text: "Ravi de te rencontrer !",
+      },
+    ],
+  },
+];
+```
+
+## Étape 5 : Intégration dans [`level.scene.ts`](mdc:src/scenes/level.scene.ts)
+
+### 5.1 Importer la classe
+```typescript
+import { NouveauPersonnage } from "../actors/NPC/nouveau-personnage.actor";
+```
+
+### 5.2 Ajouter la méthode de création
+```typescript
+private create_nouveaux_personnages() {
+  const layer = this.map.data.getObjectLayerByName(TILED_OBJECT.NOUVEAUX_PERSONNAGES);
+  if (layer) {
+    layer.objects.forEach((mark: any) => {
+      const dialog_id = `${NPC_TYPE.NOUVEAU_PERSONNAGE}_${get_dialog_id(mark)}`;
+      const personnage = new NouveauPersonnage({
+        x: mark.x,
+        y: mark.y,
+        width: 16,
+        height: 16,
+        dialog_id,
+      });
+      this.add(personnage);
+    });
+  }
+}
+```
+
+### 5.3 Appeler la méthode dans `init()`
+```typescript
+init(engine: Engine) {
+  // ... code existant
+  this.create_scene_areas();
+  this.create_chickens();
+  this.create_cows();
+  this.create_orcs();
+  this.create_nouveaux_personnages(); // Ajoutez ici
+  this.create_player(map_width, map_height);
+  this.setup_camera(map_width, map_height);
+}
+```
+
+## Étape 6 : Placement dans Tiled
+
+### 6.1 Créer une couche d'objets
+1. Ouvrez votre carte `.tmx` dans Tiled
+2. Créez une nouvelle couche d'objets nommée exactement `nouveaux_personnages`
+3. Placez des objets (points ou rectangles) où vous voulez que le personnage apparaisse
+
+### 6.2 Propriétés optionnelles
+Pour chaque objet placé, vous pouvez ajouter une propriété personnalisée :
+- **Nom** : `dialog_id`
+- **Type** : `string`
+- **Valeur** : ID de dialogue spécifique (ou laissez vide pour le dialogue par défaut)
+
+## Conseils et Bonnes Pratiques
+
+### Nommage Cohérent
+- Utilisez des noms cohérents entre les énumérations, les fichiers et les couches Tiled
+- Respectez la convention de nommage existante (snake_case pour les énumérations, PascalCase pour les classes)
+
+### Structure des Spritesheets
+- Assurez-vous que votre spritesheet suit le format 4x4 (48x48 pixels par sprite)
+- Ordre des animations : Front (0-3), Back (4-7), Left (8-11), Right (12-15)
+
+### Extensibilité
+- Laissez des commentaires pour les comportements futurs
+- Séparez clairement la logique d'animation de la logique de comportement
+- Utilisez des méthodes privées pour organiser le code
+
+### Test et Débogage
+1. Vérifiez que la spritesheet se charge correctement
+2. Testez le placement dans Tiled
+3. Vérifiez les interactions et dialogues
+4. Assurez-vous que les animations fonctionnent
+
+## Exemple Complet : L'Orc
+
+Référez-vous à l'implémentation de l'Orc comme exemple :
+- [`orc.actor.ts`](mdc:src/actors/NPC/orc.actor.ts) : Classe complète
+- [`models.ts`](mdc:src/models.ts) : Énumérations mises à jour
+- [`level.scene.ts`](mdc:src/scenes/level.scene.ts) : Méthode `create_orcs()`
+- [`dialog.manager.ts`](mdc:src/managers/dialog.manager.ts) : Dialogue par défaut
+
+Cette approche modulaire permet d'ajouter facilement de nouveaux personnages tout en maintenant la cohérence du code et la facilité de maintenance.

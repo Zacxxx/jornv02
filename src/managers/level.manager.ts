@@ -29,6 +29,11 @@ const levels_config = [
     song: SONGS.SHEPPERD_DOG,
   },
   {
+    name: "My Own Level",
+    map: MAPS.MY_OWN_LEVEL,
+    song: SONGS.APPLE_CIDER,
+  },
+  {
     name: "player house",
     map: MAPS.INDOOR_PLAYER_HOUSE,
     song: SONGS.APPLE_CIDER,

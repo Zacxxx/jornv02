@@ -1,0 +1,275 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# HUD Component Architecture
+
+This rule documents the React-based HUD (Heads-Up Display) system architecture, including component structure, state management, and integration with the game engine.
+
+## Core Architecture Files
+
+### HUD Manager
+[hud.manager.ts](mdc:src/managers/hud.manager.ts) - Central HUD management and React integration
+
+### React Components
+[HUD.tsx](mdc:src/components/HUD/HUD.tsx) - Main HUD component
+[bar-menu.tsx](mdc:src/components/HUD/bar-menu.tsx) - Health/MP/Energy bars
+[portrait.tsx](mdc:src/components/HUD/portrait.tsx) - Player portrait and info
+
+### Styling
+[HUD.css](mdc:src/components/HUD/HUD.css) - Responsive HUD layout styles
+
+## Architecture Overview
+
+### Component Hierarchy
+```
+HUD (Main Container)
+├── Portrait (Player Info)
+│   ├── Player Avatar
+│   ├── Player Name
+│   └── Level Display
+└── BarMenu (Status Bars)
+    ├── Health Bar
+    ├── Mana Bar
+    └── Energy Bar
+```
+
+### State Management Pattern
+- **BehaviourSubject**: Reactive state management for real-time updates
+- **Immutable Updates**: State changes trigger automatic re-renders
+- **Type Safety**: Full TypeScript integration with defined interfaces
+
+## Key Components
+
+### HUD Manager (Singleton)
+```typescript
+class HUDManager {
+  private root: Root | null = null;
+  private container: HTMLElement | null = null;
+  private playerStats: BehaviourSubject<PlayerStats>;
+  private hudVisible: BehaviourSubject<boolean>;
+}
+```
+
+**Responsibilities:**
+- React root management and lifecycle
+- State subscription and updates
+- Container positioning and configuration
+- Visibility control
+
+### Player Stats Interface
+```typescript
+interface PlayerStats {
+  hp: { current: number; max: number };
+  mp: { current: number; max: number };
+  energy: { current: number; max: number };
+  level: number;
+  name: string;
+  portraitSrc: string;
+}
+```
+
+### Main HUD Component
+```typescript
+const HUD: React.FC<HUDProps> = ({ playerStats, visible = true }) => {
+  if (!visible) return null;
+  
+  const isLowHealth = (playerStats.hp.current / playerStats.hp.max) <= 0.2;
+  
+  return (
+    <div className="hud-layout">
+      <Portrait {...portraitProps} className={isLowHealth ? 'low-health' : ''} />
+      <BarMenu {...barProps} />
+    </div>
+  );
+};
+```
+
+## Integration Patterns
+
+### Game Engine Integration
+1. **Initialization**: HUD manager initializes during UI manager setup
+2. **Container Management**: Uses existing DOM structure from UI manager
+3. **Event Handling**: Subscribes to game state changes
+4. **Lifecycle Management**: Proper cleanup on scene changes
+
+### State Update Flow
+```
+Game Event → HUD Manager → BehaviourSubject → React Re-render → DOM Update
+```
+
+### Container Configuration
+```typescript
+// Existing container (preferred)
+this.container.style.position = 'absolute';
+this.container.style.top = '0';
+this.container.style.left = '0';
+this.container.style.width = '100%';
+this.container.style.height = '100%';
+this.container.style.pointerEvents = 'none';
+this.container.style.zIndex = '1001';
+```
+
+## Responsive Design Implementation
+
+### CSS Transform Scaling
+```css
+.hud-layout {
+  transform: scale(calc(0.8 + 0.4 * min(100vw / 1920px, 100vh / 1080px)));
+  transform-origin: top left;
+}
+```
+
+### Breakpoint Strategy
+- **Desktop (1920px+)**: Full scale with optimal spacing
+- **Large Tablet (1200px)**: Reduced scale for medium screens
+- **Tablet (768px)**: Mobile-optimized layout
+- **Mobile (480px)**: Minimal scale for small screens
+- **High DPI**: Special handling for retina displays
+
+### Positioning Strategy
+- **Percentage-Based**: Uses viewport percentages for consistent positioning
+- **Gap Management**: Responsive gaps using viewport units
+- **Z-Index Layering**: Proper stacking order with game UI
+
+## Performance Optimizations
+
+### React Optimizations
+- **Conditional Rendering**: Early return for hidden HUD
+- **Memoization**: Prevent unnecessary re-renders
+- **Efficient Updates**: Minimal DOM manipulation
+
+### Memory Management
+- **Proper Cleanup**: Unmount React root on destroy
+- **Event Unsubscription**: Clean up BehaviourSubject subscriptions
+- **Container Removal**: Remove DOM elements when appropriate
+
+### Update Efficiency
+- **Batched Updates**: Group related state changes
+- **Selective Re-rendering**: Only update changed components
+- **Debounced Animations**: Smooth transitions without performance impact
+
+## API Reference
+
+### HUD Manager Methods
+
+#### Initialization
+```typescript
+init(): void // Initialize HUD system
+destroy(): void // Clean up resources
+```
+
+#### Stats Updates
+```typescript
+updateHP(current: number, max?: number): void
+updateMP(current: number, max?: number): void
+updateEnergy(current: number, max?: number): void
+updateLevel(level: number): void
+updatePlayerName(name: string): void
+updatePortrait(portraitSrc: string): void
+```
+
+#### Visibility Control
+```typescript
+showHUD(): void
+hideHUD(): void
+toggleHUD(): void
+isVisible(): boolean
+```
+
+#### State Access
+```typescript
+getCurrentStats(): PlayerStats
+```
+
+## Usage Examples
+
+### Basic HUD Updates
+```typescript
+// Update player health
+hudManager.updateHP(75, 100);
+
+// Update multiple stats
+hudManager.updateMP(30, 50);
+hudManager.updateEnergy(80, 100);
+
+// Change player info
+hudManager.updatePlayerName("Hero");
+hudManager.updateLevel(5);
+```
+
+### Visibility Management
+```typescript
+// Hide HUD during cutscenes
+hudManager.hideHUD();
+
+// Show HUD when gameplay resumes
+hudManager.showHUD();
+
+// Toggle HUD with hotkey
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'H') {
+    hudManager.toggleHUD();
+  }
+});
+```
+
+### Custom State Monitoring
+```typescript
+// Monitor health for low health warnings
+const stats = hudManager.getCurrentStats();
+if (stats.hp.current / stats.hp.max <= 0.2) {
+  // Trigger low health effects
+  triggerLowHealthWarning();
+}
+```
+
+## Common Patterns
+
+### Health Bar Animations
+- **Smooth Transitions**: CSS transitions for bar changes
+- **Color Coding**: Different colors for health thresholds
+- **Pulsing Effects**: Visual feedback for critical states
+
+### Portrait Management
+- **Dynamic Loading**: Load portraits based on character state
+- **Fallback Images**: Default portrait for missing assets
+- **State Indicators**: Visual effects for status conditions
+
+### Responsive Scaling
+- **Viewport Awareness**: Scale based on available space
+- **Aspect Ratio Preservation**: Maintain proportions across devices
+- **Touch-Friendly**: Appropriate sizing for mobile interaction
+
+## Testing Strategies
+
+### Component Testing
+```typescript
+// Test HUD visibility
+expect(hudManager.isVisible()).toBe(true);
+
+// Test stat updates
+hudManager.updateHP(50, 100);
+expect(hudManager.getCurrentStats().hp.current).toBe(50);
+```
+
+### Integration Testing
+- **Game State Sync**: Verify HUD updates with game events
+- **Performance Testing**: Monitor render performance
+- **Responsive Testing**: Test across different viewport sizes
+
+## Future Enhancements
+
+### Advanced Features
+- **Animated Transitions**: Smooth stat change animations
+- **Status Effects**: Visual indicators for buffs/debuffs
+- **Customizable Layout**: User-configurable HUD positioning
+- **Accessibility**: Screen reader support and high contrast modes
+
+### Performance Improvements
+- **Virtual Scrolling**: For large stat lists
+- **Canvas Rendering**: Alternative to DOM for high-performance scenarios
+- **WebGL Integration**: Hardware-accelerated effects
+
+This architecture provides a solid foundation for a responsive, performant HUD system that integrates seamlessly with the game engine while maintaining clean separation of concerns.

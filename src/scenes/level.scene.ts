@@ -15,6 +15,7 @@ import { Chicken } from "../actors/NPC/chicken.actor";
 import { Cow } from "../actors/NPC/cow.actor";
 import { get_dialog_id } from "../managers/dialog.manager";
 import { SceneArea } from "../actors/Areas/scene-area.actor";
+import { Orc } from "../actors/NPC/orc.actor";
 
 export class Level extends Scene {
   name: string;
@@ -50,6 +51,7 @@ export class Level extends Scene {
     this.create_scene_areas();
     this.create_chickens();
     this.create_cows();
+    this.create_orcs();
     this.create_player(map_width, map_height);
     this.setup_camera(map_width, map_height);
   }
@@ -119,6 +121,22 @@ export class Level extends Scene {
         });
         cow.graphics.flipHorizontal = i % 2 === 0;
         this.add(cow);
+      });
+    }
+  }
+  private create_orcs() {
+    const orcs_layer = this.map.data.getObjectLayerByName(TILED_OBJECT.ORCS);
+    if (orcs_layer) {
+      orcs_layer.objects.forEach((mark: any) => {
+        const dialog_id = `${NPC_TYPE.ORC}_${get_dialog_id(mark)}`;
+        const orc = new Orc({
+          x: mark.x,
+          y: mark.y,
+          width: 16,
+          height: 16,
+          dialog_id,
+        });
+        this.add(orc);
       });
     }
   }
