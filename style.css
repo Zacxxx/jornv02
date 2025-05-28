@@ -215,22 +215,31 @@ body {
       
       .main_menu {
         position: relative;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
         display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        align-items: center;
+        gap: 2rem;
+        align-items: flex-start;
         justify-content: center;
-        padding: 2rem;
-        width: 420px;
-        min-height: 600px;
+        width: 100%;
+        max-width: 1000px;
         transition: all 0.3s ease-in-out;
         
-        /* Add subtle shadow for depth */
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        .main-menu-content {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+          width: 420px;
+          min-height: 600px;
+          
+          /* Add subtle shadow for depth */
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
         
         /* Main menu header */
         .main-menu-header {
@@ -389,36 +398,35 @@ body {
           }
         }
         
-        /* Modern slots interface */
-        .modern-slots {
-          position: absolute;
-          z-index: 10;
-          background: rgba(0, 0, 0, 0.95);
-          backdrop-filter: blur(20px);
+        /* Slots side panel */
+        .slots-side-panel {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
           border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 16px;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 90%;
-          max-width: 480px;
-          max-height: 80vh;
+          border-radius: 20px;
+          width: 380px;
+          min-height: 600px;
+          max-height: 600px;
           
-          display: flex;
+          display: none; /* Hidden by default */
           flex-direction: column;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-          animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+          animation: slideInFromRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          
+          &.show {
+            display: flex;
+          }
 
           .slot_header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 1.5rem 1rem;
+            padding: 2rem 2rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             
             h2 {
               font-family: var(--font-pixel-2);
-              font-size: 1.2rem;
+              font-size: 1.1rem;
               font-weight: 600;
               color: #ffffff;
               margin: 0;
@@ -427,8 +435,8 @@ body {
             }
 
             .close-slots {
-              width: 32px;
-              height: 32px;
+              width: 28px;
+              height: 28px;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -446,8 +454,8 @@ body {
               }
               
               svg {
-                width: 16px;
-                height: 16px;
+                width: 14px;
+                height: 14px;
               }
             }
           }
@@ -456,8 +464,9 @@ body {
             flex-direction: column;
             gap: 0.75rem;
             overflow-y: auto;
-            padding: 1.5rem;
-            max-height: 400px;
+            padding: 2rem;
+            flex: 1;
+            max-height: calc(600px - 120px); /* Account for header */
 
             .slot {
               padding: 1rem;
@@ -668,125 +677,191 @@ body {
         
       }
       
-      /* Responsive design for main menu */
-      @media (max-width: 768px) {
-        .main_menu {
-          width: 90%;
-          min-height: 500px;
-          padding: 1.5rem;
-          gap: 1rem;
-          
-          .main-menu-header {
-            .game-title {
-              font-size: 2.5rem;
-            }
-            
-            .game-subtitle {
-              font-size: 1rem;
-            }
-          }
-          
-          .main-menu-actions {
-            gap: 1rem;
-          }
-        }
-        
-        .modern-slots {
-          width: 95%;
-          max-width: 400px;
-          
-          .slot_header {
-            padding: 1rem;
-            
-            h2 {
-              font-size: 1rem;
-            }
-          }
-          
-          .slots {
-            padding: 1rem;
-            
-            .slot {
-              padding: 0.75rem;
-              
-              .slot-info {
-                .slot-title {
-                  font-size: 0.9rem;
-                }
-                
-                .date {
-                  font-size: 0.75rem;
-                }
-              }
-              
-              .actions {
-                .btn_action {
-                  font-size: 0.75rem;
-                  padding: 0.4rem 0.8rem;
-                }
-              }
-            }
-          }
-        }
-      }
+             /* Responsive design for main menu */
+       @media (max-width: 1200px) {
+         .main_menu {
+           flex-direction: column;
+           align-items: center;
+           gap: 1.5rem;
+           
+           .main-menu-content {
+             width: 90%;
+             max-width: 420px;
+           }
+           
+           .slots-side-panel {
+             width: 90%;
+             max-width: 420px;
+             min-height: 500px;
+             max-height: 500px;
+             
+             .slots {
+               max-height: calc(500px - 120px);
+             }
+           }
+         }
+       }
+       
+       @media (max-width: 768px) {
+         .main_menu {
+           .main-menu-content {
+             width: 95%;
+             min-height: 500px;
+             padding: 1.5rem;
+             
+             .main-menu-header {
+               .game-title {
+                 font-size: 2.5rem;
+               }
+               
+               .game-subtitle {
+                 font-size: 1rem;
+               }
+             }
+             
+             .main-menu-actions {
+               gap: 1rem;
+             }
+           }
+           
+           .slots-side-panel {
+             width: 95%;
+             min-height: 450px;
+             max-height: 450px;
+             
+             .slot_header {
+               padding: 1.5rem 1.5rem 1rem;
+               
+               h2 {
+                 font-size: 1rem;
+               }
+             }
+             
+             .slots {
+               padding: 1.5rem;
+               max-height: calc(450px - 100px);
+               
+               .slot {
+                 padding: 0.75rem;
+                 
+                 .slot-info {
+                   .slot-title {
+                     font-size: 0.9rem;
+                   }
+                   
+                   .date {
+                     font-size: 0.75rem;
+                   }
+                 }
+                 
+                 .actions {
+                   .btn_action {
+                     font-size: 0.75rem;
+                     padding: 0.4rem 0.8rem;
+                   }
+                 }
+               }
+             }
+           }
+         }
+       }
       
-      @media (max-width: 480px) {
-        .main_menu {
-          width: 95%;
-          min-height: 450px;
-          padding: 1rem;
-          
-          .main-menu-header {
-            .game-title {
-              font-size: 2rem;
-            }
-            
-            .game-subtitle {
-              font-size: 0.9rem;
-            }
-          }
-          
-          .btn_main_menu {
-            font-size: 1rem;
-            padding: 0.8rem 1.5rem;
-            min-height: 44px;
-          }
-          
-          .btn_auth {
-            font-size: 0.8rem;
-            padding: 0.6rem 0.8rem;
-            
-            svg {
-              width: 14px;
-              height: 14px;
-            }
-          }
-        }
-        
-        .modern-slots {
-          width: 98%;
-          max-height: 70vh;
-          
-          .slots {
-            padding: 0.75rem;
-            
-            .slot {
-              padding: 0.6rem;
-              
-              .empty-slot-indicator {
-                svg {
-                  width: 24px;
-                  height: 24px;
-                }
-                
-                span {
-                  font-size: 0.75rem;
-                }
-              }
-            }
-          }
-        }
-      }
+             @media (max-width: 480px) {
+         .main_menu {
+           .main-menu-content {
+             width: 98%;
+             min-height: 450px;
+             padding: 1rem;
+             
+             .main-menu-header {
+               .game-title {
+                 font-size: 2rem;
+               }
+               
+               .game-subtitle {
+                 font-size: 0.9rem;
+               }
+             }
+             
+             .btn_main_menu {
+               font-size: 1rem;
+               padding: 0.8rem 1.5rem;
+               min-height: 44px;
+             }
+             
+             .btn_auth {
+               font-size: 0.8rem;
+               padding: 0.6rem 0.8rem;
+               
+               svg {
+                 width: 14px;
+                 height: 14px;
+               }
+             }
+           }
+           
+           .slots-side-panel {
+             width: 98%;
+             min-height: 400px;
+             max-height: 400px;
+             
+             .slot_header {
+               padding: 1rem;
+               
+               h2 {
+                 font-size: 0.9rem;
+               }
+               
+               .close-slots {
+                 width: 24px;
+                 height: 24px;
+                 
+                 svg {
+                   width: 12px;
+                   height: 12px;
+                 }
+               }
+             }
+             
+             .slots {
+               padding: 1rem;
+               max-height: calc(400px - 80px);
+               
+               .slot {
+                 padding: 0.6rem;
+                 
+                 .slot-info {
+                   .slot-title {
+                     font-size: 0.8rem;
+                   }
+                   
+                   .date {
+                     font-size: 0.7rem;
+                   }
+                 }
+                 
+                 .actions {
+                   .btn_action {
+                     font-size: 0.7rem;
+                     padding: 0.3rem 0.6rem;
+                   }
+                 }
+                 
+                 .empty-slot-indicator {
+                   svg {
+                     width: 24px;
+                     height: 24px;
+                   }
+                   
+                   span {
+                     font-size: 0.75rem;
+                   }
+                 }
+               }
+             }
+           }
+         }
+       }
     }
   }
   &.SCENE_STATE__PLAYING {
@@ -2192,6 +2267,18 @@ body {
   100% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Side panel slide-in animation */
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 

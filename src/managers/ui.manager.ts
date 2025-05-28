@@ -174,12 +174,51 @@ class UIManager {
   private create_template_main_menu() {
     const main_menu_container: any = document.getElementById("main_menu");
     main_menu_container.innerHTML = `
-    <div class="main-menu-header">
-      <h1 class="game-title">Jorn</h1>
-      <p class="game-subtitle"></p>
+    <div class="main-menu-content">
+      <div class="main-menu-header">
+        <h1 class="game-title">Jorn</h1>
+        <p class="game-subtitle">Farm Adventure</p>
+      </div>
+
+      <div class="main-menu-actions">
+        <div class="primary-actions" id="buttons">
+          <button class="btn_main_menu primary" id="btn_play">
+            <span class="btn-text">Continue</span>
+          </button>
+        </div>
+        
+        <div class="auth-actions">
+          <button class="btn_auth" id="btn_login">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10,17 15,12 10,7"></polyline>
+              <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            Login
+          </button>
+          <button class="btn_auth" id="btn_register">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Register
+          </button>
+          <button class="btn_auth secondary" id="btn_forgot">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
+            </svg>
+            Forgot Password
+          </button>
+        </div>
+
+        <div class="settings-section" id="settings"></div>
+      </div>
     </div>
 
-    <div id="game_slots" class="modern-slots">
+    <div id="game_slots" class="slots-side-panel">
       <div class="slot_header">
         <h2>${textManager.text(
           TEXT_VIEWS.MAIN_MENU,
@@ -194,46 +233,10 @@ class UIManager {
       </div>
       <div class="slots"></div>
     </div>
-
-    <div class="main-menu-actions">
-      <div class="primary-actions" id="buttons">
-        <button class="btn_main_menu primary" id="btn_play">
-          <span class="btn-text">Continue</span>
-        </button>
-      </div>
-      
-      <div class="auth-actions">
-        <button class="btn_auth" id="btn_login">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-            <polyline points="10,17 15,12 10,7"></polyline>
-            <line x1="15" y1="12" x2="3" y2="12"></line>
-          </svg>
-          Login
-        </button>
-        <button class="btn_auth" id="btn_register">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
-          Register
-        </button>
-        <button class="btn_auth secondary" id="btn_forgot">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
-          </svg>
-          Forgot Password
-        </button>
-      </div>
-    </div>
-
-    <div class="settings-section" id="settings"></div>
     `;
 
-    main_menu_container.appendChild(this.create_template_settings("main_menu"));
+    const settingsContainer = main_menu_container.querySelector("#settings");
+    settingsContainer.appendChild(this.create_template_settings("main_menu"));
   }
   private create_template_settings(id_prefix: string) {
     const settings_div: any = document.createElement("div");
@@ -495,6 +498,11 @@ class UIManager {
     
     // Initialize auth buttons (placeholder functionality)
     this.init_auth_buttons();
+    
+    // Ensure slots panel is hidden initially
+    if (this.game_slots_container) {
+      this.game_slots_container.classList.remove("show");
+    }
   }
   
   private init_auth_buttons() {
@@ -623,11 +631,11 @@ class UIManager {
   }
   private show_slots() {
     this.create_slots();
-    this.game_slots_container.style.display = "flex";
+    this.game_slots_container.classList.add("show");
   }
   private hide_slots() {
     this.update_btn_play();
-    this.game_slots_container.style.display = "none";
+    this.game_slots_container.classList.remove("show");
   }
   private format_slot_date(ts: number) {
     const d = new Date(ts).toUTCString();

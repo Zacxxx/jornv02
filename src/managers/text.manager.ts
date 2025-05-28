@@ -4,7 +4,7 @@ class TextManager {
   texts: any = {
     main_menu: {
       btn_continue: {
-        en: "contine",
+        en: "Continue",
         es: "continuar",
       },
       btn_new_game: {
