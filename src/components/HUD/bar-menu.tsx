@@ -1,106 +1,97 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { motion } from 'framer-motion';
+import { cn } from '../../utils/cn';
 import './bar-menu.css';
 
-interface BarProps {
+interface Stat {
   current: number;
   max: number;
-  color: string;
-  label: string;
-  gradient?: string;
 }
 
-const Bar: React.FC<BarProps> = ({ current, max, color, label, gradient }) => {
-  const [displayCurrent, setDisplayCurrent] = useState(current);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [animationType, setAnimationType] = useState<'gain' | 'loss' | null>(null);
-  
-  const percentage = Math.max(0, Math.min(100, (current / max) * 100));
-  const isLow = percentage <= 20;
+interface BarMenuProps {
+  hp: Stat;
+  mp: Stat;
+  energy: Stat;
+  className?: string;
+}
+
+const StatBar: React.FC<{
+  label: string;
+  stat: Stat;
+  color: string;
+  lowThreshold?: number;
+  className?: string;
+}> = ({ label, stat, color, lowThreshold = 0.2, className = "" }) => {
+  const percentage = Math.max(0, Math.min(100, (stat.current / stat.max) * 100));
+  const isLow = percentage <= (lowThreshold * 100);
   const isCritical = percentage <= 10;
 
-  useEffect(() => {
-    if (displayCurrent !== current) {
-      setIsAnimating(true);
-      setAnimationType(current > displayCurrent ? 'gain' : 'loss');
-      
-      const duration = 300;
-      const steps = 20;
-      const stepValue = (current - displayCurrent) / steps;
-      const stepDuration = duration / steps;
-      
-      let step = 0;
-      const interval = setInterval(() => {
-        step++;
-        if (step >= steps) {
-          setDisplayCurrent(current);
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsAnimating(false);
-            setAnimationType(null);
-          }, 100);
-        } else {
-          setDisplayCurrent(prev => Math.round(prev + stepValue));
-        }
-      }, stepDuration);
-      
-      return () => clearInterval(interval);
-    }
-  }, [current, displayCurrent]);
-  
   return (
-    <div className={`stat-bar ${isLow ? 'low' : ''} ${isCritical ? 'critical' : ''} ${isAnimating ? `animating-${animationType}` : ''}`}>
-      <div className="stat-bar-container">
-        <div className="stat-bar-background">
-          <div 
-            className="stat-bar-fill" 
-            style={{ 
-              width: `${percentage}%`,
-              background: gradient || color
-            }}
-          />
-          <div className="stat-bar-content">
-            <span className="stat-label">{label}</span>
-            <span className="stat-values">{displayCurrent}/{max}</span>
-          </div>
-        </div>
+    <motion.div 
+      className={cn("stat-bar-container", className)}
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+    >
+      <div className="stat-bar-info">
+        <span className="stat-label">{label}</span>
+        <span className="stat-values">
+          {stat.current}/{stat.max}
+        </span>
       </div>
-    </div>
+      
+      <div className="stat-bar-track">
+        <motion.div
+          className={cn(
+            "stat-bar-fill",
+            `stat-bar-${color}`,
+            isLow && "stat-bar-low",
+            isCritical && "stat-bar-critical"
+          )}
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ 
+            duration: 0.5, 
+            ease: [0.4, 0, 0.2, 1],
+            delay: 0.1 
+          }}
+        />
+      </div>
+    </motion.div>
   );
 };
 
-interface BarMenuProps {
-  hp: { current: number; max: number };
-  mp: { current: number; max: number };
-  energy: { current: number; max: number };
-}
-
-const BarMenu: React.FC<BarMenuProps> = ({ hp, mp, energy }) => {
+const BarMenu: React.FC<BarMenuProps> = ({ hp, mp, energy, className = "" }) => {
   return (
-    <div className="hud-bar-menu">
-      <Bar 
-        current={hp.current} 
-        max={hp.max} 
-        color="#dc2626" 
+    <motion.div 
+      className={cn("bar-menu", className)}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ 
+        duration: 0.4, 
+        ease: [0.4, 0, 0.2, 1],
+        staggerChildren: 0.1
+      }}
+    >
+      <StatBar 
         label="HP" 
-        gradient="linear-gradient(90deg, #dc2626 0%, #991b1b 100%)"
+        stat={hp} 
+        color="hp" 
+        lowThreshold={0.2}
       />
-      
-      <Bar 
-        current={mp.current} 
-        max={mp.max} 
-        color="#2563eb" 
+      <StatBar 
         label="MP" 
-        gradient="linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%)"
+        stat={mp} 
+        color="mp" 
+        lowThreshold={0.1}
       />
-      
-      <Bar 
-        current={energy.current} 
-        max={energy.max} 
-        color="#ca8a04" 
+      <StatBar 
         label="EN" 
-        gradient="linear-gradient(90deg, #ca8a04 0%, #a16207 100%)"
+        stat={energy} 
+        color="energy" 
+        lowThreshold={0.15}
       />
-    </div>
+    </motion.div>
   );
 };
 

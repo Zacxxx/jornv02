@@ -20,73 +20,42 @@ import { Cow } from "../actors/NPC/cow.actor";
 import { dataManager } from "./data.manager";
 import { textManager } from "./text.manager";
 
+interface ViewportInfo {
+  width: number;
+  height: number;
+  scale: number;
+  devicePixelRatio: number;
+}
 
 class GameManager {
   game!: Engine;
   game_state!: Subject;
   scene_state!: Subject;
-
   player!: Player;
+  
+  private currentViewport: ViewportInfo = {
+    width: 0,
+    height: 0,
+    scale: 1,
+    devicePixelRatio: 1
+  };
 
   constructor(engine: Engine) {
     this.game = engine;
     this.game_state = new Subject();
     this.scene_state = new Subject();
     
+    // Initialize viewport tracking
+    this.updateViewportInfo();
+    
     // Add window resize handler
     this.setupResizeHandler();
     
     // Prevent page scrolling
     this.preventPageScrolling();
-  }
-  
-  private setupResizeHandler() {
-    let resizeTimeout: number | null = null;
-    let isResizing = false;
     
-    const handleResize = () => {
-      if (!isResizing) {
-        isResizing = true;
-        requestAnimationFrame(() => {
-          this.handleResize();
-          isResizing = false;
-        });
-      }
-    };
-    
-    window.addEventListener('resize', () => {
-      if (resizeTimeout) {
-        clearTimeout(resizeTimeout);
-      }
-      
-      resizeTimeout = window.setTimeout(handleResize, 150);
-    });
-  }
-  
-  private handleResize() {
-    const { width, height } = getGameDimensions();
-    
-    // Update canvas size efficiently
-    this.updateCanvasSize(width, height);
-    
-    // Trigger a re-render
-    this.game.currentScene?.camera.update(this.game, 0);
-  }
-
-  private updateCanvasSize(width: number, height: number) {
-    // Update canvas size
-    if (this.game.canvas) {
-      this.game.canvas.width = width;
-      this.game.canvas.height = height;
-      this.game.canvas.style.width = `${width}px`;
-      this.game.canvas.style.height = `${height}px`;
-    }
-    
-    // Update engine screen dimensions
-    if (this.game.screen) {
-      this.game.screen.resolution = { width, height };
-      this.game.screen.viewport = { width, height };
-    }
+    // Add debug commands for viewport coordination
+    this.addViewportDebugCommands();
   }
 
   private preventPageScrolling() {
@@ -103,6 +72,201 @@ class GameManager {
       }
     });
   }
+
+  private updateViewportInfo() {
+    const { width, height } = getGameDimensions();
+    
+    this.currentViewport = {
+      width,
+      height,
+      scale: this.calculateOptimalScale(),
+      devicePixelRatio: window.devicePixelRatio || 1
+    };
+    
+    // Sync viewport info with CSS variables for HUD coordination
+    this.syncViewportWithCSS();
+    
+    console.log('Game Manager: Viewport updated:', this.currentViewport);
+  }
+
+  private calculateOptimalScale(): number {
+    const baseWidth = 1920;
+    const baseHeight = 1080;
+    const currentWidth = window.innerWidth;
+    const currentHeight = window.innerHeight;
+    
+    const scaleX = currentWidth / baseWidth;
+    const scaleY = currentHeight / baseHeight;
+    
+    // Use the smaller scale to ensure everything fits
+    const scale = Math.min(scaleX, scaleY);
+    
+    // Clamp between reasonable bounds
+    return Math.max(0.5, Math.min(3.0, scale));
+  }
+
+  private syncViewportWithCSS() {
+    const root = document.documentElement;
+    const { width, height, scale, devicePixelRatio } = this.currentViewport;
+    
+    // Set viewport-aware CSS variables
+    root.style.setProperty('--viewport-width', `${width}px`);
+    root.style.setProperty('--viewport-height', `${height}px`);
+    root.style.setProperty('--viewport-scale', scale.toString());
+    root.style.setProperty('--device-pixel-ratio', devicePixelRatio.toString());
+    
+    // Update existing UI scale to coordinate with canvas
+    root.style.setProperty('--ui-scale', scale.toString());
+    
+    // Calculate responsive padding based on viewport
+    const basePadding = 20;
+    const responsivePadding = Math.max(10, basePadding * scale);
+    root.style.setProperty('--container-padding', `${responsivePadding}px`);
+    
+    // Calculate responsive gap
+    const baseGap = 12;
+    const responsiveGap = Math.max(6, baseGap * scale);
+    root.style.setProperty('--container-gap', `${responsiveGap}px`);
+    
+    console.log('Game Manager: CSS variables synchronized:', {
+      viewportScale: scale,
+      containerPadding: responsivePadding,
+      containerGap: responsiveGap
+    });
+  }
+
+  private setupResizeHandler() {
+    let resizeTimeout: number | null = null;
+    
+    const handleResize = () => {
+      console.log('Game Manager: Handling resize event');
+      
+      // Update viewport info first
+      this.updateViewportInfo();
+      
+      const { width, height } = this.currentViewport;
+      
+      // Update canvas size efficiently
+      this.updateCanvasSize(width, height);
+      
+      // Notify UI manager of viewport changes
+      if (uiManager && typeof (uiManager as any).onViewportChange === 'function') {
+        (uiManager as any).onViewportChange(this.currentViewport);
+      }
+      
+      // Trigger a re-render
+      this.game.currentScene?.camera.update(this.game, 0);
+      
+      console.log('Game Manager: Resize handling completed');
+    };
+    
+    window.addEventListener('resize', () => {
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
+      
+      resizeTimeout = window.setTimeout(handleResize, 100); // Reduced delay for better responsiveness
+    });
+    
+    // Handle orientation change on mobile
+    window.addEventListener('orientationchange', () => {
+      setTimeout(handleResize, 200); // Slight delay for orientation change
+    });
+  }
+  
+
+
+  private updateCanvasSize(width: number, height: number) {
+    console.log(`Game Manager: Updating canvas size to ${width}x${height}`);
+    
+    // Update canvas size
+    if (this.game.canvas) {
+      this.game.canvas.width = width;
+      this.game.canvas.height = height;
+      this.game.canvas.style.width = `${width}px`;
+      this.game.canvas.style.height = `${height}px`;
+      
+      // Ensure canvas maintains proper scaling
+      const { devicePixelRatio } = this.currentViewport;
+      const pixelRatio = devicePixelRatio;
+      
+      // Set canvas internal resolution for crisp rendering
+      this.game.canvas.width = width * pixelRatio;
+      this.game.canvas.height = height * pixelRatio;
+      
+      // Scale back down using CSS
+      this.game.canvas.style.width = `${width}px`;
+      this.game.canvas.style.height = `${height}px`;
+      
+      // Update canvas context scaling
+      const ctx = this.game.canvas.getContext('2d');
+      if (ctx) {
+        ctx.scale(pixelRatio, pixelRatio);
+      }
+    }
+    
+    // Update engine screen dimensions
+    if (this.game.screen) {
+      this.game.screen.resolution = { width, height };
+      this.game.screen.viewport = { width, height };
+    }
+    
+    console.log('Game Manager: Canvas size updated successfully');
+  }
+
+  private addViewportDebugCommands() {
+    (window as any).gameDebug = {
+      viewport: () => {
+        console.log('Current viewport info:', this.currentViewport);
+        return this.currentViewport;
+      },
+      canvas: () => {
+        const canvas = this.game.canvas;
+        if (canvas) {
+          console.log('Canvas info:', {
+            width: canvas.width,
+            height: canvas.height,
+            styleWidth: canvas.style.width,
+            styleHeight: canvas.style.height,
+            clientWidth: canvas.clientWidth,
+            clientHeight: canvas.clientHeight
+          });
+        }
+      },
+      cssVars: () => {
+        const root = document.documentElement;
+        const computedStyle = getComputedStyle(root);
+        console.log('Game CSS Variables:', {
+          viewportWidth: computedStyle.getPropertyValue('--viewport-width'),
+          viewportHeight: computedStyle.getPropertyValue('--viewport-height'),
+          viewportScale: computedStyle.getPropertyValue('--viewport-scale'),
+          uiScale: computedStyle.getPropertyValue('--ui-scale'),
+          containerPadding: computedStyle.getPropertyValue('--container-padding'),
+          containerGap: computedStyle.getPropertyValue('--container-gap')
+        });
+      },
+      forceResize: () => {
+        console.log('Forcing resize...');
+        this.updateViewportInfo();
+        const { width, height } = this.currentViewport;
+        this.updateCanvasSize(width, height);
+      },
+      testScale: (scale: number) => {
+        console.log(`Testing scale: ${scale}`);
+        const root = document.documentElement;
+        root.style.setProperty('--ui-scale', scale.toString());
+        root.style.setProperty('--viewport-scale', scale.toString());
+      }
+    };
+    
+    console.log('Game Manager: Debug commands available at window.gameDebug');
+  }
+
+  // Getter for current viewport info
+  getViewportInfo(): ViewportInfo {
+    return { ...this.currentViewport };
+  }
+
   init() {
     dataManager.init();
     audioManager.init();

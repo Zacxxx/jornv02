@@ -1,22 +1,12 @@
-/* HUD Layout - Container-relative positioning with robust fallbacks */
+/* Main HUD Layout - Tailwind-based styles */
 .hud-layout {
-  position: absolute;
-  top: var(--container-padding, 20px);
-  left: var(--container-padding, 20px);
-  z-index: 1000;
-  display: flex;
-  align-items: flex-start;
-  gap: var(--container-gap, 12px);
-  pointer-events: none;
-  user-select: none;
+  @apply fixed top-0 left-0 w-full h-full pointer-events-none z-[1000];
+  @apply flex items-start justify-between;
+  @apply p-hud;
+  
+  /* Viewport-coordinated scaling */
+  transform: scale(var(--viewport-scale, 1));
   transform-origin: top left;
-  
-  /* Improved scaling with fallback values */
-  transform: scale(calc(var(--ui-scale, 1) * 1.2));
-  
-  /* Minimum scale to ensure readability */
-  min-width: 200px;
-  min-height: 80px;
   
   /* Performance optimizations */
   contain: layout style paint;
@@ -26,55 +16,120 @@
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Robust responsive design without container queries */
+.hud-layout > * {
+  @apply pointer-events-auto;
+}
+
+/* Portrait and Bar Container */
+.hud-left {
+  @apply flex items-start gap-container-gap;
+}
+
+.hud-right {
+  @apply flex items-start gap-container-gap;
+}
+
+/* Responsive adjustments with viewport scaling */
 @media (max-width: 1200px) {
   .hud-layout {
-    transform: scale(calc(var(--ui-scale, 1) * 1.0));
+    transform: scale(calc(var(--viewport-scale, 1) * 0.9));
   }
 }
 
 @media (max-width: 768px) {
   .hud-layout {
-    top: calc(var(--container-padding, 20px) * 0.75);
-    left: calc(var(--container-padding, 20px) * 0.75);
-    gap: calc(var(--container-gap, 12px) * 0.8);
-    transform: scale(calc(var(--ui-scale, 1) * 0.8));
+    @apply p-4;
+    transform: scale(calc(var(--viewport-scale, 1) * 0.8));
+  }
+  
+  .hud-left {
+    @apply gap-2;
   }
 }
 
 @media (max-width: 480px) {
   .hud-layout {
-    top: calc(var(--container-padding, 20px) * 0.5);
-    left: calc(var(--container-padding, 20px) * 0.5);
-    gap: calc(var(--container-gap, 12px) * 0.6);
-    transform: scale(calc(var(--ui-scale, 1) * 0.7));
+    @apply p-2;
+    transform: scale(calc(var(--viewport-scale, 1) * 0.7));
   }
 }
 
-/* Enhanced responsive scaling for larger screens */
+@media (max-width: 320px) {
+  .hud-layout {
+    @apply p-2;
+    transform: scale(calc(var(--viewport-scale, 1) * 0.6));
+  }
+}
+
+/* Enhanced scaling for larger screens */
 @media (min-width: 1920px) {
   .hud-layout {
-    transform: scale(calc(var(--ui-scale, 1) * 1.5));
+    transform: scale(calc(var(--viewport-scale, 1) * 1.2));
   }
 }
 
 @media (min-width: 2560px) {
   .hud-layout {
-    transform: scale(calc(var(--ui-scale, 1) * 1.8));
+    transform: scale(calc(var(--viewport-scale, 1) * 1.4));
   }
 }
 
-/* High DPI displays */
+/* High DPI displays coordination */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .hud-layout {
-    transform: scale(calc(var(--ui-scale, 1) * 1.1));
+    transform: scale(calc(var(--viewport-scale, 1) * var(--device-pixel-ratio, 1) * 0.8));
   }
 }
 
-/* Accessibility and reduced motion support */
+/* Fallback HUD styles */
+.hud-layout.fallback {
+  @apply bg-hud-overlay backdrop-blur-hud rounded-lg shadow-hud max-w-sm h-auto;
+}
+
+.hud-layout.fallback .portrait-fallback {
+  @apply w-8 h-8 bg-game-wood-dark flex items-center justify-center;
+  @apply text-white font-pixel-2 text-sm rounded border border-gray-600;
+}
+
+.hud-layout.fallback .portrait-level {
+  @apply absolute -bottom-1 -right-1 bg-hud-hp text-white;
+  @apply text-xs px-1 py-0.5 rounded border border-gray-600;
+}
+
+/* Animation classes for Framer Motion integration */
+.hud-enter {
+  @apply opacity-0 scale-95;
+}
+
+.hud-enter-active {
+  @apply opacity-100 scale-100 transition-all duration-300 ease-out;
+}
+
+.hud-exit {
+  @apply opacity-100 scale-100;
+}
+
+.hud-exit-active {
+  @apply opacity-0 scale-95 transition-all duration-200 ease-in;
+}
+
+/* Low health critical state */
+.hud-layout.critical .portrait-frame {
+  @apply animate-pulse-critical;
+}
+
+.hud-layout.critical .stat-bar-hp {
+  @apply animate-pulse-critical;
+}
+
+/* Accessibility support */
 @media (prefers-reduced-motion: reduce) {
   .hud-layout {
-    transition: none;
+    @apply !transition-none;
+  }
+  
+  .hud-layout * {
+    @apply !animate-none;
   }
 }
 
@@ -85,30 +140,22 @@
   }
 }
 
-/* Fallback for very small screens */
-@media (max-width: 320px) {
-  .hud-layout {
-    top: 10px;
-    left: 10px;
-    gap: 6px;
-    transform: scale(0.6);
-  }
-}
-
 /* Debug styles for development */
 .hud-layout.debug {
-  border: 2px dashed rgba(255, 0, 0, 0.5);
-  background: rgba(255, 255, 0, 0.1);
+  @apply border-2 border-dashed border-red-500 border-opacity-50;
 }
 
 .hud-layout.debug::before {
-  content: 'HUD DEBUG';
-  position: absolute;
-  top: -20px;
-  left: 0;
-  font-size: 10px;
-  color: red;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 2px 4px;
-  border-radius: 2px;
+  content: 'HUD DEBUG: Scale=' attr(data-scale) ' Viewport=' attr(data-viewport);
+  @apply absolute -top-6 left-0 text-xs text-red-400 font-mono;
+  @apply bg-black bg-opacity-80 px-2 py-1 rounded;
+  pointer-events: none;
+}
+
+/* Viewport sync indicator */
+.hud-layout.viewport-synced::after {
+  content: '✓ Synced';
+  @apply absolute -top-6 right-0 text-xs text-green-400 font-mono;
+  @apply bg-black bg-opacity-80 px-2 py-1 rounded;
+  pointer-events: none;
 } 

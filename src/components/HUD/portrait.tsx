@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import './portrait.css';
+import { cn } from '../../utils/cn';
 
 interface PortraitProps {
   portraitSrc: string;
@@ -77,30 +79,45 @@ const Portrait: React.FC<PortraitProps> = ({
   };
 
   return (
-    <div className={`portrait-frame ${className}`}>
+    <motion.div 
+      className={cn("portrait-frame", className)}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+    >
       {!imageError && currentSrc && (
-        <img 
+        <motion.img 
           src={currentSrc} 
           alt={`${playerName} portrait`}
           className="portrait-image"
           onLoad={handleImageLoad}
           onError={handleImageError}
-          style={{ 
-            display: imageLoaded ? 'block' : 'none',
-            opacity: imageLoaded ? 1 : 0,
-            transition: 'opacity 0.3s ease'
-          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: imageLoaded ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
         />
       )}
       
       {(imageError || !imageLoaded) && (
-        <div className="portrait-fallback">
+        <motion.div 
+          className="portrait-fallback"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.2 }}
+        >
           {playerName.charAt(0).toUpperCase()}
-        </div>
+        </motion.div>
       )}
       
-      <div className="portrait-level">{level}</div>
-    </div>
+      <motion.div 
+        className="portrait-level"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        {level}
+      </motion.div>
+    </motion.div>
   );
 };
 

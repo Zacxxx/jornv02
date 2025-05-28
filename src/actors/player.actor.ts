@@ -256,20 +256,14 @@ export class Player extends Actor {
   
   // Méthode pour mettre à jour le HUD
   private updateHUD() {
-    console.log('Player: Updating HUD with stats:', {
-      hp: `${this.hp.current}/${this.hp.max}`,
-      mp: `${this.mp.current}/${this.mp.max}`,
-      energy: `${this.energy.current}/${this.energy.max}`,
+    hudManager.updatePlayerStats({
+      hp: { current: this.hp.current, max: this.hp.max },
+      mp: { current: this.mp.current, max: this.mp.max },
+      energy: { current: this.energy.current, max: this.energy.max },
       level: this.level,
-      name: this.playerName
+      name: this.playerName,
+      portraitSrc: "/assets/characters/portrait/default-portrait.png"
     });
-    
-    hudManager.updateHP(this.hp.current, this.hp.max);
-    hudManager.updateMP(this.mp.current, this.mp.max);
-    hudManager.updateEnergy(this.energy.current, this.energy.max);
-    hudManager.updateLevel(this.level);
-    hudManager.updatePlayerName(this.playerName);
-    hudManager.updatePortrait("/assets/characters/portrait/default-portrait.png");
     
     // Ensure HUD is visible when playing
     hudManager.showHUD();
@@ -278,22 +272,30 @@ export class Player extends Actor {
   // Méthodes pour modifier les stats
   public modifyHP(amount: number) {
     this.hp.current = Math.max(0, Math.min(this.hp.current + amount, this.hp.max));
-    hudManager.updateHP(this.hp.current, this.hp.max);
+    hudManager.updatePlayerStats({
+      hp: { current: this.hp.current, max: this.hp.max }
+    });
   }
 
   public modifyMP(amount: number) {
     this.mp.current = Math.max(0, Math.min(this.mp.current + amount, this.mp.max));
-    hudManager.updateMP(this.mp.current, this.mp.max);
+    hudManager.updatePlayerStats({
+      mp: { current: this.mp.current, max: this.mp.max }
+    });
   }
 
   public modifyEnergy(amount: number) {
     this.energy.current = Math.max(0, Math.min(this.energy.current + amount, this.energy.max));
-    hudManager.updateEnergy(this.energy.current, this.energy.max);
+    hudManager.updatePlayerStats({
+      energy: { current: this.energy.current, max: this.energy.max }
+    });
   }
 
   public levelUp() {
     this.level++;
-    hudManager.updateLevel(this.level);
+    hudManager.updatePlayerStats({
+      level: this.level
+    });
   }
 
   onPreUpdate(engine: Engine): void {

@@ -8,7 +8,7 @@ import {
 import { audioManager } from "./audio.manager";
 import { dataManager } from "./data.manager";
 import { gameManager } from "./game.manager";
-import { hudManager } from "./hud.manager";
+import { hudManager } from "./hud.manager.tsx";
 import { characterWindowManager } from "./character-window.manager";
 import {
   TEXT_IN_GAME,
@@ -168,7 +168,7 @@ class UIManager {
       
       // Add a delayed verification
       setTimeout(() => {
-        if (!hudManager.isVisible()) {
+        if (!hudManager.isHUDVisible()) {
           console.warn('UI Manager: HUD not visible after initialization, attempting recovery');
           hudManager.showHUD();
         }
@@ -875,6 +875,28 @@ class UIManager {
 
   forceUIScaleUpdate() {
     this.applyUIScale();
+  }
+
+  // Viewport change handler for coordination with game manager
+  onViewportChange(viewportInfo: any) {
+    console.log('UI Manager: Received viewport change:', viewportInfo);
+    
+    // Update UI scaling based on new viewport
+    const root = document.documentElement;
+    root.style.setProperty('--ui-scale', viewportInfo.scale.toString());
+    
+    // Force HUD to update its positioning
+    if (typeof hudManager.showHUD === 'function') {
+      // Trigger a re-render of the HUD
+      setTimeout(() => {
+        hudManager.hideHUD();
+        setTimeout(() => {
+          hudManager.showHUD();
+        }, 50);
+      }, 100);
+    }
+    
+    console.log('UI Manager: Viewport change handling completed');
   }
 }
 
