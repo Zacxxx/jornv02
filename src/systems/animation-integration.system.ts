@@ -294,7 +294,7 @@ class AnimationIntegrationSystem {
     // This method provides compatibility with the existing AttackConfig interface
     // It will be used when we fully integrate with the attack animation system in Phase 2
     
-    const createSequence = (animName: string): AttackSequence => ({
+    const createSequence = (): AttackSequence => ({
       preparation: {} as Animation, // Will be properly implemented in Phase 2
       strike: {} as Animation,
       recovery: {} as Animation,
@@ -307,10 +307,10 @@ class AnimationIntegrationSystem {
       damage: weaponConfig.damage,
       range: weaponConfig.range,
       sequences: {
-        front: createSequence(weaponConfig.animations.front),
-        back: createSequence(weaponConfig.animations.back),
-        left: createSequence(weaponConfig.animations.left),
-        right: createSequence(weaponConfig.animations.right)
+        front: createSequence(),
+        back: createSequence(),
+        left: createSequence(),
+        right: createSequence()
       }
     };
   }

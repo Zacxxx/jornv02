@@ -1,8 +1,8 @@
-import React from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { Actor } from 'excalibur';
 import FloatingHealthBar from '../components/FloatingHealthBar/FloatingHealthBar';
 import { combatManager } from './combat.manager';
+import { BaseNPC } from '../actors/NPC/base-npc.actor';
 
 interface FloatingHealthBarData {
   id: string;
@@ -12,6 +12,7 @@ interface FloatingHealthBarData {
   name: string;
   visible: boolean;
   showName: boolean;
+  level?: number;
 }
 
 /**
@@ -35,7 +36,22 @@ class FloatingHealthBarManager {
     }
 
     try {
+      // Check if DOM is ready
+      if (document.readyState === 'loading') {
+        console.log('Floating Health Bar Manager: DOM not ready, waiting...');
+        document.addEventListener('DOMContentLoaded', () => {
+          this.initialize();
+        });
+        return;
+      }
+
       this.container = this.getOrCreateContainer();
+      
+      if (!this.container) {
+        console.error('Floating Health Bar Manager: Failed to create container');
+        return;
+      }
+      
       this.root = createRoot(this.container);
       this.isInitialized = true;
       this.render();
@@ -57,18 +73,24 @@ class FloatingHealthBarManager {
     }
 
     const id = this.getActorId(actor);
+    
+    // Get level from BaseNPC if available
+    const level = (actor instanceof BaseNPC) ? actor.npcLevel : undefined;
+    const displayName = (actor instanceof BaseNPC) ? actor.npcName : (name || actor.name || 'Unknown');
+    
     const healthBarData: FloatingHealthBarData = {
       id,
       actor,
       health: combatTarget.health,
       maxHealth: combatTarget.maxHealth,
-      name: name || actor.name || 'Unknown',
+      name: displayName,
       visible: true,
-      showName
+      showName,
+      level
     };
 
     this.healthBars.set(id, healthBarData);
-    console.log(`Floating Health Bar Manager: Registered ${healthBarData.name}`);
+    console.log(`Floating Health Bar Manager: Registered ${healthBarData.name}${level ? ` (Level ${level})` : ''}`);
     
     if (this.isInitialized) {
       this.render();
@@ -210,6 +232,7 @@ class FloatingHealthBarManager {
             name={data.name}
             showName={data.showName}
             visible={data.visible}
+            level={data.level}
           />
         );
       });

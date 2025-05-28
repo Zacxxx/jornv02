@@ -9,6 +9,7 @@ interface FloatingHealthBarProps {
   position: { x: number; y: number };
   name?: string;
   showName?: boolean;
+  level?: number;
 }
 
 const FloatingHealthBar: React.FC<FloatingHealthBarProps> = ({
@@ -17,7 +18,8 @@ const FloatingHealthBar: React.FC<FloatingHealthBarProps> = ({
   visible = true,
   position,
   name = "Enemy",
-  showName = false
+  showName = false,
+  level
 }) => {
   if (!visible || maxHealth <= 0) return null;
 
@@ -50,7 +52,10 @@ const FloatingHealthBar: React.FC<FloatingHealthBarProps> = ({
     >
       {showName && (
         <div className="floating-health-name">
-          {name}
+          <span className="npc-name">{name}</span>
+          {level && level > 1 && (
+            <span className="npc-level">Lv.{level}</span>
+          )}
         </div>
       )}
       

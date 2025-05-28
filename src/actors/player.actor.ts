@@ -10,6 +10,7 @@ import {
   SpriteSheet,
   range,
   vec,
+  PointerButton,
 } from "excalibur";
 import { assetManager } from "../managers/asset.manager";
 import { eventBus, gameManager } from "../managers/game.manager";
@@ -20,7 +21,6 @@ import {
   SCENE_STATE,
   PLAYER_TOOLS,
   WEAPON_TYPE,
-  ATTACK_TYPE,
 } from "../models";
 
 import { uiManager } from "../managers/ui.manager";
@@ -269,6 +269,13 @@ export class Player extends Actor {
     // Initialize floating health bar system
     floatingHealthBarManager.initialize();
     
+    // Set up mouse click attack
+    this.on('pointerdown', (evt) => {
+      if (evt.button === PointerButton.Left) { // Left mouse button
+        this.performAttack();
+      }
+    });
+    
     // Set camera reference for floating health bars (will be set by scene)
     // floatingHealthBarManager.setCamera(this.scene?.camera);
   }
@@ -318,173 +325,70 @@ export class Player extends Actor {
   }
 
   onPreUpdate(engine: Engine): void {
-    const keyboard = engine.input.keyboard;
-    
-    // For Phase 1, we'll focus on keyboard input (X key) for attacks
-    // Left-click functionality will be implemented properly in Phase 2
-    // when we have proper pointer event handling
-
-    const pressed_space = keyboard.wasPressed(Input.Keys.Space);
-    const pressed_escape = keyboard.wasPressed(Input.Keys.Esc);
-    // const pressed_enter = keyboard.wasReleased(Input.Keys.Enter);
-    const pressed_menu = keyboard.wasReleased(Input.Keys.M);
-    const released_change_tool =
-      keyboard.wasReleased(Input.Keys.E) ||
-      keyboard.wasReleased(Input.Keys.T) ||
-      keyboard.wasReleased(Input.Keys.F);
-
-    // Combat input handling - Phase 1: X key only (left-click in Phase 2)
-    const attack_pressed = keyboard.wasPressed(Input.Keys.X); // X key attack
-
-    // Touches de test pour le HUD (à supprimer en production)
-    if (keyboard.wasPressed(Input.Keys.Digit1)) {
-      this.modifyHP(-10); // Perdre 10 HP
-    }
-    if (keyboard.wasPressed(Input.Keys.Digit2)) {
-      this.modifyHP(10); // Gagner 10 HP
-    }
-    if (keyboard.wasPressed(Input.Keys.Digit3)) {
-      this.modifyMP(-5); // Perdre 5 MP
-    }
-    if (keyboard.wasPressed(Input.Keys.Digit4)) {
-      this.modifyMP(5); // Gagner 5 MP
-    }
-    if (keyboard.wasPressed(Input.Keys.Digit5)) {
-      this.levelUp(); // Level up
-    }
-    if (keyboard.wasPressed(Input.Keys.H)) {
-      hudManager.toggleHUD(); // Toggle HUD visibility
+    if (this.player_state === PLAYER_STATE.IDLE) {
+      this.update_movement(engine);
+      
+      // Attack input handling - X key only (mouse handled in onInitialize)
+      const keyboard = engine.input.keyboard;
+      
+      // X key attack
+      if (keyboard.wasPressed(Input.Keys.X)) {
+        this.performAttack();
+      }
     }
 
-    this.vel.x = 0;
-    this.vel.y = 0;
-
-    switch (this.player_state) {
-      case PLAYER_STATE.TALKING:
-        if (pressed_space) {
-          gameManager.continue_talking();
-        }
-        break;
-      case PLAYER_STATE.IDLE:
-        // Attack input handling - check for attack before other actions
-        if (attack_pressed && !this.isAttacking) {
-          this.performAttack();
-          break; // Exit early to prevent other actions during attack
-        }
-
-        if (pressed_space) {
-          if (this.nearToNPC) {
-            this.set_state(PLAYER_STATE.TALKING);
-            gameManager.start_talk(this.nearToNPC);
-            return;
+    // Handle scene transitions
+    if (this.player_state === PLAYER_STATE.IDLE) {
+      const keyboard = engine.input.keyboard;
+      if (keyboard.wasPressed(Input.Keys.Enter)) {
+        const areas = engine.currentScene.actors.filter(
+          (a) => a.name === ACTOR_TYPE.SCENE_NEXT
+        );
+        for (const area of areas) {
+          const scene_area: SceneArea | any = area;
+          if (scene_area.activated) {
+            eventBus.emit(SCENE_EVENTS.CHANGE_SCENE, scene_area.scene_name);
+            break;
           }
-
-          // const prev_anim = this.current_anim;
-
-          // this.in_action = true;
-          // switch (this.current_tool) {
-          //   case 'axe':
-          //     switch (this.facing) {
-          //       case FACING.BACK:
-          //         this.set_anim(ANIM.AXE_BACK);
-          //         break;
-          //       case FACING.FRONT:
-          //         this.set_anim(ANIM.AXE_FRONT);
-          //         break;
-          //       case FACING.LEFT:
-          //         this.set_anim(ANIM.AXE_LEFT);
-          //         break;
-          //       case FACING.RIGHT:
-          //         this.set_anim(ANIM.AXE_RIGHT);
-          //         break;
-          //     }
-          //     setTimeout(() => {
-          //       this.set_anim(prev_anim);
-          //       this.in_action = false;
-          //     }, 300 * 4);
-          //     break;
-          //   case 'wateringcan':
-          //     switch (this.facing) {
-          //       case FACING.BACK:
-          //         this.set_anim(ANIM.WATERING_CAN_BACK);
-          //         break;
-          //       case FACING.FRONT:
-          //         this.set_anim(ANIM.WATERING_CAN_FRONT);
-          //         break;
-          //       case FACING.LEFT:
-          //         this.set_anim(ANIM.WATERING_CAN_LEFT);
-          //         break;
-          //       case FACING.RIGHT:
-          //         this.set_anim(ANIM.WATERING_CAN_RIGHT);
-          //         break;
-          //     }
-          //     setTimeout(() => {
-          //       this.set_anim(prev_anim);
-          //       this.in_action = false;
-          //     }, 300 * 4);
-          //     break;
-          // }
         }
+      }
+    }
 
-        if (pressed_menu) {
-          this.set_state(PLAYER_STATE.MENU);
-          gameManager.scene_state.next(SCENE_STATE.MENU);
-          return;
+    // Handle tool switching
+    if (this.player_state === PLAYER_STATE.IDLE) {
+      const keyboard = engine.input.keyboard;
+      if (keyboard.wasPressed(Input.Keys.Digit1)) {
+        this.current_tool = PLAYER_TOOLS.WATERING_CAN;
+      }
+      if (keyboard.wasPressed(Input.Keys.Digit2)) {
+        this.current_tool = PLAYER_TOOLS.SHOVEL;
+      }
+      if (keyboard.wasPressed(Input.Keys.Digit3)) {
+        this.current_tool = PLAYER_TOOLS.PICKAXE;
+      }
+      if (keyboard.wasPressed(Input.Keys.Digit4)) {
+        this.current_tool = PLAYER_TOOLS.AXE;
+      }
+    }
+
+    // Handle UI interactions
+    if (this.player_state === PLAYER_STATE.IDLE) {
+      const keyboard = engine.input.keyboard;
+      if (keyboard.wasPressed(Input.Keys.Escape)) {
+        if (gameManager.scene_state.current() === SCENE_STATE.PLAYING) {
+          uiManager.update_state(SCENE_STATE.PAUSED);
+        } else if (gameManager.scene_state.current() === SCENE_STATE.PAUSED) {
+          uiManager.update_state(SCENE_STATE.PLAYING);
         }
+      }
+    }
 
-        this.update_movement(engine);
-
-        if (released_change_tool) {
-          let nextIndex = PLAYER_TOOLS.indexOf(this.current_tool) + 1;
-          if (!PLAYER_TOOLS[nextIndex]) {
-            nextIndex = 0;
-          }
-          const next = PLAYER_TOOLS[nextIndex];
-          this.current_tool = next;
-          eventBus.emit(SCENE_EVENTS.SWITCH_TOOL, this.current_tool);
-        }
-        break;
-      case PLAYER_STATE.MENU:
-        if (pressed_escape) {
-          uiManager.cancel_menu();
-          return;
-        }
-        if (pressed_menu) {
-          this.set_state(PLAYER_STATE.IDLE);
-          gameManager.scene_state.next(SCENE_STATE.PLAYING);
-          return;
-        }
-
-        if (pressed_space) {
-          uiManager.open_submenu();
-          return;
-        }
-
-        // const isLEFT =
-        //   keyboard.wasReleased(Input.Keys.Left) ||
-        //   keyboard.wasReleased(Input.Keys.A);
-        // const isRIGHT =
-        //   keyboard.wasReleased(Input.Keys.Right) ||
-        //   keyboard.wasReleased(Input.Keys.D);
-        const isUP =
-          keyboard.wasReleased(Input.Keys.Up) ||
-          keyboard.wasReleased(Input.Keys.W);
-        const isDOWN =
-          keyboard.wasReleased(Input.Keys.Down) ||
-          keyboard.wasReleased(Input.Keys.S);
-
-        if (isUP) {
-          uiManager.menu_item_up();
-        } else if (isDOWN) {
-          uiManager.menu_item_down();
-        }
-
-        break;
-      case PLAYER_STATE.IN_ACTION:
-        this.vel.x = 0;
-        this.vel.y = 0;
-
-        break;
+    // Handle NPC interactions
+    if (this.nearToNPC) {
+      const keyboard = engine.input.keyboard;
+      if (keyboard.wasPressed(Input.Keys.Space)) {
+        gameManager.start_talk(this.nearToNPC);
+      }
     }
   }
   // COLLISIONS

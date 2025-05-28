@@ -1,5 +1,4 @@
 import {
-    Actor,
     Animation,
     CollisionType,
     Color,
@@ -13,9 +12,9 @@ import {
   } from "excalibur";
   import { assetManager } from "../../managers/asset.manager";
   import { gameManager, eventBus } from "../../managers/game.manager";
-  import { combatManager } from "../../managers/combat.manager";
   import { floatingHealthBarManager } from "../../managers/floating-health-bar.manager";
-  import { NPC_TYPE, PLAYER_STATE, COMBAT_EVENT } from "../../models";
+  import { NPC_TYPE, PLAYER_STATE, COMBAT_EVENT, NPC_BEHAVIOR } from "../../models";
+  import { BaseNPC, NPCConfig } from "./base-npc.actor";
   
   const ANIM = {
     IDLE_FRONT: "IDLE_FRONT",
@@ -59,9 +58,8 @@ import {
     };
   }
   
-  export class Orc extends Actor {
+  export class Orc extends BaseNPC {
     type = NPC_TYPE.ORC;
-    dialog_id!: string;
     animations: any;
     
     // AI Behavior properties
@@ -89,26 +87,54 @@ import {
     // Visual feedback
     private moodColor: Color = Color.Green;
 
-    // Combat properties
+    // Override base health and defense for orcs
     public health = { current: 30, max: 30 };
     public defense = 2;
   
-    constructor(config: any) {
+    constructor(config: NPCConfig) {
       super({
-        name: "Orc",
-        x: config.x,
-        y: config.y,
-        width: 16,
-        height: 16,
+        ...config,
         color: config.color || Color.Green,
-        collisionType: CollisionType.Active,
       });
-      this.dialog_id = config.dialog_id || `${NPC_TYPE.ORC}_DEFAULT`;
+      
+      // Set collision type
+      this.body.collisionType = CollisionType.Active;
       this.scale = vec(0.8, 0.8);
       this.originalPosition = vec(config.x, config.y);
       
+      // Apply behavior-specific configurations
+      this.applyBehaviorConfig();
+      
       // Setup patrol points around spawn location
       this.setupPatrolPoints();
+    }
+
+    private applyBehaviorConfig() {
+      const behaviorConfig = this.getBehaviorConfig();
+      this.detectionRadius = behaviorConfig.detectionRadius;
+      this.wanderRadius = Math.floor(behaviorConfig.detectionRadius * 0.4);
+      
+      // Adjust mood color based on behavior
+      switch (this.npcBehavior) {
+        case NPC_BEHAVIOR.AGGRESSIVE:
+          this.moodColor = Color.Orange;
+          break;
+        case NPC_BEHAVIOR.SAVAGE:
+          this.moodColor = Color.Red;
+          break;
+        case NPC_BEHAVIOR.DEFENSIVE:
+          this.moodColor = Color.Blue;
+          break;
+        case NPC_BEHAVIOR.LOGIC:
+          this.moodColor = Color.Violet;
+          break;
+        case NPC_BEHAVIOR.PASSIVE:
+        default:
+          this.moodColor = Color.Green;
+          break;
+      }
+      
+      this.color = this.moodColor;
     }
 
     private setupPatrolPoints() {
@@ -121,15 +147,9 @@ import {
       ];
     }
   
-    onInitialize(engine: Engine) {
+    protected onNPCInitialize(engine: Engine) {
       this.animations = get_orc_animations();
       this.graphics.use(this.animations[ANIM.IDLE_FRONT]);
-      
-      // Register as combat participant
-      combatManager.registerCombatant(this, this.health.current, this.health.max, this.defense);
-      
-      // Register for floating health bar
-      floatingHealthBarManager.registerActor(this, "Orc", true);
       
       // Listen to combat events for health updates
       this.setupCombatEventListeners();
@@ -144,6 +164,8 @@ import {
 
       // Start advanced AI behaviors
       this.startAdvancedBehavior(engine);
+      
+      console.log(`${this.npcName} (Level ${this.npcLevel}) initialized with ${this.npcBehavior} behavior`);
     }
 
     private setupCombatEventListeners(): void {
@@ -169,7 +191,7 @@ import {
         }
       });
     }
-
+  
     private reactToAttack(): void {
       // Change mood to agitated when attacked
       this.currentMood = OrcMood.AGITATED;
