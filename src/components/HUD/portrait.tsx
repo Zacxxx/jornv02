@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './portrait.css';
 
 interface PortraitProps {
@@ -14,25 +14,91 @@ const Portrait: React.FC<PortraitProps> = ({
   level = 1,
   className = ""
 }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState('');
+
+  useEffect(() => {
+    // Reset states when portraitSrc changes
+    setImageLoaded(false);
+    setImageError(false);
+    
+    // Normalize asset path for production builds
+    let normalizedSrc = portraitSrc;
+    
+    // Handle different path formats
+    if (portraitSrc.startsWith('./')) {
+      normalizedSrc = portraitSrc.substring(1); // Remove leading dot
+    } else if (!portraitSrc.startsWith('/') && !portraitSrc.startsWith('http')) {
+      normalizedSrc = `/${portraitSrc}`;
+    }
+    
+    // For production builds, ensure proper asset resolution
+    if (import.meta.env.PROD) {
+      // In production, assets might be in a different location
+      if (normalizedSrc.startsWith('/assets/')) {
+        // Keep as is for Vite's asset handling
+      } else if (!normalizedSrc.startsWith('http')) {
+        normalizedSrc = `/assets/${normalizedSrc.replace(/^\/+/, '')}`;
+      }
+    }
+    
+    setCurrentSrc(normalizedSrc);
+    console.log(`Portrait: Setting source to ${normalizedSrc} (original: ${portraitSrc})`);
+  }, [portraitSrc]);
+
+  const handleImageLoad = () => {
+    console.log(`Portrait loaded successfully: ${currentSrc}`);
+    setImageLoaded(true);
+    setImageError(false);
+  };
+
+  const handleImageError = () => {
+    console.warn(`Portrait failed to load: ${currentSrc}`);
+    setImageError(true);
+    setImageLoaded(false);
+    
+    // Try fallback paths
+    const fallbackPaths = [
+      '/assets/characters/portrait/default-portrait.png',
+      './assets/characters/portrait/default-portrait.png',
+      '/public/assets/characters/portrait/default-portrait.png'
+    ];
+    
+    const currentIndex = fallbackPaths.indexOf(currentSrc);
+    if (currentIndex < fallbackPaths.length - 1) {
+      const nextFallback = fallbackPaths[currentIndex + 1];
+      console.log(`Portrait: Trying fallback: ${nextFallback}`);
+      setCurrentSrc(nextFallback);
+      setImageError(false);
+    } else {
+      console.warn('Portrait: All fallback paths failed, using text fallback');
+    }
+  };
+
   return (
     <div className={`portrait-frame ${className}`}>
-      <img 
-        src={portraitSrc} 
-        alt={`${playerName} portrait`}
-        className="portrait-image"
-        onError={(e) => {
-          // Fallback to a simple colored rectangle if image fails to load
-          const target = e.target as HTMLImageElement;
-          target.style.display = 'none';
-          const parent = target.parentElement;
-          if (parent && !parent.querySelector('.portrait-fallback')) {
-            const fallback = document.createElement('div');
-            fallback.className = 'portrait-fallback';
-            fallback.textContent = playerName.charAt(0).toUpperCase();
-            parent.appendChild(fallback);
-          }
-        }}
-      />
+      {!imageError && currentSrc && (
+        <img 
+          src={currentSrc} 
+          alt={`${playerName} portrait`}
+          className="portrait-image"
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+          style={{ 
+            display: imageLoaded ? 'block' : 'none',
+            opacity: imageLoaded ? 1 : 0,
+            transition: 'opacity 0.3s ease'
+          }}
+        />
+      )}
+      
+      {(imageError || !imageLoaded) && (
+        <div className="portrait-fallback">
+          {playerName.charAt(0).toUpperCase()}
+        </div>
+      )}
+      
       <div className="portrait-level">{level}</div>
     </div>
   );

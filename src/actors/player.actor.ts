@@ -256,12 +256,23 @@ export class Player extends Actor {
   
   // Méthode pour mettre à jour le HUD
   private updateHUD() {
+    console.log('Player: Updating HUD with stats:', {
+      hp: `${this.hp.current}/${this.hp.max}`,
+      mp: `${this.mp.current}/${this.mp.max}`,
+      energy: `${this.energy.current}/${this.energy.max}`,
+      level: this.level,
+      name: this.playerName
+    });
+    
     hudManager.updateHP(this.hp.current, this.hp.max);
     hudManager.updateMP(this.mp.current, this.mp.max);
     hudManager.updateEnergy(this.energy.current, this.energy.max);
     hudManager.updateLevel(this.level);
     hudManager.updatePlayerName(this.playerName);
     hudManager.updatePortrait("/assets/characters/portrait/default-portrait.png");
+    
+    // Ensure HUD is visible when playing
+    hudManager.showHUD();
   }
 
   // Méthodes pour modifier les stats

@@ -1,18 +1,18 @@
-/* HUD Layout - Container-relative positioning */
+/* HUD Layout - Container-relative positioning with robust fallbacks */
 .hud-layout {
   position: absolute;
-  top: var(--container-padding);
-  left: var(--container-padding);
+  top: var(--container-padding, 20px);
+  left: var(--container-padding, 20px);
   z-index: 1000;
   display: flex;
   align-items: flex-start;
-  gap: var(--container-gap);
+  gap: var(--container-gap, 12px);
   pointer-events: none;
   user-select: none;
   transform-origin: top left;
   
-  /* Improved scaling for fullscreen experience */
-  transform: scale(calc(var(--ui-scale) * 1.2));
+  /* Improved scaling with fallback values */
+  transform: scale(calc(var(--ui-scale, 1) * 1.2));
   
   /* Minimum scale to ensure readability */
   min-width: 200px;
@@ -26,72 +26,89 @@
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Container-aware responsive design */
-@container (max-width: 1200px) {
-  .hud-layout {
-    transform: scale(0.9);
-  }
-}
-
-@container (max-width: 800px) {
-  .hud-layout {
-    top: 15px;
-    left: 15px;
-    gap: 10px;
-    transform: scale(0.8);
-  }
-}
-
-@container (max-width: 600px) {
-  .hud-layout {
-    top: 10px;
-    left: 10px;
-    gap: 8px;
-    transform: scale(0.7);
-  }
-}
-
-/* Fallback media queries for browsers without container query support */
+/* Robust responsive design without container queries */
 @media (max-width: 1200px) {
   .hud-layout {
-    transform: scale(0.9);
+    transform: scale(calc(var(--ui-scale, 1) * 1.0));
   }
 }
 
 @media (max-width: 768px) {
   .hud-layout {
-    top: calc(var(--container-padding) * 0.75);
-    left: calc(var(--container-padding) * 0.75);
-    gap: calc(var(--container-gap) * 0.8);
-    transform: scale(calc(var(--ui-scale) * 0.8));
+    top: calc(var(--container-padding, 20px) * 0.75);
+    left: calc(var(--container-padding, 20px) * 0.75);
+    gap: calc(var(--container-gap, 12px) * 0.8);
+    transform: scale(calc(var(--ui-scale, 1) * 0.8));
   }
 }
 
 @media (max-width: 480px) {
   .hud-layout {
-    top: calc(var(--container-padding) * 0.5);
-    left: calc(var(--container-padding) * 0.5);
-    gap: calc(var(--container-gap) * 0.6);
-    transform: scale(calc(var(--ui-scale) * 0.7));
+    top: calc(var(--container-padding, 20px) * 0.5);
+    left: calc(var(--container-padding, 20px) * 0.5);
+    gap: calc(var(--container-gap, 12px) * 0.6);
+    transform: scale(calc(var(--ui-scale, 1) * 0.7));
   }
 }
 
 /* Enhanced responsive scaling for larger screens */
 @media (min-width: 1920px) {
   .hud-layout {
-    transform: scale(calc(var(--ui-scale) * 1.5));
+    transform: scale(calc(var(--ui-scale, 1) * 1.5));
   }
 }
 
 @media (min-width: 2560px) {
   .hud-layout {
-    transform: scale(calc(var(--ui-scale) * 1.8));
+    transform: scale(calc(var(--ui-scale, 1) * 1.8));
   }
 }
 
 /* High DPI displays */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .hud-layout {
-    transform: scale(1.1);
+    transform: scale(calc(var(--ui-scale, 1) * 1.1));
   }
+}
+
+/* Accessibility and reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .hud-layout {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .hud-layout {
+    filter: contrast(1.2);
+  }
+}
+
+/* Fallback for very small screens */
+@media (max-width: 320px) {
+  .hud-layout {
+    top: 10px;
+    left: 10px;
+    gap: 6px;
+    transform: scale(0.6);
+  }
+}
+
+/* Debug styles for development */
+.hud-layout.debug {
+  border: 2px dashed rgba(255, 0, 0, 0.5);
+  background: rgba(255, 255, 0, 0.1);
+}
+
+.hud-layout.debug::before {
+  content: 'HUD DEBUG';
+  position: absolute;
+  top: -20px;
+  left: 0;
+  font-size: 10px;
+  color: red;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 4px;
+  border-radius: 2px;
 } 

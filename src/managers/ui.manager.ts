@@ -146,7 +146,49 @@ class UIManager {
 
   // Initialize HUD
   private init_hud() {
-    hudManager.init();
+    console.log('UI Manager: Initializing HUD');
+    
+    // Ensure CSS variables are set first
+    this.applyUIScale();
+    
+    // Multiple initialization strategies for robustness
+    const initializeHUD = () => {
+      console.log('UI Manager: Starting HUD initialization');
+      
+      // Ensure the HUD container exists
+      const hudContainer = document.getElementById('hud-container');
+      if (!hudContainer) {
+        console.warn('UI Manager: HUD container not found, will be created by HUD manager');
+      } else {
+        console.log('UI Manager: HUD container found, proceeding with initialization');
+      }
+      
+      // Initialize HUD manager
+      hudManager.init();
+      
+      // Add a delayed verification
+      setTimeout(() => {
+        if (!hudManager.isVisible()) {
+          console.warn('UI Manager: HUD not visible after initialization, attempting recovery');
+          hudManager.showHUD();
+        }
+      }, 1000);
+    };
+
+    // Ensure DOM is ready before initializing HUD
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('UI Manager: DOM ready, initializing HUD');
+        // Add a small delay to ensure all elements are rendered
+        setTimeout(initializeHUD, 100);
+      });
+    } else {
+      console.log('UI Manager: DOM already ready, initializing HUD immediately');
+      // Use requestAnimationFrame to ensure rendering is complete
+      requestAnimationFrame(() => {
+        setTimeout(initializeHUD, 50);
+      });
+    }
   }
 
   // Initialize Character Window
