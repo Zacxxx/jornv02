@@ -42,22 +42,6 @@ class AssetManager {
         false,
         ImageFiltering.Pixel
       ),
-      // Add tileset images to ensure they're loaded
-      grass_tileset: new ImageSource(
-        "/maps/tiles/Grass.png",
-        false,
-        ImageFiltering.Pixel
-      ),
-      water_tileset: new ImageSource(
-        "/maps/tiles/Water.png",
-        false,
-        ImageFiltering.Pixel
-      ),
-      hills_tileset: new ImageSource(
-        "/maps/tiles/Hills.png",
-        false,
-        ImageFiltering.Pixel
-      ),
     };
     for (const key in this.images) {
       this.loader.addResource(this.images[key]);

@@ -128,7 +128,8 @@ class GameManager {
           });
           break;
         case GAME_STATES.READY:
-          this.game.goToScene(MAPS.MAIN_MENU);
+          // Skip loading main menu scene to use fixed background
+          // this.game.goToScene(MAPS.MAIN_MENU);
           uiManager.update_state(SCENE_STATE.READY);
           audioManager.play_bg(SONGS.SHEPPERD_DOG);
           break;

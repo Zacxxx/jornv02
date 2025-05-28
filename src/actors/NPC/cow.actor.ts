@@ -35,10 +35,11 @@ export class Cow extends Actor {
         spriteHeight: 32,
       },
     });
+    // Use single frame for stable idle animation (no blinking)
     const cow_anim_idle = Animation.fromSpriteSheet(
       cow_sprite,
-      range(0, 2),
-      300
+      [0], // Single frame instead of range to prevent blinking
+      1000 // Longer duration for stable display
     );
     const cow_anim_walk = Animation.fromSpriteSheet(
       cow_sprite,

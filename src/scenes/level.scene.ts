@@ -44,7 +44,14 @@ export class Level extends Scene {
   init(engine: Engine) {
     this.backgroundColor = Color.Black;
     this.map = assetManager.maps[this.map_name];
-    this.map.addTiledMapToScene(engine);
+    
+    try {
+      this.map.addTiledMapToScene(engine);
+      console.log(`✅ Map loaded successfully: ${this.map_name}`);
+    } catch (error) {
+      console.error(`❌ Failed to load map: ${this.map_name}`, error);
+    }
+    
     const map_width = this.map.data.width * this.map.data.tileWidth;
     const map_height = this.map.data.height * this.map.data.tileHeight;
 

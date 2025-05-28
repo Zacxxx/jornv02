@@ -175,21 +175,63 @@ class UIManager {
   private create_template_main_menu() {
     const main_menu_container: any = document.getElementById("main_menu");
     main_menu_container.innerHTML = `
-    <div id="game_slots">
+    <div class="main-menu-header">
+      <h1 class="game-title">Jorn</h1>
+      <p class="game-subtitle"></p>
+    </div>
+
+    <div id="game_slots" class="modern-slots">
       <div class="slot_header">
         <h2>${textManager.text(
           TEXT_VIEWS.MAIN_MENU,
           TEXT_MAIN_MENU.SLOTS_TITLE
         )}</h2>
-        <div class="close-slots">x</div>
+        <button class="close-slots">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <div class="slots"></div>
     </div>
 
-    <div class="buttons" id="buttons">
-      <button class="btn_main_menu" id="btn_play"></button>
+    <div class="main-menu-actions">
+      <div class="primary-actions" id="buttons">
+        <button class="btn_main_menu primary" id="btn_play">
+          <span class="btn-text">Continue</span>
+        </button>
+      </div>
+      
+      <div class="auth-actions">
+        <button class="btn_auth" id="btn_login">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10,17 15,12 10,7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          Login
+        </button>
+        <button class="btn_auth" id="btn_register">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          Register
+        </button>
+        <button class="btn_auth secondary" id="btn_forgot">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
+          </svg>
+          Forgot Password
+        </button>
+      </div>
     </div>
-    <div class="settings" id="settings"></div>
+
+    <div class="settings-section" id="settings"></div>
     `;
 
     main_menu_container.appendChild(this.create_template_settings("main_menu"));
@@ -197,42 +239,21 @@ class UIManager {
   private create_template_settings(id_prefix: string) {
     const settings_div: any = document.createElement("div");
     settings_div.id = `${id_prefix}_settings`;
-    settings_div.classList.add("settings");
-    const current_lang = dataManager.data.preferences.lang;
+    settings_div.classList.add("modern-settings");
     settings_div.innerHTML = `
-    <div class="setting">
-    <p>${textManager.text(
-      TEXT_VIEWS.MAIN_MENU,
-      TEXT_MAIN_MENU.SETTINGS_MUSIC
-    )}</p>
-    <button class="toggle btn_toggle_music"></button>
-  </div>
-   <div class="setting">
-    <p>${textManager.text(
-      TEXT_VIEWS.MAIN_MENU,
-      TEXT_MAIN_MENU.SETTINGS_LANG
-    )}</p>
-    <button class="btn_lang ${
-      current_lang === LANGUAGES.ENGLISH ? "active" : ""
-    } " id="btn_lang_en">English</button>
-    <button class="btn_lang ${
-      current_lang === LANGUAGES.SPANISH ? "active" : ""
-    } " id="btn_lang_es">Español</button>
-  </div> 
+    <div class="setting-item">
+      <div class="setting-info">
+        <span class="setting-label">${textManager.text(
+          TEXT_VIEWS.MAIN_MENU,
+          TEXT_MAIN_MENU.SETTINGS_MUSIC
+        )}</span>
+        <span class="setting-description">Toggle background music</span>
+      </div>
+      <button class="modern-toggle btn_toggle_music">
+        <div class="toggle-slider"></div>
+      </button>
+    </div>
     `;
-    const btn_lang_en = settings_div.querySelector("#btn_lang_en");
-    const btn_lang_es = settings_div.querySelector("#btn_lang_es");
-
-    btn_lang_en.onclick = () => {
-      if (dataManager.data.preferences.lang === LANGUAGES.ENGLISH) return;
-      dataManager.set_language(LANGUAGES.ENGLISH);
-      this.init();
-    };
-    btn_lang_es.onclick = () => {
-      if (dataManager.data.preferences.lang === LANGUAGES.SPANISH) return;
-      dataManager.set_language(LANGUAGES.SPANISH);
-      this.init();
-    };
     return settings_div;
   }
   private create_template_playing() {
@@ -391,7 +412,7 @@ class UIManager {
     this.btn_play = document.getElementById("btn_play");
     this.btn_continue = document.getElementById("btn_continue");
     //
-    this.setting_music_buttons = document.querySelectorAll(".btn_toggle_music");
+    this.setting_music_buttons = document.querySelectorAll(".modern-toggle");
     //
 
     this.menu_items_container = document.getElementById("menu_items_container");
@@ -472,21 +493,59 @@ class UIManager {
     this.hide_slots();
     this.btn_play.onclick = () => this.show_slots();
     this.update_btn_play();
+    
+    // Initialize auth buttons (placeholder functionality)
+    this.init_auth_buttons();
+  }
+  
+  private init_auth_buttons() {
+    const btnLogin = document.getElementById('btn_login');
+    const btnRegister = document.getElementById('btn_register');
+    const btnForgot = document.getElementById('btn_forgot');
+    
+    if (btnLogin) {
+      btnLogin.onclick = () => {
+        console.log('🔐 Login clicked - Placeholder functionality');
+        // TODO: Implement login modal/screen
+        alert('Login functionality coming soon!');
+      };
+    }
+    
+    if (btnRegister) {
+      btnRegister.onclick = () => {
+        console.log('📝 Register clicked - Placeholder functionality');
+        // TODO: Implement registration modal/screen
+        alert('Registration functionality coming soon!');
+      };
+    }
+    
+    if (btnForgot) {
+      btnForgot.onclick = () => {
+        console.log('🔑 Forgot Password clicked - Placeholder functionality');
+        // TODO: Implement forgot password modal/screen
+        alert('Password recovery functionality coming soon!');
+      };
+    }
   }
   private update_btn_play() {
     const slots = dataManager.data.slots.filter((s: any) => Boolean(s.data));
     const have_slots = slots.length > 0;
+    const btnText = this.btn_play.querySelector('.btn-text');
 
     if (have_slots) {
-      this.btn_play.innerText = textManager.text(
-        TEXT_VIEWS.MAIN_MENU,
-        TEXT_MAIN_MENU.BTN_CONTINUE
-      );
+      if (btnText) {
+        btnText.textContent = textManager.text(
+          TEXT_VIEWS.MAIN_MENU,
+          TEXT_MAIN_MENU.BTN_CONTINUE
+        );
+      }
     } else {
-      this.btn_play.innerText = textManager.text(
-        TEXT_VIEWS.MAIN_MENU,
-        TEXT_MAIN_MENU.BTN_NEW_GAME
-      );
+      if (btnText) {
+        btnText.textContent = textManager.text(
+          TEXT_VIEWS.MAIN_MENU,
+          TEXT_MAIN_MENU.BTN_NEW_GAME
+        );
+      }
     }
   }
   private create_slots() {
@@ -505,11 +564,13 @@ class UIManager {
         slot_detail = this.format_slot_date(slot.data.ts);
         slot_div.classList.remove("empty");
         slot_div.innerHTML = `
-        <p>${textManager.text(
-          TEXT_VIEWS.MAIN_MENU,
-          TEXT_MAIN_MENU.SLOTS_NAME
-        )} #${i + 1}</p>
-        <p class="date"><small>${slot_detail}</small></p>
+        <div class="slot-info">
+          <h3 class="slot-title">${textManager.text(
+            TEXT_VIEWS.MAIN_MENU,
+            TEXT_MAIN_MENU.SLOTS_NAME
+          )} #${i + 1}</h3>
+          <p class="date">${slot_detail}</p>
+        </div>
         <div class="actions">
             <button class="btn_action" id="action_play">${textManager.text(
               TEXT_VIEWS.MAIN_MENU,
@@ -534,11 +595,21 @@ class UIManager {
         };
       } else {
         slot_div.innerHTML = `
-        <p>${textManager.text(
-          TEXT_VIEWS.MAIN_MENU,
-          TEXT_MAIN_MENU.SLOTS_NAME
-        )} #${i + 1}</p>
-        <p class="date"><small>${slot_detail}</small></p>
+        <div class="slot-info">
+          <h3 class="slot-title">${textManager.text(
+            TEXT_VIEWS.MAIN_MENU,
+            TEXT_MAIN_MENU.SLOTS_NAME
+          )} #${i + 1}</h3>
+          <p class="date">${slot_detail}</p>
+        </div>
+        <div class="empty-slot-indicator">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+          <span>Click to create new save</span>
+        </div>
        `;
         slot_div!.onclick = () => {
           gameManager.start_game(slot.id);
@@ -567,8 +638,9 @@ class UIManager {
   }
   private init_settings() {
     this.setting_music_buttons.forEach((btn: any) => {
-      if (dataManager.data.preferences.mute) {
-        btn.classList.add("off");
+      // Set initial state
+      if (!dataManager.data.preferences.mute) {
+        btn.classList.add("active");
       }
       btn.onclick = () => {
         audioManager.toggleMute();
@@ -580,9 +652,9 @@ class UIManager {
   update_settings() {
     this.setting_music_buttons.forEach((btn: any) => {
       if (dataManager.data.preferences.mute) {
-        btn.classList.add("off");
+        btn.classList.remove("active");
       } else {
-        btn.classList.remove("off");
+        btn.classList.add("active");
       }
     });
   }

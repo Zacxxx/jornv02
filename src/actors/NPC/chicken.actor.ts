@@ -37,11 +37,11 @@ export class Chicken extends Actor {
       },
     });
     
-    // Use consistent timing for stable animations
+    // Use single frame for stable idle animation (no blinking)
     const chicken_anim_idle = Animation.fromSpriteSheet(
       chicken_sprite,
-      range(0, 1),
-      800 // Fixed timing instead of random
+      [0], // Single frame instead of range to prevent blinking
+      1000 // Longer duration for stable display
     );
     const chicken_anim_walk = Animation.fromSpriteSheet(
       chicken_sprite,
