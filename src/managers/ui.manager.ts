@@ -4,6 +4,7 @@ import {
   SCENE_STATE,
   PLAYER_TOOLS,
   MAPS,
+  LANGUAGES
 } from "../models";
 import { audioManager } from "./audio.manager";
 import { dataManager } from "./data.manager";
@@ -296,6 +297,19 @@ class UIManager {
       <button class="modern-toggle btn_toggle_music">
         <div class="toggle-slider"></div>
       </button>
+    </div>
+    <div class="setting-item">
+      <div class="setting-info">
+        <span class="setting-label">${textManager.text(
+          TEXT_VIEWS.MAIN_MENU,
+          TEXT_MAIN_MENU.SETTINGS_LANG
+        )}</span>
+        <span class="setting-description">Switch game language</span>
+      </div>
+      <select class="modern-select btn_toggle_lang">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+      </select>
     </div>
     `;
     return settings_div;
@@ -696,6 +710,31 @@ class UIManager {
         this.update_settings();
       };
     });
+
+    // Language switcher
+    const langSelectors = document.querySelectorAll('.btn_toggle_lang');
+    langSelectors.forEach((selector) => {
+      const selectElem = selector as HTMLSelectElement;
+      // Set initial value
+      selectElem.value = dataManager.data.preferences.lang;
+      selectElem.onchange = () => {
+        const newLang = selectElem.value as LANGUAGES;
+        dataManager.set_language(newLang);
+        // Refresh all text-based UI
+        this.refresh_language_ui();
+      };
+    });
+  }
+
+  // Helper to refresh all UI text after language change
+  private refresh_language_ui() {
+    // Re-render main menu, settings, etc.
+    this.create_template_main_menu();
+    this.create_template_menu_in_game();
+    this.link_template_references();
+    this.init_main_menu();
+    this.init_menu();
+    this.init_settings();
   }
 
   update_settings() {

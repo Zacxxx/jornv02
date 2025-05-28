@@ -29,7 +29,7 @@ class Datamanager {
       ],
       preferences: {
         mute: false,
-        lang: LANGUAGES.SPANISH,
+        lang: LANGUAGES.ENGLISH,
       },
     };
   }
