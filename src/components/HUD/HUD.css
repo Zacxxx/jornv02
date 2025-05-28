@@ -11,8 +11,12 @@
   user-select: none;
   transform-origin: top left;
   
-  /* Container-based scaling with dynamic variables */
-  transform: scale(var(--ui-scale));
+  /* Improved scaling for fullscreen experience */
+  transform: scale(calc(var(--ui-scale) * 1.2));
+  
+  /* Minimum scale to ensure readability */
+  min-width: 200px;
+  min-height: 80px;
   
   /* Performance optimizations */
   contain: layout style paint;
@@ -69,6 +73,19 @@
     left: calc(var(--container-padding) * 0.5);
     gap: calc(var(--container-gap) * 0.6);
     transform: scale(calc(var(--ui-scale) * 0.7));
+  }
+}
+
+/* Enhanced responsive scaling for larger screens */
+@media (min-width: 1920px) {
+  .hud-layout {
+    transform: scale(calc(var(--ui-scale) * 1.5));
+  }
+}
+
+@media (min-width: 2560px) {
+  .hud-layout {
+    transform: scale(calc(var(--ui-scale) * 1.8));
   }
 }
 

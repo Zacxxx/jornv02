@@ -92,23 +92,23 @@ class UIManager {
 
   private calculateUIScale(): number {
     const gameContainer = document.getElementById('game');
-    if (!gameContainer) return 1;
+    if (!gameContainer) return 1.2; // Default larger scale
     
     const containerWidth = gameContainer.clientWidth;
     const containerHeight = gameContainer.clientHeight;
     
-    // Base scale calculation
+    // Enhanced base scale calculation
     const baseWidth = 1920;
     const baseHeight = 1080;
     
     const scaleX = containerWidth / baseWidth;
     const scaleY = containerHeight / baseHeight;
     
-    // Use the smaller scale to maintain aspect ratio
-    const scale = Math.min(scaleX, scaleY);
+    // Use average scale with bias toward larger screens
+    const scale = (scaleX + scaleY) / 2;
     
-    // Clamp scale between reasonable bounds
-    return Math.max(0.5, Math.min(2.0, scale));
+    // Enhanced clamping with better range
+    return Math.max(0.8, Math.min(3.0, scale * 1.2));
   }
 
   private applyUIScale() {

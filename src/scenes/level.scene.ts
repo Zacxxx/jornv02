@@ -162,6 +162,16 @@ export class Level extends Scene {
       this.map.pos
     );
     this.camera.strategy.limitCameraBounds(map_bounds);
-    this.camera.zoom = 2;
+    
+    // Enhanced camera positioning for fullscreen
+    this.camera.zoom = 2.2; // Slightly increased zoom for better view
+    
+    // Lock camera to player with enhanced positioning
+    if (this.player) {
+      this.camera.strategy.lockToActor(this.player);
+      
+      // Add slight forward offset to utilize gained screen space
+      this.camera.pos = this.camera.pos.add(new Vector(0, -32));
+    }
   }
 }

@@ -47,7 +47,10 @@ export class Cow extends Actor {
     );
     this.graphics.add(COW_ANIM.IDLE, cow_anim_idle);
     this.graphics.add(COW_ANIM.WALK, cow_anim_walk);
-    // this.graphics.use(COW_ANIM.WALK);
+    
+    // Ensure sprite remains visible and stable
     this.graphics.use(COW_ANIM.IDLE);
+    this.graphics.visible = true;
+    this.graphics.opacity = 1;
   }
 }

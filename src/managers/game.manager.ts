@@ -35,6 +35,9 @@ class GameManager {
     
     // Add window resize handler
     this.setupResizeHandler();
+    
+    // Prevent page scrolling
+    this.preventPageScrolling();
   }
   
   private setupResizeHandler() {
@@ -84,6 +87,21 @@ class GameManager {
       this.game.screen.resolution = { width, height };
       this.game.screen.viewport = { width, height };
     }
+  }
+
+  private preventPageScrolling() {
+    // Prevent wheel scrolling
+    document.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
+    
+    // Prevent touch scrolling
+    document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    
+    // Prevent keyboard scrolling
+    document.addEventListener('keydown', (e) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+        e.preventDefault();
+      }
+    });
   }
   init() {
     dataManager.init();

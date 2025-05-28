@@ -38,6 +38,17 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  
+  /* Prevent all scrolling */
+  overflow: hidden;
+  overscroll-behavior: none;
+  
+  /* Prevent touch scrolling */
+  touch-action: none;
+  
+  /* Prevent selection that might trigger scrolling */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 body {
@@ -64,10 +75,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   /* Set fullscreen dimensions */
   width: 100vw;
   height: 100vh;
+  
+  /* Ensure game container doesn't cause overflow */
+  overflow: hidden;
 
   #main-canvas {
     /* Remove borders for seamless fullscreen */
@@ -403,13 +419,17 @@ body {
           z-index: 10;
           position: absolute;
           top: var(--container-padding);
-          right: calc(var(--container-padding) * 3);
+          right: calc(var(--container-padding) * 4); /* Increased spacing */
 
           display: flex;
           align-items: center;
           justify-content: center;
-          width: clamp(32px, 3vw, 44px);
-          height: clamp(32px, 3vw, 44px);
+          /* Enhanced sizing for better touch targets */
+          width: clamp(44px, 4vw, 56px);
+          height: clamp(44px, 4vw, 56px);
+          
+          /* Improved visual styling */
+          margin: 4px;
           background: rgba(75, 85, 99, 0.8);
           backdrop-filter: blur(8px);
           border: 1px solid rgba(156, 163, 175, 0.3);
@@ -459,8 +479,12 @@ body {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: clamp(32px, 3vw, 44px);
-          height: clamp(32px, 3vw, 44px);
+          /* Enhanced sizing for better touch targets */
+          width: clamp(44px, 4vw, 56px);
+          height: clamp(44px, 4vw, 56px);
+          
+          /* Improved visual styling */
+          margin: 4px;
           background: rgba(0, 0, 0, 0.8);
           backdrop-filter: blur(8px);
           border: 1px solid rgba(255, 255, 255, 0.1);

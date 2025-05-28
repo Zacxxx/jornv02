@@ -36,19 +36,25 @@ export class Chicken extends Actor {
         spriteHeight: 16,
       },
     });
+    
+    // Use consistent timing for stable animations
     const chicken_anim_idle = Animation.fromSpriteSheet(
       chicken_sprite,
       range(0, 1),
-      Math.random() * 1000 + 200
+      800 // Fixed timing instead of random
     );
     const chicken_anim_walk = Animation.fromSpriteSheet(
       chicken_sprite,
       range(4, 7),
       300
     );
+    
     this.graphics.add(CHICKEN_ANIM.IDLE, chicken_anim_idle);
     this.graphics.add(CHICKEN_ANIM.WALK, chicken_anim_walk);
-    // this.graphics.use(CHICKEN_ANIM.WALK);
+    
+    // Ensure sprite remains visible and stable
     this.graphics.use(CHICKEN_ANIM.IDLE);
+    this.graphics.visible = true;
+    this.graphics.opacity = 1;
   }
 }
