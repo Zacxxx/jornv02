@@ -1,31 +1,36 @@
-import { Actor, Animation, CollisionType, SpriteSheet, range } from "excalibur";
+import { Animation, CollisionType, SpriteSheet, range, Engine, Color } from "excalibur";
 import { assetManager } from "../../managers/asset.manager";
-import { ACTOR_TYPE, NPC_TYPE } from "../../models";
+import { NPC_TYPE } from "../../models";
+import { BaseNPC, NPCConfig } from "./base-npc.actor";
 
 enum CHICKEN_ANIM {
   IDLE = "CHICKEN_IDLE",
   WALK = "CHICKEN_WALK",
 }
-export class Chicken extends Actor {
-  type: NPC_TYPE;
-  dialog_id: string;
 
-  constructor({ x, y, z, width, height, dialog_id }: any) {
+export class Chicken extends BaseNPC {
+  type: NPC_TYPE;
+
+  // Override base health for chickens (they're weaker)
+  public health = { current: 10, max: 10 };
+  public defense = 0;
+
+  constructor(config: NPCConfig) {
     super({
-      x,
-      y,
-      z,
-      width,
-      height,
-      name: ACTOR_TYPE.NPC,
-      collisionType: CollisionType.Fixed,
+      ...config,
+      name: config.name || "Chicken",
+      color: Color.White,
     });
+    
     this.type = NPC_TYPE.CHICKEN;
-    this.dialog_id = dialog_id;
+    this.body.collisionType = CollisionType.Fixed;
   }
-  onInitialize(): void {
+
+  protected onNPCInitialize(_engine: Engine): void {
     this.setup_graphics();
+    console.log(`Chicken ${this.npcName} (Level ${this.npcLevel}) initialized with behavior: ${this.npcBehavior}`);
   }
+
   private setup_graphics() {
     const chicken_sprite = SpriteSheet.fromImageSource({
       image: assetManager.images.chicken,

@@ -1,0 +1,75 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Animation Integration System
+
+## Core System
+The Animation Integration System ([src/systems/animation-integration.system.ts](mdc:src/systems/animation-integration.system.ts)) bridges existing animations with the combat system.
+
+## Key Components
+
+### Animation Integration System
+- **Purpose**: Manages weapon animations and combat timing
+- **Pattern**: Singleton with weapon configuration registry
+- **Integration**: Works with existing player animation system
+
+### Weapon Configuration
+```typescript
+interface WeaponAnimationConfig {
+  weaponType: WEAPON_TYPE;
+  attackType: ATTACK_TYPE;
+  damage: number;
+  range: number;
+  timing: AnimationTiming;
+  animations: AnimationMapping;
+}
+```
+
+### Attack Execution Flow
+1. **Preparation Phase**: Wind-up animation
+2. **Strike Phase**: Attack animation with damage application at hit frame
+3. **Recovery Phase**: Cool-down animation
+
+## Usage Pattern
+
+### Player Integration
+In [src/actors/player.actor.ts](mdc:src/actors/player.actor.ts):
+```typescript
+// Execute attack with animation integration
+const success = await animationIntegrationSystem.executeAttack(
+  this,                    // attacker
+  target,                  // target or null
+  this.currentWeapon,      // weapon type
+  this.getFacingDirection() // direction
+);
+```
+
+### Animation Control
+- Player must have public `set_anim(animationName)` method
+- System automatically handles idle return
+- Integrates with existing ANIM constants
+
+## Current Implementation (Phase 1.5)
+- **FISTS**: Uses axe animations as placeholder
+- **Timing**: 150ms prep, 200ms strike (hit at 100ms), 150ms recovery
+- **Range**: 32 pixels for melee attacks
+
+## Future Weapons (Phase 2 Ready)
+- **SWORD**: 20 damage, 40 range, faster timing
+- **BOW**: 18 damage, 80 range, ranged attacks
+- **STAFF**: Magic attacks with different timing
+
+## Integration Points
+- **Combat Manager**: Handles damage calculation and events
+- **Floating Health Bars**: Visual feedback for damage
+- **Event System**: Emits combat events for effects/sounds
+- **Player Actor**: Animation control and state management
+
+## Best Practices
+1. **Register Weapons**: Use `registerWeaponConfig()` for new weapons
+2. **Timing Control**: Adjust hit frames for different weapon feels
+3. **Animation Names**: Follow existing ANIM constant patterns
+4. **Error Handling**: System gracefully handles missing configs
+5. **Performance**: Efficient animation tracking and cleanup

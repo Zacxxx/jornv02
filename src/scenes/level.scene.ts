@@ -17,6 +17,7 @@ import { Cow } from "../actors/NPC/cow.actor";
 import { get_dialog_id } from "../managers/dialog.manager";
 import { SceneArea } from "../actors/Areas/scene-area.actor";
 import { Orc } from "../actors/NPC/orc.actor";
+import { getNPCBehavior, getNPCLevel, getNPCName } from "../utils/tiled.utils";
 
 export class Level extends Scene {
   name: string;
@@ -46,6 +47,15 @@ export class Level extends Scene {
     this.backgroundColor = Color.Black;
     this.map = assetManager.maps[this.map_name];
     
+    console.log(`🔄 Initializing level: ${this.name} (${this.map_name})`);
+    console.log(`📍 Map object:`, this.map);
+    
+    if (!this.map) {
+      console.error(`❌ Map not found: ${this.map_name}`);
+      console.log(`📋 Available maps:`, Object.keys(assetManager.maps));
+      return;
+    }
+    
     try {
       this.map.addTiledMapToScene(engine);
       console.log(`✅ Map loaded successfully: ${this.map_name}`);
@@ -57,6 +67,12 @@ export class Level extends Scene {
       });
     } catch (error) {
       console.error(`❌ Failed to load map: ${this.map_name}`, error);
+      return;
+    }
+    
+    if (!this.map.data) {
+      console.error(`❌ Map data not available: ${this.map_name}`);
+      return;
     }
 
     // --- Begin: Add pixel-perfect collision actors for each wall tile ---
@@ -106,6 +122,8 @@ export class Level extends Scene {
     
     const map_width = this.map.data.width * this.map.data.tileWidth;
     const map_height = this.map.data.height * this.map.data.tileHeight;
+    
+    console.log(`📏 Map dimensions: ${map_width}x${map_height}`);
 
     this.create_scene_areas();
     this.create_chickens();
@@ -113,6 +131,8 @@ export class Level extends Scene {
     this.create_orcs();
     this.create_player(map_width, map_height);
     this.setup_camera(map_width, map_height);
+    
+    console.log(`✅ Level initialization complete: ${this.name}`);
   }
   reset() {
     if (this.player && this.player_initial_pos) {
@@ -151,16 +171,25 @@ export class Level extends Scene {
     if (chicken_layer) {
       chicken_layer.objects.forEach((mark: any, i: number) => {
         const dialog_id = `${NPC_TYPE.CHICKEN}_${get_dialog_id(mark)}`;
+        
+        // Parse custom Tiled properties
+        const behavior = getNPCBehavior(mark);
+        const level = getNPCLevel(mark);
+        const name = getNPCName(mark, "Chicken");
+        
         const chicken = new Chicken({
           x: mark.x,
           y: mark.y,
           width: 16,
           height: 16,
-          color: Color.White,
           dialog_id,
+          behavior,
+          level,
+          name,
         });
         chicken.graphics.flipHorizontal = i % 2 === 0;
 
+        console.log(`Created ${name} (Level ${level}, ${behavior}) at (${mark.x}, ${mark.y})`);
         this.add(chicken);
       });
     }
@@ -170,15 +199,25 @@ export class Level extends Scene {
     if (cows_layer) {
       cows_layer.objects.forEach((mark: any, i: number) => {
         const dialog_id = `${NPC_TYPE.COW}_${get_dialog_id(mark)}`;
+        
+        // Parse custom Tiled properties
+        const behavior = getNPCBehavior(mark);
+        const level = getNPCLevel(mark);
+        const name = getNPCName(mark, "Cow");
+        
         const cow = new Cow({
           x: mark.x,
           y: mark.y,
           width: 16,
           height: 16,
-          color: Color.Chartreuse,
           dialog_id,
+          behavior,
+          level,
+          name,
         });
         cow.graphics.flipHorizontal = i % 2 === 0;
+        
+        console.log(`Created ${name} (Level ${level}, ${behavior}) at (${mark.x}, ${mark.y})`);
         this.add(cow);
       });
     }
@@ -188,13 +227,24 @@ export class Level extends Scene {
     if (orcs_layer) {
       orcs_layer.objects.forEach((mark: any) => {
         const dialog_id = `${NPC_TYPE.ORC}_${get_dialog_id(mark)}`;
+        
+        // Parse custom Tiled properties
+        const behavior = getNPCBehavior(mark);
+        const level = getNPCLevel(mark);
+        const name = getNPCName(mark, "Orc");
+        
         const orc = new Orc({
           x: mark.x,
           y: mark.y,
           width: 16,
           height: 16,
           dialog_id,
+          behavior,
+          level,
+          name,
         });
+        
+        console.log(`Created ${name} (Level ${level}, ${behavior}) at (${mark.x}, ${mark.y})`);
         this.add(orc);
       });
     }

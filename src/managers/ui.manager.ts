@@ -749,7 +749,7 @@ class UIManager {
   // tools
   update_tools(active = "") {
     this.tools_container.innerHTML = "";
-    PLAYER_TOOLS.forEach((tool) => {
+    Object.values(PLAYER_TOOLS).forEach((tool: string) => {
       const div = document.createElement("div");
       div.classList.add("tool");
       div.innerHTML = `

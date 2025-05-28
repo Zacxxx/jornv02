@@ -1,30 +1,35 @@
-import { Actor, Animation, CollisionType, SpriteSheet, range } from "excalibur";
+import { Animation, CollisionType, SpriteSheet, range, Engine } from "excalibur";
 import { assetManager } from "../../managers/asset.manager";
-import { ACTOR_TYPE, NPC_TYPE } from "../../models";
+import { NPC_TYPE } from "../../models";
+import { BaseNPC, NPCConfig } from "./base-npc.actor";
 
 enum COW_ANIM {
   IDLE = "COW_IDLE",
   WALK = "COW_WALK",
 }
-export class Cow extends Actor {
+
+export class Cow extends BaseNPC {
   type: NPC_TYPE;
-  dialog_id: string;
-  constructor({ x, y, z, width, height, dialog_id }: any) {
+
+  // Override base health for cows (they're stronger than chickens)
+  public health = { current: 50, max: 50 };
+  public defense = 1;
+
+  constructor(config: NPCConfig) {
     super({
-      x,
-      y,
-      z,
-      width,
-      height,
-      name: ACTOR_TYPE.NPC,
-      collisionType: CollisionType.Fixed,
+      ...config,
+      name: config.name || "Cow",
     });
+    
     this.type = NPC_TYPE.COW;
-    this.dialog_id = dialog_id;
+    this.body.collisionType = CollisionType.Fixed;
   }
-  onInitialize(): void {
+
+  protected onNPCInitialize(_engine: Engine): void {
     this.setup_graphics();
+    console.log(`Cow ${this.npcName} (Level ${this.npcLevel}) initialized with behavior: ${this.npcBehavior}`);
   }
+
   private setup_graphics() {
     const cow_sprite = SpriteSheet.fromImageSource({
       image: assetManager.images.cow,

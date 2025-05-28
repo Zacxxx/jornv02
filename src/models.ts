@@ -1,4 +1,9 @@
-export const PLAYER_TOOLS = ["wateringcan", "axe"];
+export enum PLAYER_TOOLS {
+  WATERING_CAN = "wateringcan",
+  AXE = "axe",
+  SHOVEL = "shovel",
+  PICKAXE = "pickaxe",
+}
 export enum NPC_TYPE {
   COW = "COW",
   CHICKEN = "CHICKEN",
@@ -40,6 +45,7 @@ export enum SCENE_STATE {
 }
 export enum SCENE_EVENTS {
   SWITCH_TOOL = "GAME_EVENTS__SWITCH_TOOL",
+  CHANGE_SCENE = "GAME_EVENTS__CHANGE_SCENE",
 }
 
 export enum TILED_LAYERS {
@@ -62,6 +68,9 @@ export enum TILED_OBJECT {
 export enum TILED_OBJECT_PROPS {
   SCENE = "scene",
   DIALOG_ID = "dialog_id",
+  BEHAVIOR = "behavior",
+  LEVEL = "level",
+  NAME = "name",
 }
 
 export enum MAPS {
@@ -105,4 +114,12 @@ export enum COMBAT_EVENT {
   ATTACK_END = "COMBAT_EVENT__ATTACK_END",
   DAMAGE_DEALT = "COMBAT_EVENT__DAMAGE_DEALT",
   HEALTH_CHANGED = "COMBAT_EVENT__HEALTH_CHANGED",
+}
+
+export enum NPC_BEHAVIOR {
+  AGGRESSIVE = "aggressive",
+  PASSIVE = "passive", 
+  DEFENSIVE = "defensive",
+  SAVAGE = "savage",
+  LOGIC = "logic",
 }

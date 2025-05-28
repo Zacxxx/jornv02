@@ -15,11 +15,9 @@ import { audioManager } from "./audio.manager";
 import { uiManager } from "./ui.manager";
 import { dialogManager } from "./dialog.manager";
 import { Player } from "../actors/player.actor";
-import { Chicken } from "../actors/NPC/chicken.actor";
-import { Cow } from "../actors/NPC/cow.actor";
+import { BaseNPC } from "../actors/NPC/base-npc.actor";
 import { dataManager } from "./data.manager";
 import { textManager } from "./text.manager";
-import { Orc } from "../actors/NPC/orc.actor";
 
 interface ViewportInfo {
   width: number;
@@ -269,46 +267,70 @@ class GameManager {
   }
 
   init() {
+    console.log('🎮 Game Manager: Starting initialization...');
+    
     dataManager.init();
+    console.log('✅ Data Manager initialized');
+    
     audioManager.init();
+    console.log('✅ Audio Manager initialized');
+    
     assetManager.init();
+    console.log('✅ Asset Manager initialized');
+    
     levelManager.init();
+    console.log('✅ Level Manager initialized');
+    
     dialogManager.init();
+    console.log('✅ Dialog Manager initialized');
+    
     textManager.init();
+    console.log('✅ Text Manager initialized');
 
     uiManager.init();
+    console.log('✅ UI Manager initialized');
+    
     //
     levelManager.load_levels(this.game);
+    console.log('✅ Levels loaded into game engine');
 
     eventBus.on(SCENE_EVENTS.SWITCH_TOOL, (new_tool: string) => {
       uiManager.update_tools(new_tool);
     });
 
     this.game_state.subscribe((new_game_state: GAME_STATES) => {
-      console.log(`[${new_game_state}]`);
+      console.log(`🎮 Game State: [${new_game_state}]`);
       switch (new_game_state) {
         case GAME_STATES.LOADING:
+          console.log('🔄 Starting asset loading...');
           this.game.start(assetManager.loader).then(() => {
+            console.log('✅ Assets loaded successfully');
             this.game_state.next(GAME_STATES.READY);
+          }).catch((error) => {
+            console.error('❌ Asset loading failed:', error);
+            this.game_state.next(GAME_STATES.ERROR);
           });
           break;
         case GAME_STATES.READY:
+          console.log('🎯 Game ready - setting up main menu');
           // Skip loading main menu scene to use fixed background
           // this.game.goToScene(MAPS.MAIN_MENU);
           uiManager.update_state(SCENE_STATE.READY);
           audioManager.play_bg(SONGS.SHEPPERD_DOG);
           break;
         case GAME_STATES.PLAYING:
+          console.log('🎮 Game playing state');
           uiManager.update_state(SCENE_STATE.PLAYING);
           break;
         case GAME_STATES.COMPLETED:
           break;
         case GAME_STATES.ERROR:
+          console.error('❌ Game entered error state');
           break;
       }
     });
     this.scene_state.subscribe((new_scene_state: SCENE_STATE) => {
-      console.log(`[${this.game_state.current()}]/[${new_scene_state}]`);
+      console.log(`🎬 Scene State: [${this.game_state.current()}]/[${new_scene_state}]`);
       switch (new_scene_state) {
         case SCENE_STATE.LOADING:
           break;
@@ -333,6 +355,8 @@ class GameManager {
 
       uiManager.update_state(new_scene_state);
     });
+    
+    console.log('🚀 Starting game state machine...');
     this.game_state.next(GAME_STATES.LOADING);
   }
   start_game(slot_id: number) {
@@ -360,7 +384,7 @@ class GameManager {
     }
   }
   // dialogues
-  start_talk(npc: Chicken | Cow | Orc) {
+  start_talk(npc: BaseNPC) {
     this.scene_state.next(SCENE_STATE.TALKING);
     const { dialogues }: any = game.currentScene;
     dialogManager.start(dialogues, npc.dialog_id);
@@ -409,8 +433,31 @@ const options: EngineOptions = {
   suppressConsoleBootMessage: true,
   antialiasing: false,
 };
+
+console.log('🎮 Game Manager: Creating engine with options:', options);
+
 //
 const game = new Engine(options);
+
+// Debug canvas creation
+setTimeout(() => {
+  const canvas = document.getElementById('main-canvas');
+  console.log('🖼️ Canvas element:', canvas);
+  console.log('🖼️ Canvas dimensions:', {
+    width: canvas?.getAttribute('width'),
+    height: canvas?.getAttribute('height'),
+    styleWidth: (canvas as HTMLCanvasElement)?.style.width,
+    styleHeight: (canvas as HTMLCanvasElement)?.style.height,
+    clientWidth: (canvas as HTMLCanvasElement)?.clientWidth,
+    clientHeight: (canvas as HTMLCanvasElement)?.clientHeight,
+  });
+  console.log('🖼️ Canvas visibility:', {
+    display: getComputedStyle(canvas as Element).display,
+    visibility: getComputedStyle(canvas as Element).visibility,
+    opacity: getComputedStyle(canvas as Element).opacity,
+  });
+}, 1000);
+
 // const devtool = new DevTool(game);
 const gameManager = new GameManager(game);
 const eventBus = new EventBus();
