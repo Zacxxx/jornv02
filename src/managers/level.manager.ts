@@ -37,6 +37,107 @@ const levels_config = [
     name: "player house",
     map: MAPS.INDOOR_PLAYER_HOUSE,
     song: SONGS.APPLE_CIDER,
+    dialogues: [
+      // Orc dialogues - various personalities and behaviors
+      {
+        id: `${NPC_TYPE.ORC}_GUARD`,
+        dialogues: [
+          {
+            text: "Halt! Who goes there?",
+          },
+          {
+            text: "This is my post. I guard this place with my life!",
+          },
+          {
+            text: "Nothing suspicious happening on my watch.",
+          },
+        ],
+      },
+      {
+        id: `${NPC_TYPE.ORC}_COOK`,
+        dialogues: [
+          {
+            text: "Grr... I smell something burning...",
+          },
+          {
+            text: "Want some roasted meat? Me best chef in tribe!",
+          },
+          {
+            text: "Secret ingredient is... ANGER! *laughs loudly*",
+          },
+        ],
+      },
+      {
+        id: `${NPC_TYPE.ORC}_PHILOSOPHER`,
+        dialogues: [
+          {
+            text: "Me think therefore me am... or something like that.",
+          },
+          {
+            text: "What is meaning of orc life? To crush enemies? To eat meat?",
+          },
+          {
+            text: "Perhaps... both! *nods wisely*",
+          },
+        ],
+      },
+      {
+        id: `${NPC_TYPE.ORC}_MERCHANT`,
+        dialogues: [
+          {
+            text: "You want to buy? Me have best deals!",
+          },
+          {
+            text: "Shiny weapons, tough armor, magical trinkets!",
+          },
+          {
+            text: "For you, special price... because you not run away screaming!",
+          },
+        ],
+      },
+      {
+        id: `${NPC_TYPE.ORC}_WARRIOR`,
+        dialogues: [
+          {
+            text: "RAAAWR! Me strongest warrior in all lands!",
+          },
+          {
+            text: "Want to test strength? Me crush rocks with bare hands!",
+          },
+          {
+            text: "But... me also gentle with small creatures. *whispers*",
+          },
+        ],
+      },
+      {
+        id: `${NPC_TYPE.ORC}_SLEEPY`,
+        dialogues: [
+          {
+            text: "*yawn* Me so tired... been awake for whole hour...",
+          },
+          {
+            text: "You disturb nap time. This better be important.",
+          },
+          {
+            text: "Five more minutes... then me go back to sleep. Zzz...",
+          },
+        ],
+      },
+      {
+        id: `${NPC_TYPE.ORC}_FRIENDLY`,
+        dialogues: [
+          {
+            text: "Hello there, friend! Me very happy to see you!",
+          },
+          {
+            text: "Most orcs scary, but me different. Me like making friends!",
+          },
+          {
+            text: "Want to share meal? Me have extra gruel! *smiles toothily*",
+          },
+        ],
+      },
+    ],
   },
   {
     name: "INDOOR_FIXED_HOUSE",

@@ -5,7 +5,7 @@ export function createCraftingContent(): string {
     <div class="crafting-content">
       <div class="crafting-header">
         <div class="crafting-title-section">
-          <h4>Crafting Station</h4>
+        <h4>Crafting Station</h4>
           <div class="crafting-stats">
             <div class="stat-badge">
               <span class="stat-label">Level</span>
@@ -135,20 +135,20 @@ export function createCraftingContent(): string {
         <!-- Right Panel: Crafting Station -->
         <div class="crafting-station">
           <div class="station-header">
-            <h5>Crafting Grid</h5>
+          <h5>Crafting Grid</h5>
             <div class="station-info">
               <span class="selected-recipe">Select a recipe to craft</span>
             </div>
           </div>
           
           <div class="crafting-area">
-            <div class="crafting-grid">
-              ${Array.from({ length: 9 }, (_, i) => `
+          <div class="crafting-grid">
+            ${Array.from({ length: 9 }, (_, i) => `
                 <div class="crafting-slot" data-slot="${i}">
                   <div class="slot-highlight"></div>
                   <div class="slot-content"></div>
                 </div>
-              `).join('')}
+            `).join('')}
             </div>
             
             <div class="crafting-arrow">

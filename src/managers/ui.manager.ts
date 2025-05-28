@@ -219,7 +219,7 @@ class UIManager {
     <div class="main-menu-content">
       <div class="main-menu-header">
         <h1 class="game-title">Jorn</h1>
-        <p class="game-subtitle">Farm Adventure</p>
+        <p class="game-subtitle">Infinite Adventure</p>
       </div>
 
       <div class="main-menu-actions">

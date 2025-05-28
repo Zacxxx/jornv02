@@ -19,6 +19,7 @@ import { Chicken } from "../actors/NPC/chicken.actor";
 import { Cow } from "../actors/NPC/cow.actor";
 import { dataManager } from "./data.manager";
 import { textManager } from "./text.manager";
+import { Orc } from "../actors/NPC/orc.actor";
 
 interface ViewportInfo {
   width: number;
@@ -359,7 +360,7 @@ class GameManager {
     }
   }
   // dialogues
-  start_talk(npc: Chicken | Cow) {
+  start_talk(npc: Chicken | Cow | Orc) {
     this.scene_state.next(SCENE_STATE.TALKING);
     const { dialogues }: any = game.currentScene;
     dialogManager.start(dialogues, npc.dialog_id);

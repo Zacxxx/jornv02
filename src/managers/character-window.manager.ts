@@ -43,15 +43,16 @@ class CharacterWindowManager {
 
     this.windowElement.innerHTML = `
       <div class="window-header">
-        <h3 class="window-title">Character</h3>
         <button class="window-close">✕</button>
       </div>
       <div class="window-body">
-        <div class="window-tabs" id="character_window_tabs">
+        <div class="window-tabs-vertical" id="character_window_tabs">
           ${this.renderTabs()}
         </div>
-        <div class="window-content" id="character_window_content">
-          ${this.renderContent(this.state.activeTab)}
+        <div class="window-content-wrapper">
+          <div class="window-content" id="character_window_content">
+            ${this.renderContent(this.state.activeTab)}
+          </div>
         </div>
       </div>
     `;

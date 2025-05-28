@@ -47,14 +47,14 @@
 .stat-bar-container {
   display: flex;
   flex-direction: column;
-  min-width: 140px;
+  min-width: 175px;
 }
 
 /* Stat Bar Track (Background) - now contains the text */
 .stat-bar-track {
   position: relative;
   width: 100%;
-  height: 16px;
+  height: 20px;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(20, 20, 20, 0.9) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 2px;
@@ -97,7 +97,7 @@
 .stat-label {
   color: #ffffff;
   font-family: var(--font-pixel-2, monospace);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-shadow: 
@@ -108,7 +108,7 @@
 .stat-values {
   color: #ffffff;
   font-family: var(--font-pixel-2, monospace);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 600;
   text-shadow: 
     1px 1px 2px rgba(0, 0, 0, 0.9),
@@ -224,19 +224,19 @@
   }
   
   .stat-bar-container {
-    min-width: 120px;
+    min-width: 150px;
   }
   
   .stat-bar-track {
-    height: 14px; /* Reduced from 16px for tablet */
+    height: 18px;
   }
   
   .stat-label {
-    font-size: 8px;
+    font-size: 10px;
   }
   
   .stat-values {
-    font-size: 7px;
+    font-size: 9px;
   }
 }
 
@@ -246,23 +246,23 @@
   }
   
   .stat-bar-container {
-    min-width: 100px;
+    min-width: 125px;
   }
   
   .stat-bar-track {
-    height: 12px; /* Reduced from 14px for mobile */
+    height: 15px;
   }
   
   .stat-label {
-    font-size: 7px;
+    font-size: 9px;
   }
   
   .stat-values {
-    font-size: 6px;
+    font-size: 8px;
   }
   
   .stat-bar-text {
-    padding: 0 4px; /* Reduced padding for smaller screens */
+    padding: 0 5px;
   }
 }
 
