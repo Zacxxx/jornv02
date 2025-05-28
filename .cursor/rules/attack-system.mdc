@@ -1,0 +1,94 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Attack System Rules
+
+## Core Architecture
+
+The attack system follows a clean, event-driven architecture with these key components:
+
+### Singleton Managers
+- **Combat Manager** ([src/managers/combat.manager.ts](mdc:src/managers/combat.manager.ts)): Central hub for all combat logic
+- **Attack Animation System** ([src/systems/attack-animation.system.ts](mdc:src/systems/attack-animation.system.ts)): Handles animation sequencing
+
+### Core Models
+- **Combat Models** ([src/models/combat.models.ts](mdc:src/models/combat.models.ts)): TypeScript interfaces for combat
+- **Main Models** ([src/models.ts](mdc:src/models.ts)): Enums for weapon types, attack types, combat events
+
+## Combat Integration Pattern
+
+### For Players
+When working with player combat in [src/actors/player.actor.ts](mdc:src/actors/player.actor.ts):
+1. Add combat properties: `currentWeapon`, `isAttacking`
+2. Register as combatant in `onInitialize()`
+3. Handle attack input in `onPreUpdate()`
+4. Use state management: `IDLE` → `ATTACKING` → `IDLE`
+
+### For NPCs
+When adding combat to NPCs (see [src/actors/NPC/orc.actor.ts](mdc:src/actors/NPC/orc.actor.ts)):
+1. Add health and defense properties
+2. Register as combatant in `onInitialize()`
+3. Implement attack logic if aggressive AI needed
+
+## Event System Usage
+
+Combat events are emitted through the global event bus:
+- `ATTACK_START`: When attack sequence begins
+- `ATTACK_HIT`: When damage is dealt
+- `ATTACK_END`: When attack sequence completes
+- `DAMAGE_DEALT`: When health changes
+
+Always listen for these events for UI updates, sound effects, or other game reactions.
+
+## Testing and Debugging
+
+Use [src/scenes/test-combat.scene.ts](mdc:src/scenes/test-combat.scene.ts) for:
+- Validating combat mechanics
+- Testing new weapon types
+- Debugging attack sequences
+- Monitoring combat events
+
+## Development Workflow
+
+### Phase 1 (Current)
+- Basic combat foundation implemented
+- X key attack input
+- Event system integration
+- Range-based hit detection
+
+### Phase 2 (Next Priority)
+- Full animation integration
+- Mouse input (left-click attacks)
+- Visual feedback and effects
+- Sound integration
+
+## Extension Guidelines
+
+### Adding New Weapons
+1. Update `WEAPON_TYPE` enum in [src/models.ts](mdc:src/models.ts)
+2. Create `AttackConfig` with sequences for all directions
+3. Register config with `attackAnimationSystem.registerAttackConfig()`
+
+### Adding New Combat Features
+1. Extend interfaces in [src/models/combat.models.ts](mdc:src/models/combat.models.ts)
+2. Update Combat Manager methods as needed
+3. Add new events to `COMBAT_EVENT` enum if required
+4. Test in TestCombatScene before main integration
+
+## Performance Considerations
+
+- Use singleton patterns for managers
+- Cache attack configurations
+- Minimize event emission frequency
+- Clean up attack IDs and timers
+- Use object pooling for frequently created combat objects
+
+## Code Organization
+
+- Keep combat logic in dedicated managers
+- Use TypeScript interfaces for type safety
+- Follow existing singleton patterns
+- Maintain separation between combat logic and actor implementation
+- Use event system for loose coupling between components

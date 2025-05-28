@@ -1,0 +1,206 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Combat Implementation Patterns
+
+## Standard Combat Integration Flow
+
+When implementing any combat-related feature, follow this pattern:
+
+### 1. Model Definition First
+Always start by defining types in [src/models/combat.models.ts](mdc:src/models/combat.models.ts) or [src/models.ts](mdc:src/models.ts):
+
+```typescript
+// Add enums to src/models.ts
+export enum NEW_COMBAT_FEATURE {
+  VALUE_ONE = "VALUE_ONE",
+  VALUE_TWO = "VALUE_TWO",
+}
+
+// Add interfaces to src/models/combat.models.ts
+export interface NewCombatFeature {
+  property: string;
+  value: number;
+}
+```
+
+### 2. Manager Extension
+Extend [src/managers/combat.manager.ts](mdc:src/managers/combat.manager.ts) with new functionality:
+
+```typescript
+class CombatManager {
+  // Add new method following existing patterns
+  newCombatMethod(data: NewCombatFeature): void {
+    // Implementation
+    
+    // Always emit events for integration
+    eventBus.emit(COMBAT_EVENT.NEW_EVENT, data);
+  }
+}
+```
+
+### 3. Actor Integration
+Update relevant actors ([src/actors/player.actor.ts](mdc:src/actors/player.actor.ts), NPCs) with combat properties:
+
+```typescript
+export class Actor extends BaseActor {
+  // Always add combat properties as public
+  public newCombatProperty: number = 0;
+  
+  onInitialize() {
+    // Register for combat if not already done
+    combatManager.registerCombatant(this, health, maxHealth, defense);
+  }
+}
+```
+
+### 4. Event System Integration
+Use the global event bus for all combat communications:
+
+```typescript
+// Listen for events
+eventBus.on(COMBAT_EVENT.NEW_EVENT, (data) => {
+  // Handle event
+});
+
+// Emit events
+eventBus.emit(COMBAT_EVENT.NEW_EVENT, eventData);
+```
+
+### 5. Testing Implementation
+Always test new features in [src/scenes/test-combat.scene.ts](mdc:src/scenes/test-combat.scene.ts):
+
+```typescript
+export class TestCombatScene extends Scene {
+  private setupNewFeatureTest() {
+    // Test the new combat feature
+    console.log("Testing new combat feature...");
+  }
+}
+```
+
+## Combat System Conventions
+
+### Naming Patterns
+- **Enums**: UPPER_SNAKE_CASE (e.g., `WEAPON_TYPE`, `ATTACK_TYPE`)
+- **Interfaces**: PascalCase (e.g., `CombatTarget`, `AttackData`)
+- **Methods**: camelCase with descriptive names (e.g., `startAttack`, `processHit`)
+- **Events**: COMBAT_EVENT__ACTION (e.g., `COMBAT_EVENT__ATTACK_START`)
+
+### State Management
+Always follow the state flow pattern:
+1. **Validate State**: Check if action is allowed
+2. **Change State**: Update to action state (e.g., ATTACKING)
+3. **Execute Action**: Perform the combat action
+4. **Emit Events**: Notify other systems
+5. **Return State**: Go back to previous state
+
+### Error Handling
+```typescript
+// Always validate inputs
+if (!target || !attacker) {
+  console.warn("Combat Manager: Invalid combat participants");
+  return false;
+}
+
+// Use early returns for validation
+if (this.isAttacking) return;
+
+// Log important actions
+console.log(`Combat Manager: Starting attack ${attackId}`);
+```
+
+## Integration with Existing Systems
+
+### HUD Integration
+Combat stats should integrate with [src/managers/hud.manager.ts](mdc:src/managers/hud.manager.ts):
+
+```typescript
+// Listen for health changes
+eventBus.on(COMBAT_EVENT.DAMAGE_DEALT, (data) => {
+  hudManager.updatePlayerStats({
+    hp: { current: data.newHealth, max: data.maxHealth }
+  });
+});
+```
+
+### Animation Integration
+For Phase 2, all animations should go through [src/systems/attack-animation.system.ts](mdc:src/systems/attack-animation.system.ts):
+
+```typescript
+// Register attack configurations
+attackAnimationSystem.registerAttackConfig(weaponConfig);
+
+// Execute attacks through the system
+attackAnimationSystem.executeAttack(attacker, target, weaponType, facing);
+```
+
+### Asset Integration
+Combat assets should be registered in [src/managers/asset.manager.ts](mdc:src/managers/asset.manager.ts):
+
+```typescript
+private setup_images() {
+  this.images = {
+    // ... existing images
+    new_combat_sprite: new ImageSource("/assets/combat/new_sprite.png", false, ImageFiltering.Pixel),
+  };
+}
+```
+
+## Performance Best Practices
+
+### Object Pooling
+```typescript
+// Reuse objects instead of creating new ones
+private attackPool: AttackData[] = [];
+
+getAttackData(): AttackData {
+  return this.attackPool.pop() || this.createNewAttackData();
+}
+```
+
+### Event Throttling
+```typescript
+// Avoid spamming events
+private lastEventTime = 0;
+private eventThreshold = 100; // ms
+
+emitIfThrottled(event: string, data: any) {
+  const now = Date.now();
+  if (now - this.lastEventTime > this.eventThreshold) {
+    eventBus.emit(event, data);
+    this.lastEventTime = now;
+  }
+}
+```
+
+### Memory Management
+```typescript
+// Always clean up after combat actions
+endAttack(attackId: string): void {
+  // Remove from active attacks
+  this.activeCombats.delete(attackId);
+  
+  // Clean up any timers or listeners
+  this.cleanupAttack(attackId);
+}
+```
+
+## Common Anti-Patterns to Avoid
+
+❌ **DON'T**: Put combat logic directly in actor classes
+✅ **DO**: Use Combat Manager for all combat logic
+
+❌ **DON'T**: Create tight coupling between actors
+✅ **DO**: Use event system for communication
+
+❌ **DON'T**: Hardcode values in combat calculations
+✅ **DO**: Use configuration objects and constants
+
+❌ **DON'T**: Skip validation in combat methods
+✅ **DO**: Always validate inputs and state
+
+❌ **DON'T**: Forget to emit events for important actions
+✅ **DO**: Use events for all significant combat state changes

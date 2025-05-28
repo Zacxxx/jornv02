@@ -13,6 +13,7 @@ import {
   } from "excalibur";
   import { assetManager } from "../../managers/asset.manager";
   import { gameManager } from "../../managers/game.manager";
+  import { combatManager } from "../../managers/combat.manager";
   import { NPC_TYPE, PLAYER_STATE } from "../../models";
   
   const ANIM = {
@@ -86,6 +87,10 @@ import {
     
     // Visual feedback
     private moodColor: Color = Color.Green;
+
+    // Combat properties
+    public health = { current: 30, max: 30 };
+    public defense = 2;
   
     constructor(config: any) {
       super({
@@ -118,6 +123,9 @@ import {
     onInitialize(engine: Engine) {
       this.animations = get_orc_animations();
       this.graphics.use(this.animations[ANIM.IDLE_FRONT]);
+      
+      // Register as combat participant
+      combatManager.registerCombatant(this, this.health.current, this.health.max, this.defense);
       
       // Enhanced interaction with mood-based responses
       this.on("pointerdown", () => {

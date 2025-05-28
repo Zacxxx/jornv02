@@ -5,7 +5,105 @@ alwaysApply: false
 ---
 # Project Structure Guide
 
-This document outlines the general structure of the codebase.
+This game uses the Excalibur.js engine with TypeScript and follows a clean architecture pattern.
+
+## Core Architecture
+
+### Managers (Singleton Pattern)
+Located in `src/managers/`:
+- **Game Manager** ([src/managers/game.manager.ts](mdc:src/managers/game.manager.ts)): Central game state, scene transitions, and event bus
+- **Asset Manager** ([src/managers/asset.manager.ts](mdc:src/managers/asset.manager.ts)): Images, sounds, and resource loading
+- **UI Manager** ([src/managers/ui.manager.ts](mdc:src/managers/ui.manager.ts)): Menu systems and UI state
+- **HUD Manager** ([src/managers/hud.manager.ts](mdc:src/managers/hud.manager.ts)): Player stats, health bars, game UI
+- **Combat Manager** ([src/managers/combat.manager.ts](mdc:src/managers/combat.manager.ts)): Combat logic, damage calculation, attack sequences
+
+### Systems
+Located in `src/systems/`:
+- **Attack Animation System** ([src/systems/attack-animation.system.ts](mdc:src/systems/attack-animation.system.ts)): Animation sequencing and timing for combat
+
+### Models and Types
+- **Main Models** ([src/models.ts](mdc:src/models.ts)): Core enums (player states, weapon types, attack types, combat events)
+- **Combat Models** ([src/models/combat.models.ts](mdc:src/models/combat.models.ts)): TypeScript interfaces for combat system
+
+### Actors
+Located in `src/actors/`:
+- **Player** ([src/actors/player.actor.ts](mdc:src/actors/player.actor.ts)): Main character with movement, stats, tools, and combat
+- **NPCs** in `src/actors/NPC/`: Various non-player characters
+  - **Orc** ([src/actors/NPC/orc.actor.ts](mdc:src/actors/NPC/orc.actor.ts)): Example enemy with AI and combat integration
+- **Areas** in `src/actors/Areas/`: Scene transition areas
+
+### Scenes
+Located in `src/scenes/`:
+- Game scenes for different maps and areas
+- **Test Combat Scene** ([src/scenes/test-combat.scene.ts](mdc:src/scenes/test-combat.scene.ts)): Dedicated testing environment for combat system
+
+## Key Architectural Patterns
+
+### Event-Driven Architecture
+- Global event bus in Game Manager
+- Combat events for system integration
+- Loose coupling between components
+
+### Singleton Pattern
+- All managers follow singleton pattern
+- Single source of truth for each system
+- Easy access from anywhere in codebase
+
+### State Management
+- Player states (IDLE, TALKING, IN_ACTION, ATTACKING, MENU)
+- Scene states for different game phases
+- Combat states for attack sequences
+
+## Development Guidelines
+
+### Adding New Features
+1. Create models/interfaces first in appropriate model files
+2. Implement logic in dedicated managers or systems
+3. Integrate with actors through clean interfaces
+4. Use event system for inter-component communication
+5. Create test scenes for validation
+
+### Combat System Integration
+- Register actors as combatants with Combat Manager
+- Use Attack Animation System for sequencing
+- Listen to combat events for UI/audio feedback
+- Test in TestCombatScene before main integration
+
+### UI Integration
+- Player stats through HUD Manager
+- Menu systems through UI Manager
+- Event listeners for dynamic updates
+
+## File Organization
+
+```
+src/
+├── managers/          # Singleton systems
+├── systems/           # Specialized game systems  
+├── actors/            # Game entities
+│   ├── NPC/          # Non-player characters
+│   └── Areas/        # Scene areas
+├── scenes/           # Game scenes
+├── models/           # Type definitions
+└── components/       # React UI components
+```
+
+## Asset Structure
+
+Assets are managed through Asset Manager and located in `public/assets/`:
+- Characters sprites and animations
+- Combat effects and UI elements
+- Sounds for gameplay and combat
+- Maps created with Tiled editor
+
+## Development Workflow
+
+1. **Models First**: Define TypeScript interfaces
+2. **Manager Logic**: Implement in appropriate manager
+3. **Actor Integration**: Add to relevant actors
+4. **Event Integration**: Use event bus for communication
+5. **Testing**: Validate in test scenes
+6. **UI Integration**: Connect to HUD/UI systems
 
 ## Entry Point
 

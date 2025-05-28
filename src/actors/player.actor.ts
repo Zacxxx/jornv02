@@ -19,11 +19,15 @@ import {
   SCENE_EVENTS,
   SCENE_STATE,
   PLAYER_TOOLS,
+  WEAPON_TYPE,
+  ATTACK_TYPE,
 } from "../models";
 
 import { uiManager } from "../managers/ui.manager";
 import { SceneArea } from "./Areas/scene-area.actor";
 import { hudManager } from "../managers/hud.manager";
+import { combatManager } from "../managers/combat.manager";
+// import { attackAnimationSystem } from "../systems/attack-animation.system"; // TODO: Phase 2
 
 const ANIM = {
   IDLE_FRONT: "IDLE_FRONT",
@@ -228,6 +232,10 @@ export class Player extends Actor {
   public level = 1;
   public playerName = "Player";
 
+  // Combat properties
+  public currentWeapon: WEAPON_TYPE = WEAPON_TYPE.FISTS;
+  public isAttacking: boolean = false;
+
   constructor({ x, y, map_bounds }: any) {
     super({
       name: "Player",
@@ -252,6 +260,9 @@ export class Player extends Actor {
     
     // Initialiser le HUD avec les stats du joueur
     this.updateHUD();
+    
+    // Register player as combat participant
+    combatManager.registerCombatant(this, this.hp.current, this.hp.max, 0);
   }
   
   // Méthode pour mettre à jour le HUD
@@ -300,6 +311,10 @@ export class Player extends Actor {
 
   onPreUpdate(engine: Engine): void {
     const keyboard = engine.input.keyboard;
+    
+    // For Phase 1, we'll focus on keyboard input (X key) for attacks
+    // Left-click functionality will be implemented properly in Phase 2
+    // when we have proper pointer event handling
 
     const pressed_space = keyboard.wasPressed(Input.Keys.Space);
     const pressed_escape = keyboard.wasPressed(Input.Keys.Esc);
@@ -309,6 +324,9 @@ export class Player extends Actor {
       keyboard.wasReleased(Input.Keys.E) ||
       keyboard.wasReleased(Input.Keys.T) ||
       keyboard.wasReleased(Input.Keys.F);
+
+    // Combat input handling - Phase 1: X key only (left-click in Phase 2)
+    const attack_pressed = keyboard.wasPressed(Input.Keys.X); // X key attack
 
     // Touches de test pour le HUD (à supprimer en production)
     if (keyboard.wasPressed(Input.Keys.Digit1)) {
@@ -340,6 +358,12 @@ export class Player extends Actor {
         }
         break;
       case PLAYER_STATE.IDLE:
+        // Attack input handling - check for attack before other actions
+        if (attack_pressed && !this.isAttacking) {
+          this.performAttack();
+          break; // Exit early to prevent other actions during attack
+        }
+
         if (pressed_space) {
           if (this.nearToNPC) {
             this.set_state(PLAYER_STATE.TALKING);
@@ -619,4 +643,127 @@ export class Player extends Actor {
     this.player_state = new_state;
     gameManager.player = this;
   }
+
+  /**
+   * Perform attack action with current weapon
+   * Phase 1 implementation - basic attack logic
+   */
+  private async performAttack(): Promise<void> {
+    if (this.isAttacking) return;
+
+    console.log(`Player: Starting attack with ${this.currentWeapon}`);
+    this.isAttacking = true;
+    this.set_state(PLAYER_STATE.ATTACKING);
+
+    try {
+      // Find nearby enemies within attack range
+      const nearbyEnemies = this.findNearbyEnemies();
+      
+      if (nearbyEnemies.length > 0) {
+        const target = nearbyEnemies[0]; // Attack first found enemy
+        console.log(`Player: Attacking ${target.name}`);
+        
+        // For Phase 1, we'll simulate the attack without actual animations
+        // Phase 2 will implement the full animation system
+        const success = await this.simulateAttack(target);
+        
+        if (success) {
+          console.log(`Player: Attack successful against ${target.name}`);
+        } else {
+          console.log(`Player: Attack failed against ${target.name}`);
+        }
+      } else {
+        console.log(`Player: No enemies in range - attacking air`);
+        // Still perform attack animation for air swing
+        await this.simulateAttack(null);
+      }
+    } catch (error) {
+      console.error(`Player: Attack error:`, error);
+    } finally {
+      this.isAttacking = false;
+      this.set_state(PLAYER_STATE.IDLE);
+      console.log(`Player: Attack completed`);
+    }
+  }
+
+  /**
+   * Find nearby enemies within attack range
+   * Phase 1 implementation - basic enemy detection
+   */
+  private findNearbyEnemies(): Actor[] {
+    const attackRange = 32; // Basic attack range
+    const nearbyEnemies: Actor[] = [];
+    
+    // Get the current scene and check for NPCs
+    const currentScene = gameManager.game.currentScene;
+    if (!currentScene) return nearbyEnemies;
+
+    // Find all actors in the scene that could be enemies
+    const allActors = currentScene.actors;
+    
+    for (const actor of allActors) {
+      // Check if it's an NPC and within range
+      if (actor.name && actor.name !== 'Player' && actor !== this) {
+        const distance = this.pos.distance(actor.pos);
+        if (distance <= attackRange) {
+          // Check if it's a hostile NPC (for now, consider Orcs as enemies)
+          if (actor.name === 'Orc') {
+            nearbyEnemies.push(actor);
+            console.log(`Player: Found enemy ${actor.name} at distance ${distance.toFixed(1)}`);
+          }
+        }
+      }
+    }
+    
+    return nearbyEnemies;
+  }
+
+  /**
+   * Simulate attack for Phase 1 (without full animation system)
+   * This will be replaced by attackAnimationSystem.executeAttack in Phase 2
+   */
+  private async simulateAttack(target: Actor | null): Promise<boolean> {
+    console.log(`Player: Simulating attack (Phase 1)`);
+    
+    // Simulate attack timing
+    await new Promise(resolve => setTimeout(resolve, 500)); // 500ms attack duration
+    
+    if (target) {
+      // Use combat manager to process the attack
+      const attackId = combatManager.startAttack({
+        attacker: this,
+        target: target,
+        weaponType: this.currentWeapon,
+        damage: 10, // Basic damage for FISTS
+        attackType: this.currentWeapon === WEAPON_TYPE.FISTS ? ATTACK_TYPE.MELEE : ATTACK_TYPE.MELEE,
+        hitbox: { x: this.pos.x - 16, y: this.pos.y - 16, width: 32, height: 32 }
+      });
+      
+      // Simulate hit processing
+      await new Promise(resolve => setTimeout(resolve, 250)); // Wait for "hit frame"
+      const hitSuccess = combatManager.processHit(attackId);
+      
+      // Complete attack
+      await new Promise(resolve => setTimeout(resolve, 250)); // Complete attack duration
+      combatManager.endAttack(attackId);
+      
+      return hitSuccess;
+    }
+    
+    return false; // Air swing
+  }
+
+  /**
+   * Get current facing direction as string for attack system
+   * TODO: Phase 2 will use this method
+   */
+  // private getFacingDirection(): 'front' | 'back' | 'left' | 'right' {
+  //   switch (this.facing) {
+  //     case FACING.FRONT: return 'front';
+  //     case FACING.BACK: return 'back';
+  //     case FACING.LEFT: return 'left';
+  //     case FACING.RIGHT: return 'right';
+  //     default: return 'front';
+  //   }
+  // }
 }
