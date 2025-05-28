@@ -866,9 +866,8 @@ body {
             }
           }
       }
-    } // This closes the last @media (max-width: 480px) block inside &.SCENE_STATE__READY > .main_menu > .slots-side-panel > .slots > .slot > .empty-slot-indicator
-  } // This closes &.SCENE_STATE__READY
-
+    }
+  }
   &.SCENE_STATE__PLAYING {
     #ui {
       display: flex;
