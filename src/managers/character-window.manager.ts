@@ -2,17 +2,15 @@ import { CHARACTER_WINDOW_TABS, CharacterWindowState } from '../components/chara
 import { createCharacterStatsContent } from '../components/character-window/character-stats';
 import { createCharacterSheetContent } from '../components/character-window/character-sheet';
 import { createInventoryContent } from '../components/character-window/inventory-grid';
-// import { createCraftingContent } from '../components/character-window/crafting-interface';
-import { CraftingMenu } from '../components/character-window/crafting-menu';
-import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { createCraftingContent } from '../components/character-window/crafting-interface';
+// import { CraftingMenu } from '../components/character-window/crafting-menu';
 import { createSpellBookContent } from '../components/character-window/spell-book';
-import { createTraitTreeContent } from '../components/character-window/trait-tree';
+import { createResearchContent } from '../components/character-window/traits';
 import { createAbilityListContent } from '../components/character-window/ability-list';
 import { createQuestLogContent } from '../components/character-window/quest-log';
 import { createEncyclopediaContent } from '../components/character-window/encyclopedia-entries';
 import { createHeroJourneyContent } from '../components/character-window/hero-journey';
-import { createProfessionsContent } from '../components/character-window/professions';
+import { createEquipmentContent } from '../components/character-window/equipment';
 
 class CharacterWindowManager {
   private state: CharacterWindowState;
@@ -175,6 +173,9 @@ class CharacterWindowManager {
         <line x1="16" y1="17" x2="8" y2="17"/>
         <line x1="10" y1="9" x2="8" y2="9"/>
       </svg>`,
+      'shield': `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>`,
       'hammer': `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m9 12 2 2 4-4"/>
         <path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"/>
@@ -196,6 +197,13 @@ class CharacterWindowManager {
         <path d="M21 16h-4"/>
         <path d="M11 3H9"/>
       </svg>`,
+      'scroll': `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+        <polyline points="14,2 14,8 20,8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10,9 9,9 8,9"/>
+      </svg>`,
       'star': `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
       </svg>`,
@@ -211,30 +219,13 @@ class CharacterWindowManager {
         <path d="m2 17 10 5 10-5"/>
         <path d="m2 12 10 5 10-5"/>
       </svg>`,
-      'scroll': `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-        <polyline points="14,2 14,8 20,8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-        <polyline points="10,9 9,9 8,9"/>
-      </svg>`,
       'book': `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
-        <circle cx="12" cy="8" r="2"/>
-        <path d="M12 10v4h4"/>
-      </svg>`,
-      'shield': `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      </svg>`,
-      'palette': `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="13.5" cy="6.5" r=".5"/>
-        <circle cx="17.5" cy="10.5" r=".5"/>
-        <circle cx="8.5" cy="7.5" r=".5"/>
-        <circle cx="6.5" cy="12.5" r=".5"/>
-        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
       </svg>`
     };
-    return icons[iconName] || '📄';
+
+    return icons[iconName] || icons['user'];
   }
 
   private async renderContent(tabId: string): Promise<string> {
@@ -243,28 +234,16 @@ class CharacterWindowManager {
         return createCharacterStatsContent();
       case 'character-sheet':
         return createCharacterSheetContent();
-      case 'crafting': {
-        // Mount React CraftingMenu into the content element
-        setTimeout(() => {
-          if (this.contentElement) {
-            this.contentElement.innerHTML = '';
-            try {
-              const root = createRoot(this.contentElement);
-              root.render(React.createElement(CraftingMenu));
-            } catch (e) {
-              this.contentElement.innerHTML = '<div style="color:red;">Crafting menu failed to load. Is React available?</div>';
-            }
-          }
-        }, 0);
-        // Return a placeholder for now (React will mount asynchronously)
-        return '<div id="crafting-menu-react-root"></div>';
-      }
+      case 'crafting':
+        return createCraftingContent();
       case 'inventory':
         return createInventoryContent();
       case 'spells':
         return createSpellBookContent();
       case 'traits':
-        return createTraitTreeContent();
+        return createResearchContent();
+      case 'equipment':
+        return createEquipmentContent();
       case 'hero-journey':
         return createHeroJourneyContent();
       case 'professions':
@@ -335,6 +314,14 @@ class CharacterWindowManager {
           case 'View Journey':
             console.log('🖱️ Opening Hero Journey tab');
             await this.switchTab('hero-journey');
+            break;
+          case 'Equipment Sets':
+            console.log('🖱️ Opening Equipment Sets tab');
+            await this.switchTab('equipment');
+            break;
+          case 'Transmog':
+            console.log('🖱️ Opening Transmog tab');
+            await this.switchTab('transmog');
             break;
           case 'View All':
             // Handle "View All" buttons for reputation, achievements, etc.

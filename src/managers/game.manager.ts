@@ -485,26 +485,7 @@ console.log('🎮 Game Manager: Creating engine with options:', options);
 
 //
 const game = new Engine(options);
-
-// Debug canvas creation
-setTimeout(() => {
-  const canvas = document.getElementById('main-canvas');
-  console.log('🖼️ Canvas element:', canvas);
-  console.log('🖼️ Canvas dimensions:', {
-    width: canvas?.getAttribute('width'),
-    height: canvas?.getAttribute('height'),
-    styleWidth: (canvas as HTMLCanvasElement)?.style.width,
-    styleHeight: (canvas as HTMLCanvasElement)?.style.height,
-    clientWidth: (canvas as HTMLCanvasElement)?.clientWidth,
-    clientHeight: (canvas as HTMLCanvasElement)?.clientHeight,
-  });
-  console.log('🖼️ Canvas visibility:', {
-    display: getComputedStyle(canvas as Element).display,
-    visibility: getComputedStyle(canvas as Element).visibility,
-    opacity: getComputedStyle(canvas as Element).opacity,
-  });
-}, 1000);
-
+// Debug mode
 // const devtool = new DevTool(game);
 const gameManager = new GameManager(game);
 const eventBus = new EventBus();

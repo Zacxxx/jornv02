@@ -28,19 +28,7 @@ export const CHARACTER_WINDOW_TABS: CharacterWindowTab[] = [
     id: 'equipment',
     name: 'Equipment',
     icon: 'shield',
-    component: 'equipment-sets'
-  },
-  {
-    id: 'transmog',
-    name: 'Transmog',
-    icon: 'palette',
-    component: 'transmog-wardrobe'
-  },
-  {
-    id: 'crafting',
-    name: 'Crafting',
-    icon: 'hammer',
-    component: 'crafting-interface'
+    component: 'equipment'
   },
   {
     id: 'inventory',
@@ -55,10 +43,22 @@ export const CHARACTER_WINDOW_TABS: CharacterWindowTab[] = [
     component: 'spell-book'
   },
   {
+    id: 'quests',
+    name: 'Quests',
+    icon: 'scroll',
+    component: 'quest-log'
+  },
+  {
+    id: 'crafting',
+    name: 'Crafting',
+    icon: 'hammer',
+    component: 'crafting-interface'
+  },
+  {
     id: 'traits',
-    name: 'Traits',
+    name: 'Research',
     icon: 'star',
-    component: 'trait-tree'
+    component: 'research'
   },
   {
     id: 'hero-journey',
@@ -77,12 +77,6 @@ export const CHARACTER_WINDOW_TABS: CharacterWindowTab[] = [
     name: 'Abilities',
     icon: 'layers',
     component: 'ability-list'
-  },
-  {
-    id: 'quests',
-    name: 'Quests',
-    icon: 'scroll',
-    component: 'quest-log'
   },
   {
     id: 'encyclopedia',

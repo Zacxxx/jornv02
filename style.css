@@ -1270,10 +1270,61 @@ body {
         }
 
         /* Fix for beige texture/glitch in character window buttons */
-        .character-window button {
+        .character-window button,
+        .character-window button *,
+        .character-window .window-tab,
+        .character-window .window-tab *,
+        .character-window [role="button"],
+        .character-window [role="button"] * {
           background-image: none !important;
           background-position: initial !important;
           background-repeat: initial !important;
+          background-attachment: initial !important;
+          background-origin: initial !important;
+          background-clip: initial !important;
+          background-size: initial !important;
+        }
+
+        /* Ensure no inherited background textures */
+        .character-window button::before,
+        .character-window button::after,
+        .character-window .window-tab::before,
+        .character-window .window-tab::after {
+          background-image: none !important;
+          background: none !important;
+        }
+
+        /* Specific fix for vertical tabs sidebar */
+        .character-window #character_window_tabs,
+        .character-window #character_window_tabs *,
+        .character-window .w-16.bg-slate-900\/90,
+        .character-window .w-16.bg-slate-900\/90 *,
+        .character-window .flex.flex-col.gap-2,
+        .character-window .flex.flex-col.gap-2 * {
+          background-image: none !important;
+          background-position: initial !important;
+          background-repeat: initial !important;
+          background-attachment: initial !important;
+          background-origin: initial !important;
+          background-clip: initial !important;
+          background-size: initial !important;
+        }
+
+        /* Remove horizontal scrollbar from character window tabs */
+        .character-window #character_window_tabs,
+        .character-window .w-16.bg-slate-900\/90 {
+          overflow-x: hidden !important;
+          overflow-y: auto !important;
+          scrollbar-width: none !important; /* Firefox */
+          -ms-overflow-style: none !important; /* IE/Edge */
+        }
+
+        /* Hide webkit scrollbars in character window tabs */
+        .character-window #character_window_tabs::-webkit-scrollbar,
+        .character-window .w-16.bg-slate-900\/90::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
         }
 
         /* Custom scrollbar for character window content */
