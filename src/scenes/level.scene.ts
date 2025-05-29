@@ -5,6 +5,7 @@ import { assetManager } from "../managers/asset.manager";
 import {
   ACTOR_TYPE,
   NPC_TYPE,
+  NPC_BEHAVIOR,
   PLAYER_STATE,
   SCENE_EVENTS,
   SONGS,
@@ -18,6 +19,7 @@ import { get_dialog_id } from "../managers/dialog.manager";
 import { SceneArea } from "../actors/Areas/scene-area.actor";
 import { Orc } from "../actors/NPC/orc.actor";
 import { getNPCBehavior, getNPCLevel, getNPCName } from "../utils/tiled.utils";
+import { excaliburHealthBarManager } from "../managers/excalibur-health-bar.manager";
 
 export class Level extends Scene {
   name: string;
@@ -43,12 +45,22 @@ export class Level extends Scene {
   onDeactivate(): void {
     this.player?.set_state(PLAYER_STATE.IDLE);
   }
+  onPreUpdate(engine: Engine, delta: number): void {
+    super.onPreUpdate(engine, delta);
+    
+    // Update native health bars
+    excaliburHealthBarManager.update();
+  }
   init(engine: Engine) {
     this.backgroundColor = Color.Black;
     this.map = assetManager.maps[this.map_name];
     
+    // Set scene for native health bar manager
+    excaliburHealthBarManager.setScene(this);
+    
     console.log(`🔄 Initializing level: ${this.name} (${this.map_name})`);
     console.log(`📍 Map object:`, this.map);
+    console.log(`📋 Available maps:`, Object.keys(assetManager.maps));
     
     if (!this.map) {
       console.error(`❌ Map not found: ${this.map_name}`);
@@ -56,21 +68,28 @@ export class Level extends Scene {
       return;
     }
     
+    let mapLoadSuccess = false;
     try {
+      console.log(`🗺️ Adding map to scene...`);
       this.map.addTiledMapToScene(engine);
       console.log(`✅ Map loaded successfully: ${this.map_name}`);
+ main
       // Remove all default Tiled collision actors (unnamed or generic)
       const toRemove = this.actors.filter(a => !a.name || a.name === "" || a.name === "collision" || a.name === "Solid" || a.name.startsWith("Tiled") || a.name.startsWith("Tile"));
       toRemove.forEach(a => {
         this.remove(a);
         console.log("Removed default Tiled collision actor", a);
       });
+
+      mapLoadSuccess = true;
+ main
     } catch (error) {
       console.error(`❌ Failed to load map: ${this.map_name}`, error);
-      return;
+      console.log(`⚠️ Continuing with fallback mode...`);
+      // Don't return here - try to continue with fallback
     }
     
-    if (!this.map.data) {
+    if (!this.map.data && mapLoadSuccess) {
       console.error(`❌ Map data not available: ${this.map_name}`);
       return;
     }
@@ -120,17 +139,82 @@ export class Level extends Scene {
     })();
     // --- End: Add pixel-perfect collision actors for each wall tile ---
     
-    const map_width = this.map.data.width * this.map.data.tileWidth;
-    const map_height = this.map.data.height * this.map.data.tileHeight;
+    let map_width = 1600; // Fallback dimensions
+    let map_height = 1600;
+    
+    if (this.map.data && mapLoadSuccess) {
+      console.log(`📊 Map data structure:`, {
+        width: this.map.data.width,
+        height: this.map.data.height,
+        tileWidth: this.map.data.tileWidth,
+        tileHeight: this.map.data.tileHeight,
+        objectLayers: this.map.data.objectLayers?.map((layer: any) => ({
+          name: layer.name,
+          objectCount: layer.objects?.length || 0
+        }))
+      });
+      
+      map_width = this.map.data.width * this.map.data.tileWidth;
+      map_height = this.map.data.height * this.map.data.tileHeight;
+    } else {
+      console.log(`⚠️ Using fallback map dimensions: ${map_width}x${map_height}`);
+    }
     
     console.log(`📏 Map dimensions: ${map_width}x${map_height}`);
 
-    this.create_scene_areas();
-    this.create_chickens();
-    this.create_cows();
-    this.create_orcs();
-    this.create_player(map_width, map_height);
-    this.setup_camera(map_width, map_height);
+    if (mapLoadSuccess) {
+      try {
+        console.log(`🏗️ Creating scene areas...`);
+        this.create_scene_areas();
+        console.log(`✅ Scene areas created`);
+      } catch (error) {
+        console.error(`❌ Failed to create scene areas:`, error);
+      }
+
+      try {
+        console.log(`🐔 Creating chickens...`);
+        this.create_chickens();
+        console.log(`✅ Chickens created`);
+      } catch (error) {
+        console.error(`❌ Failed to create chickens:`, error);
+      }
+
+      try {
+        console.log(`🐄 Creating cows...`);
+        this.create_cows();
+        console.log(`✅ Cows created`);
+      } catch (error) {
+        console.error(`❌ Failed to create cows:`, error);
+      }
+
+      try {
+        console.log(`👹 Creating orcs...`);
+        this.create_orcs();
+        console.log(`✅ Orcs created`);
+      } catch (error) {
+        console.error(`❌ Failed to create orcs:`, error);
+      }
+    } else {
+      console.log(`⚠️ Skipping NPC creation due to map loading failure`);
+      // Create test orcs manually for debugging
+      this.create_test_orcs();
+    }
+
+    try {
+      console.log(`🎮 Creating player...`);
+      this.create_player(map_width, map_height);
+      console.log(`✅ Player created`);
+    } catch (error) {
+      console.error(`❌ Failed to create player:`, error);
+    }
+
+    try {
+      console.log(`📷 Setting up camera...`);
+      this.setup_camera(map_width, map_height);
+      console.log(`✅ Camera setup complete`);
+    } catch (error) {
+      console.error(`❌ Failed to setup camera:`, error);
+    }
     
     console.log(`✅ Level initialization complete: ${this.name}`);
   }
@@ -223,15 +307,26 @@ export class Level extends Scene {
     }
   }
   private create_orcs() {
+    console.log(`🔍 Looking for orcs layer in map: ${this.map_name}`);
     const orcs_layer = this.map.data.getObjectLayerByName(TILED_OBJECT.ORCS);
+    
     if (orcs_layer) {
-      orcs_layer.objects.forEach((mark: any) => {
+      console.log(`✅ Found orcs layer with ${orcs_layer.objects.length} objects`);
+      orcs_layer.objects.forEach((mark: any, index: number) => {
+        console.log(`🔍 Processing orc ${index + 1}:`, {
+          x: mark.x,
+          y: mark.y,
+          properties: mark.properties
+        });
+        
         const dialog_id = `${NPC_TYPE.ORC}_${get_dialog_id(mark)}`;
         
         // Parse custom Tiled properties
         const behavior = getNPCBehavior(mark);
         const level = getNPCLevel(mark);
         const name = getNPCName(mark, "Orc");
+        
+        console.log(`📊 Parsed properties:`, { behavior, level, name });
         
         const orc = new Orc({
           x: mark.x,
@@ -244,24 +339,94 @@ export class Level extends Scene {
           name,
         });
         
-        console.log(`Created ${name} (Level ${level}, ${behavior}) at (${mark.x}, ${mark.y})`);
+        console.log(`✅ Created ${name} (Level ${level}, ${behavior}) at (${mark.x}, ${mark.y})`);
         this.add(orc);
       });
+    } else {
+      console.log(`❌ No orcs layer found in map: ${this.map_name}`);
+      console.log(`📋 Available object layers:`, this.map.data.objectLayers?.map((layer: any) => layer.name) || 'No object layers found');
     }
   }
+  private create_test_orcs() {
+    console.log(`🧪 Creating test orcs for debugging...`);
+    
+    // Create a few test orcs with different behaviors
+    const testOrcs = [
+      {
+        x: 400,
+        y: 400,
+        behavior: NPC_BEHAVIOR.AGGRESSIVE,
+        level: 2,
+        name: "Test Gobelin 1"
+      },
+      {
+        x: 500,
+        y: 400,
+        behavior: NPC_BEHAVIOR.AGGRESSIVE,
+        level: 3,
+        name: "Test Gobelin 2"
+      },
+      {
+        x: 600,
+        y: 400,
+        behavior: NPC_BEHAVIOR.SAVAGE,
+        level: 5,
+        name: "Test OoLee Gan"
+      }
+    ];
+    
+    testOrcs.forEach((orcData, index) => {
+      try {
+        console.log(`🧪 Creating test orc ${index + 1}:`, orcData);
+        
+        const dialog_id = `${NPC_TYPE.ORC}_test_${index}`;
+        
+        const orc = new Orc({
+          x: orcData.x,
+          y: orcData.y,
+          width: 16,
+          height: 16,
+          dialog_id,
+          behavior: orcData.behavior,
+          level: orcData.level,
+          name: orcData.name,
+        });
+        
+        console.log(`✅ Created test ${orcData.name} (Level ${orcData.level}, ${orcData.behavior}) at (${orcData.x}, ${orcData.y})`);
+        this.add(orc);
+      } catch (error) {
+        console.error(`❌ Failed to create test orc ${index + 1}:`, error);
+      }
+    });
+  }
   private create_player(map_width: number, map_height: number) {
-    const player_layer = this.map.data.getObjectLayerByName("player");
-    if (player_layer) {
-      this.player_initial_pos = player_layer.objects[0];
-      this.player = new Player({
-        x: this.player_initial_pos.x,
-        y: this.player_initial_pos.y,
-        map_bounds: { right: map_width, bottom: map_height },
-      });
-      eventBus.emit(SCENE_EVENTS.SWITCH_TOOL, this.player.current_tool);
-      this.add(this.player);
-      this.camera.strategy.lockToActor(this.player);
+    let playerX = 800; // Fallback position
+    let playerY = 800;
+    
+    if (this.map.data) {
+      const player_layer = this.map.data.getObjectLayerByName("player");
+      if (player_layer && player_layer.objects.length > 0) {
+        this.player_initial_pos = player_layer.objects[0];
+        playerX = this.player_initial_pos.x;
+        playerY = this.player_initial_pos.y;
+      } else {
+        console.log(`⚠️ No player spawn point found, using fallback position`);
+      }
+    } else {
+      console.log(`⚠️ No map data available, using fallback player position`);
     }
+    
+    this.player = new Player({
+      x: playerX,
+      y: playerY,
+      map_bounds: { right: map_width, bottom: map_height },
+    });
+    
+    eventBus.emit(SCENE_EVENTS.SWITCH_TOOL, this.player.current_tool);
+    this.add(this.player);
+    this.camera.strategy.lockToActor(this.player);
+    
+    console.log(`✅ Player created at (${playerX}, ${playerY})`);
   }
   private setup_camera(map_width: number, map_height: number) {
     const map_bounds = BoundingBox.fromDimension(
@@ -285,5 +450,7 @@ export class Level extends Scene {
       // Enable smooth camera movement
       this.camera.strategy.elasticToActor(this.player, 0.1, 0.1);
     }
+    
+    console.log(`📷 Camera setup complete`);
   }
 }

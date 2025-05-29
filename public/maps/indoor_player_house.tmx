@@ -1672,30 +1672,75 @@
  </objectgroup>
  <objectgroup id="10" name="orcs">
   <object id="3" x="1236.67" y="1199.33">
+   <properties>
+    <property name="behavior" value="aggressive"/>
+    <property name="level" type="int" value="2"/>
+    <property name="name" value="Gobelin"/>
+   </properties>
    <point/>
   </object>
   <object id="4" x="1303.33" y="1276">
+   <properties>
+    <property name="behavior" value="aggressive"/>
+    <property name="level" type="int" value="2"/>
+    <property name="name" value="Gobelin"/>
+   </properties>
    <point/>
   </object>
   <object id="5" x="1566.67" y="1214.67">
+   <properties>
+    <property name="behavior" value="aggressive"/>
+    <property name="level" type="int" value="2"/>
+    <property name="name" value="Gobelin"/>
+   </properties>
    <point/>
   </object>
   <object id="6" x="1548" y="1310">
+   <properties>
+    <property name="behavior" value="aggressive"/>
+    <property name="level" type="int" value="2"/>
+    <property name="name" value="Gobelin"/>
+   </properties>
    <point/>
   </object>
   <object id="7" x="1594.67" y="1357.33">
+   <properties>
+    <property name="behavior" value="aggressive"/>
+    <property name="level" type="int" value="2"/>
+    <property name="name" value="Gobelin"/>
+   </properties>
    <point/>
   </object>
   <object id="8" x="1540.67" y="1416">
+   <properties>
+    <property name="behavior" value="aggressive"/>
+    <property name="level" type="int" value="2"/>
+    <property name="name" value="Gobelin"/>
+   </properties>
    <point/>
   </object>
   <object id="9" x="1304" y="1378.67">
+   <properties>
+    <property name="behavior" value="aggressive"/>
+    <property name="level" type="int" value="2"/>
+    <property name="name" value="Gobelin"/>
+   </properties>
    <point/>
   </object>
   <object id="10" x="1220.67" y="1406.67">
+   <properties>
+    <property name="behavior" value="aggressive"/>
+    <property name="level" type="int" value="2"/>
+    <property name="name" value="Gobelin"/>
+   </properties>
    <point/>
   </object>
   <object id="11" x="1407.33" y="1166.67">
+   <properties>
+    <property name="behavior" value="aggressive"/>
+    <property name="level" type="int" value="5"/>
+    <property name="name" value="OoLee Gan"/>
+   </properties>
    <point/>
   </object>
  </objectgroup>
@@ -1705,6 +1750,8 @@
   </properties>
   <object id="2" x="1249.01" y="1242.12" width="11.4545" height="5.09091">
    <properties>
+    <property name="level" type="int" value="2"/>
+    <property name="name" value="Gobelin"/>
     <property name="scene" value="farm"/>
    </properties>
   </object>

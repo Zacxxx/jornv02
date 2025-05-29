@@ -1,0 +1,253 @@
+---
+description: Can be edited over time. This guide explains all the special properties you can assign to NPCs when creating them in the Tiled map editor. These properties allow you to customize NPC behavior, difficulty, and appearance.
+globs: 
+alwaysApply: false
+---
+# NPC Tiled Properties Guide
+
+This guide explains all the special properties you can assign to NPCs when creating them in the Tiled map editor. These properties allow you to customize NPC behavior, difficulty, and appearance.
+
+## Overview
+
+NPCs in this game support three main custom properties that dramatically change their behavior and stats:
+- **behavior**: Defines AI behavior patterns and aggression levels
+- **level**: Scales NPC stats and difficulty (1-100)
+- **name**: Custom display name for the NPC
+
+## Property Details
+
+### 1. Behavior Property
+
+**Property Name**: `behavior`  
+**Type**: String  
+**Default**: `passive`
+
+Controls the AI behavior and personality of the NPC. Each behavior affects:
+- Detection radius (how far they can see the player)
+- Movement speed
+- Aggro duration (how long they stay hostile)
+- Attack patterns
+- Visual mood indicators (color tinting)
+
+#### Available Behaviors:
+
+##### `passive` (Default)
+- **Detection Radius**: 32 pixels
+- **Move Speed**: 0.6x normal
+- **Aggro Time**: 3 seconds
+- **Characteristics**: Calm, slow to react, minimal threat
+- **Visual**: Green tint
+- **Best For**: Friendly NPCs, background characters
+
+##### `aggressive`
+- **Detection Radius**: 80 pixels
+- **Move Speed**: 1.2x normal
+- **Aggro Time**: 10 seconds
+- **Characteristics**: Quick to attack, pursues player actively
+- **Visual**: Orange tint
+- **Best For**: Guard enemies, hostile encounters
+
+##### `defensive`
+- **Detection Radius**: 48 pixels
+- **Move Speed**: 0.8x normal
+- **Aggro Time**: 5 seconds
+- **Characteristics**: Protective, moderate response
+- **Visual**: Blue tint
+- **Best For**: Territory guardians, protective NPCs
+
+##### `savage`
+- **Detection Radius**: 96 pixels
+- **Move Speed**: 1.5x normal
+- **Aggro Time**: 15 seconds
+- **Characteristics**: Extremely hostile, long pursuit, high threat
+- **Visual**: Red tint
+- **Best For**: Boss enemies, dangerous areas
+
+##### `logic`
+- **Detection Radius**: 64 pixels
+- **Move Speed**: 1.0x normal
+- **Aggro Time**: 8 seconds
+- **Characteristics**: Calculated, strategic behavior
+- **Visual**: Violet tint
+- **Best For**: Intelligent enemies, puzzle guardians
+
+### 2. Level Property
+
+**Property Name**: `level`  
+**Type**: Integer  
+**Range**: 1-100  
+**Default**: 1
+
+Scales the NPC's combat statistics using a 20% increase per level formula.
+
+#### Stat Scaling Formula:
+```
+Final Stat = Base Stat × (1 + (Level - 1) × 0.2)
+```
+
+#### Examples:
+- **Level 1**: Base stats (no scaling)
+- **Level 5**: 180% of base stats
+- **Level 10**: 280% of base stats
+- **Level 20**: 480% of base stats
+
+#### Base Stats by NPC Type:
+- **Chicken**: 10 HP, 0 Defense
+- **Cow**: 50 HP, 1 Defense  
+- **Orc**: 30 HP, 2 Defense
+
+#### Level Recommendations:
+- **1-3**: Tutorial/starting areas
+- **4-7**: Early game encounters
+- **8-15**: Mid-game challenges
+- **16-25**: Late game enemies
+- **26+**: Boss encounters, special areas
+
+### 3. Name Property
+
+**Property Name**: `name`  
+**Type**: String  
+**Default**: NPC type name (e.g., "Orc", "Chicken")
+
+Customizes the display name shown in:
+- Floating health bars
+- Dialog interactions
+- Combat logs
+- UI elements
+
+#### Naming Guidelines:
+- **Keep it short**: 1-15 characters work best
+- **Descriptive**: "Guard Captain", "Elder Orc"
+- **Atmospheric**: "Shadowfang", "Ironhide"
+- **Functional**: "Shopkeeper", "Quest Giver"
+
+## Implementation in Tiled
+
+### Step-by-Step Guide:
+
+1. **Create Object Layer**:
+   - In Tiled, create an object layer for your NPC type
+   - Name it appropriately: "orcs", "chickens", "cows"
+
+2. **Place NPC Object**:
+   - Use the Rectangle tool to place an object
+   - Position it where you want the NPC to spawn
+   - Size doesn't matter (uses NPC's default collision box)
+
+3. **Add Custom Properties**:
+   - Select the placed object
+   - In the Properties panel, click "+" to add properties
+   - Add the desired properties:
+
+#### Example Property Setup:
+```
+behavior: "aggressive"
+level: 5
+name: "Orc Warrior"
+```
+
+### Advanced Examples
+
+#### Boss Orc:
+```
+behavior: "savage"
+level: 15
+name: "Warchief Grimfang"
+```
+*Creates a high-level, extremely aggressive boss enemy*
+
+#### Peaceful Merchant:
+```
+behavior: "passive"
+level: 1
+name: "Trader Bob"
+```
+*Creates a non-threatening, low-level NPC for shops/dialog*
+
+#### Elite Guard:
+```
+behavior: "defensive"
+level: 8
+name: "Royal Guard"
+```
+*Creates a moderately strong defensive enemy*
+
+## Code Integration
+
+The properties are automatically parsed by the game engine:
+
+- **Behavior**: Processed by [getNPCBehavior()](mdc:src/utils/tiled.utils.ts) function
+- **Level**: Processed by [getNPCLevel()](mdc:src/utils/tiled.utils.ts) function  
+- **Name**: Processed by [getNPCName()](mdc:src/utils/tiled.utils.ts) function
+
+All NPCs extending [BaseNPC](mdc:src/actors/NPC/base-npc.actor.ts) automatically:
+- Parse these properties from Tiled objects
+- Scale stats based on level
+- Apply behavior-specific AI parameters
+- Register with combat and health bar systems
+
+## Visual Feedback
+
+NPCs provide visual feedback based on their properties:
+
+### Health Bars:
+- Display custom name and level (e.g., "Warchief Grimfang Lv.15")
+- Golden level badge for easy identification
+- Health bar color may vary by NPC type
+
+### Behavior Indicators:
+- NPCs are tinted with behavior-specific colors
+- Color changes based on mood and player proximity
+- Aggressive behaviors show more intense colors
+
+## Best Practices
+
+### Level Design:
+1. **Progressive Difficulty**: Increase levels as players advance
+2. **Variety**: Mix different behaviors in the same area
+3. **Logical Placement**: Stronger enemies in dangerous areas
+4. **Clear Indicators**: Use names to hint at difficulty
+
+### Behavior Mixing:
+- **Passive + Aggressive**: Create dynamic encounters
+- **Defensive + Savage**: Guard important areas with escalating threat
+- **Logic**: Use sparingly for special encounters
+
+### Naming Conventions:
+- **Consistency**: Use similar naming patterns in areas
+- **Hierarchy**: "Guard" < "Elite Guard" < "Guard Captain"
+- **Atmosphere**: Match names to the game's tone and setting
+
+## Troubleshooting
+
+### Common Issues:
+
+1. **Properties Not Working**:
+   - Ensure property names are exactly: `behavior`, `level`, `name`
+   - Check spelling and case sensitivity
+   - Verify object is on correct layer
+
+2. **Level Not Scaling**:
+   - Level must be a number (integer)
+   - Valid range is 1-100
+   - Check console for parsing errors
+
+3. **Behavior Not Applied**:
+   - Behavior must match exact strings listed above
+   - Invalid behaviors default to "passive"
+   - Check console logs for warnings
+
+### Debug Tips:
+- Check browser console for NPC creation logs
+- Each NPC logs its properties when initialized
+- Use debug commands to inspect NPC states
+
+## Future Enhancements
+
+Properties planned for future updates:
+- **faction**: Group allegiances and relationships
+- **dialog_tree**: Custom conversation paths
+- **loot_table**: Custom item drops
+- **patrol_route**: Predefined movement paths
+- **spawn_conditions**: Time/event-based spawning
+
