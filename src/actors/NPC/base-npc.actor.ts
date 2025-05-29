@@ -1,7 +1,8 @@
-import { Actor, Engine } from "excalibur";
+import { Actor, Engine, Color, Vector } from "excalibur";
 import { NPC_BEHAVIOR } from "../../models";
 import { excaliburHealthBarManager } from "../../managers/excalibur-health-bar.manager";
 import { combatManager } from "../../managers/combat.manager";
+import { pointerManager, IHoverable, TooltipData } from "../../managers/pointer.manager";
 
 export interface NPCConfig {
   x: number;
@@ -15,7 +16,7 @@ export interface NPCConfig {
   color?: any;
 }
 
-export abstract class BaseNPC extends Actor {
+export abstract class BaseNPC extends Actor implements IHoverable {
   // Core NPC properties
   public npcBehavior: NPC_BEHAVIOR = NPC_BEHAVIOR.PASSIVE;
   public npcLevel: number = 1;
@@ -23,8 +24,12 @@ export abstract class BaseNPC extends Actor {
   public dialog_id: string = "";
   
   // Health properties (can be overridden by subclasses)
-  public health = { current: 30, max: 30 };
-  public defense = 0;
+  public health = { current: 100, max: 100 };
+  public defense: number = 0;
+  
+  // Hover highlighting properties
+  private isHovered: boolean = false;
+  private originalTint: Color | undefined;
 
   constructor(config: NPCConfig) {
     super({
@@ -41,8 +46,23 @@ export abstract class BaseNPC extends Actor {
     this.npcName = config.name || "Unknown";
     this.dialog_id = config.dialog_id || "";
 
+    // Set the actor's name property for Excalibur's internal systems
+    this.name = this.npcName;
+
     // Scale health and defense based on level
     this.scaleStatsForLevel();
+  }
+
+  /**
+   * Scale NPC stats based on level
+   */
+  private scaleStatsForLevel(): void {
+    const baseHealth = 100;
+    const baseDefense = 0;
+    
+    this.health.max = Math.floor(baseHealth * (1 + (this.npcLevel - 1) * 0.5));
+    this.health.current = this.health.max;
+    this.defense = Math.floor(baseDefense + (this.npcLevel - 1) * 2);
   }
 
   onInitialize(engine: Engine): void {
@@ -56,25 +76,205 @@ export abstract class BaseNPC extends Actor {
       console.warn(`Failed to register health bar for ${this.npcName}:`, error);
     }
     
-    // Call subclass initialization
+    // Call subclass initialization FIRST so graphics are available
     this.onNPCInitialize(engine);
+    
+    // Debug pointer bounds setup
+    this.setupPointerDetection();
+    
+    // Register with pointer manager for hover events AFTER graphics are set up
+    try {
+      pointerManager.registerHoverableActor(this);
+      console.log(`🖱️ Registered ${this.npcName} with pointer manager`);
+    } catch (error) {
+      console.error(`❌ Failed to register ${this.npcName} with pointer manager:`, error);
+    }
+    
+    console.log(`✅ BaseNPC initialized: ${this.npcName} (Level ${this.npcLevel})`);
   }
 
   /**
-   * Abstract method for subclasses to implement their specific initialization
+   * Setup pointer detection with multiple fallback methods
+   */
+  private setupPointerDetection(): void {
+    // Method 1: Try graphics bounds
+    this.pointer.useGraphicsBounds = true;
+    
+    // Method 2: Ensure we have a collision box for pointer detection
+    if (!this.collider.bounds || this.collider.bounds.width === 0 || this.collider.bounds.height === 0) {
+      // Set a default collision box if none exists
+      this.collider.useBoxCollider(this.width || 32, this.height || 32);
+      console.log(`🔧 Set collision box for ${this.npcName}: ${this.width || 32}x${this.height || 32}`);
+    }
+    
+    // Method 3: Log current bounds for debugging
+    console.log(`🔍 ${this.npcName} bounds:`, {
+      graphics: this.graphics.current?.length > 0,
+      collision: this.collider.bounds,
+      position: { x: this.pos.x, y: this.pos.y },
+      size: { width: this.width, height: this.height }
+    });
+  }
+
+  kill(): void {
+    // Unregister from pointer manager
+    pointerManager.unregisterHoverableActor(this);
+    
+    // Hide any active tooltip
+    if (this.isHovered) {
+      pointerManager.hideTooltip();
+    }
+    
+    super.kill();
+  }
+
+  // IHoverable interface implementation
+  onHoverStart(): void {
+    if (this.isHovered) return; // Already hovering
+    
+    this.isHovered = true;
+    
+    // Apply visual highlight effect
+    this.applyHoverHighlight();
+    
+    // Show tooltip using pointer manager
+    const tooltipData: TooltipData = {
+      title: this.npcName,
+      subtitle: `Level ${this.npcLevel} ${this.getTypeDisplayName()}`,
+      position: this.pos
+    };
+    
+    pointerManager.showTooltip(tooltipData);
+    
+    console.log(`🎯 Hovering over ${this.npcName} (Level ${this.npcLevel})`);
+  }
+
+  onHoverEnd(): void {
+    if (!this.isHovered) return; // Not hovering
+    
+    this.isHovered = false;
+    
+    // Remove visual highlight effect
+    this.removeHoverHighlight();
+    
+    // Hide tooltip
+    pointerManager.hideTooltip();
+    
+    console.log(`🎯 Stopped hovering over ${this.npcName}`);
+  }
+
+  isPointInside(point: Vector): boolean {
+    // Use actor's built-in collision bounds
+    return this.collider.bounds.contains(point);
+  }
+
+  /**
+   * Get the display name for this NPC type
+   */
+  private getTypeDisplayName(): string {
+    // Try to get type from subclass property first
+    const npcType = (this as any).type;
+    if (npcType && typeof npcType === 'string') {
+      return npcType;
+    }
+    
+    // Fall back to constructor name
+    return this.constructor.name || "NPC";
+  }
+
+  /**
+   * Apply visual hover highlight effect
+   */
+  private applyHoverHighlight(): void {
+    try {
+      // Method 1: Try to tint the current graphic
+      const currentGraphic = this.graphics.current;
+      
+      if (currentGraphic && currentGraphic[0]) {
+        const graphic = currentGraphic[0].graphic;
+        
+        // Store original tint if not already stored
+        if (!this.originalTint) {
+          this.originalTint = graphic.tint ? graphic.tint.clone() : Color.White;
+        }
+        
+        // Apply bright highlight tint
+        graphic.tint = Color.fromRGB(255, 255, 150); // Bright yellow tint
+        console.log(`✨ Applied hover highlight to ${this.npcName}`);
+        return;
+      }
+      
+      // Method 2: Fallback to actor color if no graphics
+      if (!this.originalTint) {
+        this.originalTint = this.color.clone();
+      }
+      this.color = Color.fromRGB(255, 255, 150);
+      console.log(`✨ Applied color-based hover highlight to ${this.npcName}`);
+      
+    } catch (error) {
+      console.warn(`Failed to apply hover highlight to ${this.npcName}:`, error);
+    }
+  }
+
+  /**
+   * Remove hover highlight and restore original appearance
+   */
+  private removeHoverHighlight(): void {
+    try {
+      // Method 1: Try to restore graphic tint
+      const currentGraphic = this.graphics.current;
+      
+      if (currentGraphic && currentGraphic[0] && this.originalTint) {
+        const graphic = currentGraphic[0].graphic;
+        graphic.tint = this.originalTint;
+        console.log(`🔄 Restored original tint for ${this.npcName}`);
+        return;
+      }
+      
+      // Method 2: Fallback to actor color restoration
+      if (this.originalTint) {
+        this.color = this.originalTint;
+        console.log(`🔄 Restored original color for ${this.npcName}`);
+      }
+      
+    } catch (error) {
+      console.warn(`Failed to remove hover highlight from ${this.npcName}:`, error);
+    }
+  }
+
+  /**
+   * Abstract method that subclasses must implement for their specific initialization
    */
   protected abstract onNPCInitialize(engine: Engine): void;
 
   /**
-   * Scale NPC stats based on level
+   * Get NPC stats for display or combat calculations
    */
-  private scaleStatsForLevel(): void {
-    // Base scaling formula - can be adjusted
-    const levelMultiplier = 1 + (this.npcLevel - 1) * 0.2; // 20% increase per level
+  public getStats() {
+    return {
+      name: this.npcName,
+      level: this.npcLevel,
+      health: this.health,
+      defense: this.defense,
+      behavior: this.npcBehavior,
+    };
+  }
+
+  /**
+   * Update NPC health (used by combat system)
+   */
+  public updateHealth(newHealth: number): void {
+    this.health.current = Math.max(0, Math.min(newHealth, this.health.max));
     
-    this.health.max = Math.floor(this.health.max * levelMultiplier);
-    this.health.current = this.health.max;
-    this.defense = Math.floor(this.defense * levelMultiplier);
+    // Health bar updates are handled automatically by the health bar manager
+    // via its update() method called in the scene's onPreUpdate
+  }
+
+  /**
+   * Check if NPC is defeated
+   */
+  public isDefeated(): boolean {
+    return this.health.current <= 0;
   }
 
   /**
@@ -119,18 +319,5 @@ export abstract class BaseNPC extends Actor {
           aggroTime: 3000, // 3 seconds
         };
     }
-  }
-
-  /**
-   * Get display information for UI
-   */
-  public getDisplayInfo() {
-    return {
-      name: this.npcName,
-      level: this.npcLevel,
-      behavior: this.npcBehavior,
-      health: this.health,
-      defense: this.defense,
-    };
   }
 } 

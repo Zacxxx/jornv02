@@ -18,6 +18,7 @@ import { Player } from "../actors/player.actor";
 import { BaseNPC } from "../actors/NPC/base-npc.actor";
 import { dataManager } from "./data.manager";
 import { textManager } from "./text.manager";
+import { pointerManager } from "./pointer.manager";
 
 interface ViewportInfo {
   width: number;
@@ -255,6 +256,43 @@ class GameManager {
         const root = document.documentElement;
         root.style.setProperty('--ui-scale', scale.toString());
         root.style.setProperty('--viewport-scale', scale.toString());
+      },
+      // Pointer manager debug commands
+      pointer: {
+        status: () => {
+          console.log('Pointer Manager Status:', {
+            initialized: pointerManager ? 'Yes' : 'No',
+            isHovering: pointerManager?.isHovering(),
+            hoveredActors: pointerManager?.getHoveredActors().length || 0
+          });
+        },
+        listNPCs: () => {
+          const scene = this.game.currentScene;
+          if (scene) {
+            const actors = scene.actors.filter(actor => actor.name && actor.name !== 'Player');
+            console.log('NPCs in current scene:', actors.map(actor => ({
+              name: actor.name,
+              position: { x: actor.pos.x, y: actor.pos.y },
+              bounds: actor.collider.bounds,
+              hasGraphics: actor.graphics.current?.length > 0
+            })));
+          }
+        },
+        testHover: () => {
+          console.log('Testing hover system...');
+          const scene = this.game.currentScene;
+          if (scene) {
+            const npcs = scene.actors.filter(actor => actor.name && actor.name !== 'Player');
+            if (npcs.length > 0) {
+              const testNPC = npcs[0];
+              console.log(`Simulating hover on ${testNPC.name}...`);
+              // Trigger pointer enter manually for testing
+              testNPC.emit('pointerenter', {});
+            } else {
+              console.log('No NPCs found in current scene');
+            }
+          }
+        }
       }
     };
     
@@ -289,6 +327,10 @@ class GameManager {
 
     uiManager.init();
     console.log('✅ UI Manager initialized');
+    
+    // Initialize pointer manager with the engine
+    pointerManager.initialize(this.game);
+    console.log('✅ Pointer Manager initialized');
     
     //
     levelManager.load_levels(this.game);

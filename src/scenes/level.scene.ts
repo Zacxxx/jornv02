@@ -73,7 +73,7 @@ export class Level extends Scene {
       console.log(`🗺️ Adding map to scene...`);
       this.map.addTiledMapToScene(engine);
       console.log(`✅ Map loaded successfully: ${this.map_name}`);
- main
+      
       // Remove all default Tiled collision actors (unnamed or generic)
       const toRemove = this.actors.filter(a => !a.name || a.name === "" || a.name === "collision" || a.name === "Solid" || a.name.startsWith("Tiled") || a.name.startsWith("Tile"));
       toRemove.forEach(a => {
@@ -82,7 +82,6 @@ export class Level extends Scene {
       });
 
       mapLoadSuccess = true;
- main
     } catch (error) {
       console.error(`❌ Failed to load map: ${this.map_name}`, error);
       console.log(`⚠️ Continuing with fallback mode...`);

@@ -13,7 +13,7 @@ import {
   import { assetManager } from "../../managers/asset.manager";
   import { gameManager, eventBus } from "../../managers/game.manager";
   import { excaliburHealthBarManager } from "../../managers/excalibur-health-bar.manager";
-  import { NPC_TYPE, PLAYER_STATE, COMBAT_EVENT, NPC_BEHAVIOR } from "../../models";
+  import { PLAYER_STATE, COMBAT_EVENT, NPC_BEHAVIOR } from "../../models";
   import { BaseNPC, NPCConfig } from "./base-npc.actor";
   
   const ANIM = {
@@ -59,7 +59,7 @@ import {
   }
   
   export class Orc extends BaseNPC {
-    type!: string;
+    type: string = "Orc";
     animations: any;
     
     // Timers for various behaviors
@@ -88,49 +88,44 @@ import {
     private moodColor!: Color;
 
     constructor(config: NPCConfig) {
+      super({
+        ...config,
+        color: config.color || Color.Green,
+      });
+      
       console.log(`🏗️ Creating Orc with config:`, config);
       
-      try {
-        super({
-          ...config,
-          color: config.color || Color.Green,
-        });
-        
-        // Initialize properties after super call
-        this.type = NPC_TYPE.ORC;
-        this.isWandering = false;
-        this.wanderDirection = vec(0, 0);
-        this.originalPosition = vec(0, 0);
-        this.wanderRadius = 32;
-        this.random = new Random();
-        this.currentMood = OrcMood.CALM;
-        this.detectionRadius = 64;
-        this.isPlayerNearby = false;
-        this.lastPlayerPosition = vec(0, 0);
-        this.suspicionLevel = 0;
-        this.patrolPoints = [];
-        this.currentPatrolIndex = 0;
-        this.isPatrolling = false;
-        this.moodColor = Color.Green;
-        
-        console.log(`✅ BaseNPC constructor completed for ${config.name || 'Unknown'}`);
-        
-        // Set collision type
-        this.body.collisionType = CollisionType.Active;
-        this.scale = vec(0.8, 0.8);
-        this.originalPosition = vec(config.x, config.y);
-        
-        // Apply behavior-specific configurations
-        this.applyBehaviorConfig();
-        
-        // Setup patrol points around spawn location
-        this.setupPatrolPoints();
-        
-        console.log(`✅ Orc ${this.npcName} created successfully at (${config.x}, ${config.y})`);
-      } catch (error) {
-        console.error(`❌ Error creating Orc:`, error);
-        throw error;
-      }
+      // Initialize properties after super call
+      this.type = "Orc";
+      this.isWandering = false;
+      this.wanderDirection = vec(0, 0);
+      this.originalPosition = vec(0, 0);
+      this.wanderRadius = 32;
+      this.random = new Random();
+      this.currentMood = OrcMood.CALM;
+      this.detectionRadius = 64;
+      this.isPlayerNearby = false;
+      this.lastPlayerPosition = vec(0, 0);
+      this.suspicionLevel = 0;
+      this.patrolPoints = [];
+      this.currentPatrolIndex = 0;
+      this.isPatrolling = false;
+      this.moodColor = Color.Green;
+      
+      console.log(`✅ BaseNPC constructor completed for ${config.name || 'Unknown'}`);
+      
+      // Set collision type
+      this.body.collisionType = CollisionType.Active;
+      this.scale = vec(0.8, 0.8);
+      this.originalPosition = vec(config.x, config.y);
+      
+      // Apply behavior-specific configurations
+      this.applyBehaviorConfig();
+      
+      // Setup patrol points around spawn location
+      this.setupPatrolPoints();
+      
+      console.log(`✅ Orc ${this.npcName} created successfully at (${config.x}, ${config.y})`);
     }
 
     private applyBehaviorConfig() {
