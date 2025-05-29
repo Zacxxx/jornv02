@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { dataManager } from '../../managers/data.manager';
 import { updateInventoryUI } from './inventory-grid';
 import './crafting-menu.css';
