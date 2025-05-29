@@ -2,12 +2,12 @@ import { CHARACTER_WINDOW_TABS, CharacterWindowState } from '../components/chara
 import { createCharacterStatsContent } from '../components/character-window/character-stats';
 import { createCharacterSheetContent } from '../components/character-window/character-sheet';
 import { createInventoryContent, initializeInventory } from '../components/character-window/inventory-grid';
-import { createCraftingContent } from '../components/character-window/crafting-interface';
+import { createCraftingContent, initializeCrafting } from '../components/character-window/crafting-interface';
 // import { CraftingMenu } from '../components/character-window/crafting-menu';
-import { createSpellBookContent } from '../components/character-window/spell-book';
+import { createSpellBookContent, initializeSpells } from '../components/character-window/spell-book';
 import { createResearchContent } from '../components/character-window/traits';
 import { createAbilityListContent } from '../components/character-window/ability-list';
-import { createQuestLogContent } from '../components/character-window/quest-log';
+import { createQuestLogContent, initializeQuests } from '../components/character-window/quest-log';
 import { createEncyclopediaContent } from '../components/character-window/encyclopedia-entries';
 import { createHeroJourneyContent } from '../components/character-window/hero-journey';
 import { createEquipmentContent } from '../components/character-window/equipment';
@@ -440,7 +440,19 @@ class CharacterWindowManager {
       // Use a small delay to ensure DOM is fully rendered
       setTimeout(() => {
         initializeInventory();
-      }, 50);
+      }, 100);
+    } else if (this.state.activeTab === 'crafting') {
+      setTimeout(() => {
+        initializeCrafting();
+      }, 100);
+    } else if (this.state.activeTab === 'spells') {
+      setTimeout(() => {
+        initializeSpells();
+      }, 100);
+    } else if (this.state.activeTab === 'quests') {
+      setTimeout(() => {
+        initializeQuests();
+      }, 100);
     }
   }
 

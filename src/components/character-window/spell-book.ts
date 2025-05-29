@@ -234,7 +234,7 @@ export function createSpellBookContent(): string {
       .spell-level {
         position: absolute;
         top: 2px;
-        right: 2px;
+        left: 2px;
         background: rgba(0, 0, 0, 0.8);
         color: white;
         font-size: 10px;
@@ -248,202 +248,27 @@ export function createSpellBookContent(): string {
       .spell-mana-cost {
         position: absolute;
         bottom: 2px;
-        left: 2px;
+        right: 2px;
         background: rgba(59, 130, 246, 0.8);
         color: white;
-        font-size: 10px;
+        font-size: 9px;
         font-weight: bold;
-        padding: 1px 4px;
+        padding: 1px 3px;
         border-radius: 3px;
+        min-width: 14px;
+        text-align: center;
+      }
+
+      @keyframes spellCast {
+        0% { transform: scale(1) rotate(0deg); }
+        50% { transform: scale(1.1) rotate(180deg); box-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
+        100% { transform: scale(1) rotate(360deg); }
+      }
+
+      .spell-casting {
+        animation: spellCast 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       }
     </style>
-
-    <script>
-      let selectedSpell = null;
-
-      document.addEventListener('DOMContentLoaded', function() {
-        initializeSpellBook();
-      });
-
-      function initializeSpellBook() {
-        // Modal functionality
-        const createSpellBtn = document.getElementById('create-spell-btn');
-        const modal = document.getElementById('spell-creation-modal');
-        const closeModalBtns = document.querySelectorAll('.close-modal');
-
-        createSpellBtn?.addEventListener('click', () => {
-          modal.classList.remove('opacity-0', 'pointer-events-none');
-          modal.classList.add('opacity-100', 'pointer-events-auto');
-        });
-
-        closeModalBtns.forEach(btn => {
-          btn.addEventListener('click', () => {
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.classList.remove('opacity-100', 'pointer-events-auto');
-          });
-        });
-
-        // Search functionality
-        const searchInput = document.getElementById('spell-search');
-        if (searchInput) {
-          searchInput.addEventListener('input', handleSpellSearch);
-        }
-
-        // Filter functionality
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => {
-          btn.addEventListener('click', handleSpellFilter);
-        });
-
-        // Spell interaction
-        const spellSlots = document.querySelectorAll('.spell-slot');
-        spellSlots.forEach(slot => {
-          slot.addEventListener('click', handleSpellClick);
-        });
-
-        // Action buttons
-        document.getElementById('search-components-btn')?.addEventListener('click', () => {
-          console.log('Searching for spell components...');
-        });
-
-        document.getElementById('edit-spell-btn')?.addEventListener('click', () => {
-          if (selectedSpell) {
-            console.log('Editing spell:', selectedSpell.dataset.spellName);
-          } else {
-            alert('Please select a spell to edit');
-          }
-        });
-
-        document.getElementById('combine-spell-btn')?.addEventListener('click', () => {
-          console.log('Opening spell combination interface...');
-        });
-      }
-
-      function handleSpellSearch(event) {
-        const searchTerm = event.target.value.toLowerCase();
-        const slots = document.querySelectorAll('.spell-slot[data-spell]');
-        
-        slots.forEach(slot => {
-          const spellName = slot.dataset.spellName?.toLowerCase() || '';
-          const spellSchool = slot.dataset.spellSchool?.toLowerCase() || '';
-          
-          if (spellName.includes(searchTerm) || spellSchool.includes(searchTerm)) {
-            slot.style.display = 'block';
-          } else {
-            slot.style.display = 'none';
-          }
-        });
-      }
-
-      function handleSpellFilter(event) {
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        
-        const filter = event.target.dataset.filter;
-        const slots = document.querySelectorAll('.spell-slot');
-        
-        slots.forEach(slot => {
-          if (filter === 'all' || slot.dataset.spellSchool === filter || !slot.dataset.spell) {
-            slot.style.display = 'block';
-          } else {
-            slot.style.display = 'none';
-          }
-        });
-      }
-
-      function handleSpellClick(event) {
-        const slot = event.currentTarget;
-        if (slot.dataset.spell) {
-          document.querySelectorAll('.spell-slot').forEach(s => s.classList.remove('active'));
-          slot.classList.add('active');
-          showSpellDetails(slot);
-          selectedSpell = slot;
-        }
-      }
-
-      function showSpellDetails(slot) {
-        const panel = document.getElementById('spell-details-panel');
-        const spellData = {
-          name: slot.dataset.spellName || 'Unknown Spell',
-          school: slot.dataset.spellSchool || 'utility',
-          level: slot.dataset.spellLevel || '1',
-          manaCost: slot.dataset.spellManaCost || '0',
-          damage: slot.dataset.spellDamage || '0',
-          description: slot.dataset.spellDescription || 'No description available.',
-          cooldown: slot.dataset.spellCooldown || '0'
-        };
-        
-        panel.innerHTML = generateSpellDetailsContent(spellData);
-      }
-
-      function generateSpellDetailsContent(spell) {
-        const schoolColors = {
-          fire: '#EF4444',
-          ice: '#3B82F6',
-          lightning: '#F59E0B',
-          healing: '#22C55E',
-          utility: '#9CA3AF'
-        };
-
-        const schoolIcons = {
-          fire: '🔥',
-          ice: '❄️',
-          lightning: '⚡',
-          healing: '💚',
-          utility: '🔧'
-        };
-        
-        return \`
-          <div class="space-y-4">
-            <div class="text-center">
-              <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: \${schoolColors[spell.school]}">
-                <span>\${schoolIcons[spell.school as keyof typeof schoolIcons] || '✨'}</span>
-              </div>
-              <h3 class="font-bold text-xl mb-1" style="color: \${schoolColors[spell.school]}">\${spell.name}</h3>
-              <p class="text-white/70 text-sm capitalize">\${spell.school} • Level \${spell.level}</p>
-            </div>
-
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Spell Properties</h4>
-              <div class="space-y-2">
-                <div class="flex justify-between items-center">
-                  <span class="text-white/70 text-sm">Mana Cost</span>
-                  <span class="text-blue-400 font-bold">\${spell.manaCost}</span>
-                </div>
-                \${spell.damage !== '0' ? \`
-                  <div class="flex justify-between items-center">
-                    <span class="text-white/70 text-sm">Damage</span>
-                    <span class="text-red-400 font-bold">\${spell.damage}</span>
-                  </div>
-                \` : ''}
-                <div class="flex justify-between items-center">
-                  <span class="text-white/70 text-sm">Cooldown</span>
-                  <span class="text-yellow-400 font-bold">\${spell.cooldown}s</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
-              <p class="text-white/80 text-sm leading-relaxed">\${spell.description}</p>
-            </div>
-
-            <div class="space-y-2">
-              <button class="w-full px-4 py-2 bg-gradient-to-r from-purple-500/80 to-purple-600/80 hover:from-purple-400 hover:to-purple-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                ✨ Cast Spell
-              </button>
-              <button class="w-full px-4 py-2 bg-gradient-to-r from-blue-500/80 to-blue-600/80 hover:from-blue-400 hover:to-blue-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                📚 Study Spell
-              </button>
-              <button class="w-full px-4 py-2 bg-gradient-to-r from-amber-500/80 to-amber-600/80 hover:from-amber-400 hover:to-amber-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                ✏️ Edit Spell
-              </button>
-            </div>
-          </div>
-        \`;
-      }
-    </script>
   `;
 }
 
@@ -456,7 +281,7 @@ function generateSpellSlots(): string {
     { name: "Teleport", school: "utility", level: "5", manaCost: "40", damage: "0", cooldown: "10", description: "Instantly transports the caster to a target location within range." },
     { name: "Meteor", school: "fire", level: "8", manaCost: "80", damage: "120", cooldown: "15", description: "Calls down a massive meteor from the sky, dealing devastating area damage after a short delay." },
     { name: "Frost Armor", school: "ice", level: "3", manaCost: "30", damage: "0", cooldown: "5", description: "Encases the caster in protective ice, reducing damage taken and slowing attackers." },
-    { name: "Chain Lightning", school: "lightning", level: "6", manaCost: "50", damage: "40", cooldown: "4", description: "Unleashes lightning that jumps between multiple enemies, dealing reduced damage with each jump." },
+    { name: "Chain Lightning", school: "lightning", level: "6", manaCost: "50", damage: "40", cooldown: "4", description: "Unleashes lightning that jumped between multiple enemies, dealing reduced damage with each jump." },
     { name: "Greater Heal", school: "healing", level: "5", manaCost: "45", damage: "0", cooldown: "3", description: "Provides powerful healing over time and removes negative status effects." },
     { name: "Invisibility", school: "utility", level: "4", manaCost: "35", damage: "0", cooldown: "20", description: "Renders the caster invisible for a short duration, breaking on attack or spell casting." },
     { name: "Flame Wall", school: "fire", level: "5", manaCost: "40", damage: "25", cooldown: "8", description: "Creates a wall of flames that damages enemies who pass through it." },
@@ -503,4 +328,285 @@ function generateSpellSlots(): string {
   }
   
   return slots;
+}
+
+// Initialize spell functionality - can be called after content is loaded
+export function initializeSpells() {
+  console.log('🪄 Initializing spell functionality...');
+  
+  // Search functionality
+  const searchInput = document.getElementById('spell-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', handleSpellSearch);
+    console.log('🪄 Search functionality initialized');
+  }
+
+  // Filter functionality
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  if (filterBtns.length > 0) {
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', handleSpellFilter);
+    });
+    console.log(`🪄 Filter functionality initialized (${filterBtns.length} buttons)`);
+  }
+
+  // Sort functionality
+  const sortSelect = document.getElementById('spell-sort');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', handleSpellSort);
+    console.log('🪄 Sort functionality initialized');
+  }
+
+  // Spell interaction
+  const spellSlots = document.querySelectorAll('.spell-slot');
+  console.log(`🪄 Found ${spellSlots.length} spell slots`);
+  
+  if (spellSlots.length > 0) {
+    spellSlots.forEach(slot => {
+      slot.addEventListener('click', handleSpellClick);
+    });
+    console.log('🪄 Spell interaction events attached');
+  }
+
+  // Button functionality
+  const createSpellBtn = document.getElementById('create-spell-btn');
+  const searchComponentsBtn = document.getElementById('search-components-btn');
+  const editSpellBtn = document.getElementById('edit-spell-btn');
+  const combineSpellBtn = document.getElementById('combine-spell-btn');
+
+  if (createSpellBtn) {
+    createSpellBtn.addEventListener('click', () => {
+      console.log('🪄 Opening spell creation modal...');
+      showSpellCreationModal();
+    });
+  }
+
+  if (searchComponentsBtn) {
+    searchComponentsBtn.addEventListener('click', () => {
+      console.log('🪄 Opening component search...');
+    });
+  }
+
+  if (editSpellBtn) {
+    editSpellBtn.addEventListener('click', () => {
+      if (selectedSpell) {
+        console.log('🪄 Editing spell:', selectedSpell.dataset.spellName);
+      } else {
+        alert('Please select a spell to edit');
+      }
+    });
+  }
+
+  if (combineSpellBtn) {
+    combineSpellBtn.addEventListener('click', () => {
+      console.log('🪄 Opening spell combination interface...');
+    });
+  }
+
+  // Modal functionality
+  const modal = document.getElementById('spell-creation-modal');
+  const closeModalBtns = document.querySelectorAll('.close-modal');
+  
+  if (modal && closeModalBtns.length > 0) {
+    closeModalBtns.forEach(btn => {
+      btn.addEventListener('click', hideSpellCreationModal);
+    });
+    console.log('🪄 Modal functionality initialized');
+  }
+  
+  console.log('🪄 Spell initialization complete');
+}
+
+// Global variable for spell state
+let selectedSpell: HTMLElement | null = null;
+
+function showSpellCreationModal() {
+  const modal = document.getElementById('spell-creation-modal');
+  if (modal) {
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.classList.add('opacity-100', 'pointer-events-auto');
+  }
+}
+
+function hideSpellCreationModal() {
+  const modal = document.getElementById('spell-creation-modal');
+  if (modal) {
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    modal.classList.remove('opacity-100', 'pointer-events-auto');
+  }
+}
+
+function handleSpellSearch(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const searchTerm = target.value.toLowerCase();
+  const slots = document.querySelectorAll('.spell-slot[data-spell]');
+  
+  slots.forEach(slot => {
+    const slotElement = slot as HTMLElement;
+    const spellName = slotElement.dataset.spellName?.toLowerCase() || '';
+    const spellSchool = slotElement.dataset.spellSchool?.toLowerCase() || '';
+    
+    if (spellName.includes(searchTerm) || spellSchool.includes(searchTerm)) {
+      slotElement.style.display = 'block';
+    } else {
+      slotElement.style.display = 'none';
+    }
+  });
+}
+
+function handleSpellFilter(event: Event) {
+  const target = event.target as HTMLElement;
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => btn.classList.remove('active'));
+  target.classList.add('active');
+  
+  const filter = target.dataset.filter;
+  const slots = document.querySelectorAll('.spell-slot');
+  
+  slots.forEach(slot => {
+    const slotElement = slot as HTMLElement;
+    if (filter === 'all' || slotElement.dataset.spellSchool === filter || !slotElement.dataset.spell) {
+      slotElement.style.display = 'block';
+    } else {
+      slotElement.style.display = 'none';
+    }
+  });
+}
+
+function handleSpellSort(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  const sortBy = target.value;
+  const grid = document.getElementById('spell-grid');
+  if (!grid) return;
+  
+  const slots = Array.from(grid.querySelectorAll('.spell-slot[data-spell]')) as HTMLElement[];
+  
+  slots.sort((a, b) => {
+    const aValue = getSpellSortValue(a, sortBy);
+    const bValue = getSpellSortValue(b, sortBy);
+    return aValue.localeCompare(bValue);
+  });
+  
+  // Re-append sorted spells
+  slots.forEach(slot => grid.appendChild(slot));
+}
+
+function getSpellSortValue(slot: HTMLElement, sortBy: string): string {
+  switch (sortBy) {
+    case 'name':
+      return slot.dataset.spellName || '';
+    case 'school':
+      return slot.dataset.spellSchool || '';
+    case 'level':
+      return slot.dataset.spellLevel || '';
+    case 'manaCost':
+      return slot.dataset.spellManaCost || '';
+    case 'damage':
+      return slot.dataset.spellDamage || '';
+    default:
+      return slot.dataset.spellName || '';
+  }
+}
+
+function handleSpellClick(event: Event) {
+  const slot = event.currentTarget as HTMLElement;
+  console.log('🪄 Spell clicked:', slot.dataset.spellName);
+  
+  if (slot.dataset.spell) {
+    // Remove active class from all slots
+    document.querySelectorAll('.spell-slot').forEach(s => s.classList.remove('active'));
+    
+    // Add active class to clicked slot
+    slot.classList.add('active');
+    
+    // Show spell details
+    showSpellDetails(slot);
+    selectedSpell = slot;
+  }
+}
+
+function showSpellDetails(slot: HTMLElement) {
+  console.log('🔍 Showing spell details for:', slot.dataset.spellName);
+  
+  const panel = document.getElementById('spell-details-panel');
+  if (!panel) return;
+  
+  const spellData = {
+    name: slot.dataset.spellName || 'Unknown Spell',
+    school: slot.dataset.spellSchool || 'utility',
+    level: slot.dataset.spellLevel || '1',
+    manaCost: slot.dataset.spellManaCost || '0',
+    damage: slot.dataset.spellDamage || '0',
+    description: slot.dataset.spellDescription || 'No description available.',
+    cooldown: slot.dataset.spellCooldown || '0'
+  };
+  
+  panel.innerHTML = generateSpellDetailsContent(spellData);
+}
+
+function generateSpellDetailsContent(spell: any): string {
+  const schoolColors: { [key: string]: string } = {
+    fire: '#EF4444',
+    ice: '#3B82F6',
+    lightning: '#F59E0B',
+    healing: '#22C55E',
+    utility: '#9CA3AF'
+  };
+
+  const schoolIcons: { [key: string]: string } = {
+    fire: '🔥',
+    ice: '❄️',
+    lightning: '⚡',
+    healing: '💚',
+    utility: '🔧'
+  };
+  
+  return `
+    <div class="space-y-4">
+      <div class="text-center">
+        <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: ${schoolColors[spell.school] || schoolColors.utility}">
+          <span>${schoolIcons[spell.school] || '✨'}</span>
+        </div>
+        <h3 class="font-bold text-xl mb-1" style="color: ${schoolColors[spell.school] || schoolColors.utility}">${spell.name}</h3>
+        <p class="text-white/70 text-sm capitalize">${spell.school} • Level ${spell.level}</p>
+      </div>
+
+      <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+        <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Spell Properties</h4>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-white/70 text-sm">Mana Cost</span>
+            <span class="text-blue-400 font-bold">${spell.manaCost}</span>
+          </div>
+          ${spell.damage !== '0' ? `
+            <div class="flex justify-between items-center">
+              <span class="text-white/70 text-sm">Damage</span>
+              <span class="text-red-400 font-bold">${spell.damage}</span>
+            </div>
+          ` : ''}
+          <div class="flex justify-between items-center">
+            <span class="text-white/70 text-sm">Cooldown</span>
+            <span class="text-yellow-400 font-bold">${spell.cooldown}s</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+        <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
+        <p class="text-white/80 text-sm leading-relaxed">${spell.description}</p>
+      </div>
+
+      <div class="space-y-2">
+        <button class="w-full px-4 py-2 bg-gradient-to-r from-purple-500/80 to-purple-600/80 hover:from-purple-400 hover:to-purple-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+          ✨ Cast Spell
+        </button>
+        <button class="w-full px-4 py-2 bg-gradient-to-r from-blue-500/80 to-blue-600/80 hover:from-blue-400 hover:to-blue-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+          📚 Study Spell
+        </button>
+        <button class="w-full px-4 py-2 bg-gradient-to-r from-amber-500/80 to-amber-600/80 hover:from-amber-400 hover:to-amber-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+          ✏️ Edit Spell
+        </button>
+      </div>
+    </div>
+  `;
 } 

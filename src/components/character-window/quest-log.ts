@@ -200,12 +200,15 @@ export function createQuestLogContent(): string {
 
       .quest-type-main { border-left: 4px solid #F59E0B; }
       .quest-type-side { border-left: 4px solid #3B82F6; }
-      .quest-type-daily { border-left: 4px solid #10B981; }
+      .quest-type-daily { border-left: 4px solid #22C55E; }
       .quest-type-guild { border-left: 4px solid #8B5CF6; }
 
-      .quest-status-active { background: rgba(34, 197, 94, 0.1); }
-      .quest-status-completed { background: rgba(59, 130, 246, 0.1); }
-      .quest-status-failed { background: rgba(239, 68, 68, 0.1); }
+      .quest-status-active .quest-status-indicator { 
+        background: #22C55E;
+        animation: pulse 2s infinite;
+      }
+      .quest-status-completed .quest-status-indicator { background: #3B82F6; }
+      .quest-status-failed .quest-status-indicator { background: #EF4444; }
 
       .filter-btn.active {
         background: linear-gradient(to right, rgba(245, 158, 11, 0.8), rgba(217, 119, 6, 0.8)) !important;
@@ -231,6 +234,12 @@ export function createQuestLogContent(): string {
         background: rgba(0, 0, 0, 0.2);
         border-radius: 6px;
         border-left: 3px solid transparent;
+        margin-bottom: 8px;
+      }
+
+      .objective-active {
+        border-left-color: #F59E0B;
+        background: rgba(245, 158, 11, 0.1);
       }
 
       .objective-completed {
@@ -238,292 +247,18 @@ export function createQuestLogContent(): string {
         background: rgba(34, 197, 94, 0.1);
       }
 
-      .objective-active {
-        border-left-color: #F59E0B;
-        background: rgba(245, 158, 11, 0.1);
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
     </style>
-
-    <script>
-      let selectedQuest = null;
-
-      document.addEventListener('DOMContentLoaded', function() {
-        initializeQuestLog();
-      });
-
-      function initializeQuestLog() {
-        // Modal functionality
-        const searchQuestBtn = document.getElementById('search-quest-btn');
-        const modal = document.getElementById('quest-search-modal');
-        const closeModalBtns = document.querySelectorAll('.close-modal');
-
-        searchQuestBtn?.addEventListener('click', () => {
-          modal.classList.remove('opacity-0', 'pointer-events-none');
-          modal.classList.add('opacity-100', 'pointer-events-auto');
-        });
-
-        closeModalBtns.forEach(btn => {
-          btn.addEventListener('click', () => {
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.classList.remove('opacity-100', 'pointer-events-auto');
-          });
-        });
-
-        // Search functionality
-        const searchInput = document.getElementById('quest-search');
-        if (searchInput) {
-          searchInput.addEventListener('input', handleQuestSearch);
-        }
-
-        // Filter functionality
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => {
-          btn.addEventListener('click', handleQuestFilter);
-        });
-
-        // Quest interaction
-        const questItems = document.querySelectorAll('.quest-item');
-        questItems.forEach(item => {
-          item.addEventListener('click', handleQuestClick);
-        });
-
-        // Action buttons
-        document.getElementById('track-quest-btn')?.addEventListener('click', () => {
-          if (selectedQuest) {
-            console.log('Tracking quest:', selectedQuest.dataset.questName);
-          } else {
-            alert('Please select a quest to track');
-          }
-        });
-
-        document.getElementById('abandon-quest-btn')?.addEventListener('click', () => {
-          if (selectedQuest && selectedQuest.dataset.questStatus === 'active') {
-            if (confirm('Are you sure you want to abandon this quest?')) {
-              console.log('Abandoning quest:', selectedQuest.dataset.questName);
-            }
-          } else {
-            alert('Please select an active quest to abandon');
-          }
-        });
-
-        document.getElementById('share-quest-btn')?.addEventListener('click', () => {
-          if (selectedQuest) {
-            console.log('Sharing quest:', selectedQuest.dataset.questName);
-          } else {
-            alert('Please select a quest to share');
-          }
-        });
-      }
-
-      function handleQuestSearch(event) {
-        const searchTerm = event.target.value.toLowerCase();
-        const items = document.querySelectorAll('.quest-item');
-        
-        items.forEach(item => {
-          const questName = item.dataset.questName?.toLowerCase() || '';
-          const questLocation = item.dataset.questLocation?.toLowerCase() || '';
-          
-          if (questName.includes(searchTerm) || questLocation.includes(searchTerm)) {
-            item.style.display = 'block';
-          } else {
-            item.style.display = 'none';
-          }
-        });
-      }
-
-      function handleQuestFilter(event) {
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        
-        const filter = event.target.dataset.filter;
-        const items = document.querySelectorAll('.quest-item');
-        
-        items.forEach(item => {
-          const questStatus = item.dataset.questStatus;
-          const questType = item.dataset.questType;
-          
-          let shouldShow = false;
-          
-          switch (filter) {
-            case 'active':
-              shouldShow = questStatus === 'active';
-              break;
-            case 'completed':
-              shouldShow = questStatus === 'completed';
-              break;
-            case 'failed':
-              shouldShow = questStatus === 'failed';
-              break;
-            case 'main':
-              shouldShow = questType === 'main';
-              break;
-            case 'side':
-              shouldShow = questType === 'side';
-              break;
-            case 'daily':
-              shouldShow = questType === 'daily';
-              break;
-            case 'guild':
-              shouldShow = questType === 'guild';
-              break;
-            default:
-              shouldShow = true;
-          }
-          
-          item.style.display = shouldShow ? 'block' : 'none';
-        });
-      }
-
-      function handleQuestClick(event) {
-        const item = event.currentTarget;
-        document.querySelectorAll('.quest-item').forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        showQuestDetails(item);
-        selectedQuest = item;
-      }
-
-      function showQuestDetails(item) {
-        const panel = document.getElementById('quest-details-panel');
-        const questData = {
-          name: item.dataset.questName || 'Unknown Quest',
-          type: item.dataset.questType || 'side',
-          status: item.dataset.questStatus || 'active',
-          level: item.dataset.questLevel || '1',
-          location: item.dataset.questLocation || 'Unknown',
-          giver: item.dataset.questGiver || 'Unknown NPC',
-          description: item.dataset.questDescription || 'No description available.',
-          objectives: JSON.parse(item.dataset.questObjectives || '[]'),
-          rewards: JSON.parse(item.dataset.questRewards || '{}'),
-          progress: item.dataset.questProgress || '0'
-        };
-        
-        panel.innerHTML = generateQuestDetailsContent(questData);
-      }
-
-      function generateQuestDetailsContent(quest) {
-        const typeColors = {
-          main: '#F59E0B',
-          side: '#3B82F6',
-          daily: '#10B981',
-          guild: '#8B5CF6'
-        };
-
-        const statusColors = {
-          active: '#22C55E',
-          completed: '#3B82F6',
-          failed: '#EF4444'
-        };
-
-        const typeIcons = {
-          main: '⭐',
-          side: '📋',
-          daily: '🔄',
-          guild: '🏰'
-        };
-        
-        return \`
-          <div class="space-y-4">
-            <div class="text-center">
-              <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: \${typeColors[quest.type]}">
-                <span>\${typeIcons[quest.type] || '📜'}</span>
-              </div>
-              <h3 class="font-bold text-xl mb-1" style="color: \${typeColors[quest.type]}">\${quest.name}</h3>
-              <p class="text-white/70 text-sm capitalize">\${quest.type} Quest • Level \${quest.level}</p>
-              <p class="text-white/50 text-xs uppercase tracking-wide" style="color: \${statusColors[quest.status]}">\${quest.status}</p>
-            </div>
-
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Quest Information</h4>
-              <div class="space-y-2">
-                <div class="flex justify-between items-center">
-                  <span class="text-white/70 text-sm">Quest Giver</span>
-                  <span class="text-yellow-400 font-bold">\${quest.giver}</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-white/70 text-sm">Location</span>
-                  <span class="text-blue-400 font-bold">\${quest.location}</span>
-                </div>
-                \${quest.status === 'active' ? \`
-                  <div class="flex justify-between items-center">
-                    <span class="text-white/70 text-sm">Progress</span>
-                    <div class="flex items-center gap-2">
-                      <div class="progress-bar w-16">
-                        <div class="progress-bar-fill bg-green-500" style="width: \${quest.progress}%"></div>
-                      </div>
-                      <span class="text-white text-xs">\${quest.progress}%</span>
-                    </div>
-                  </div>
-                \` : ''}
-              </div>
-            </div>
-
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
-              <p class="text-white/80 text-sm leading-relaxed">\${quest.description}</p>
-            </div>
-
-            \${quest.objectives.length > 0 ? \`
-              <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-                <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Objectives</h4>
-                <div class="space-y-2">
-                  \${quest.objectives.map(obj => \`
-                    <div class="objective-item \${obj.completed ? 'objective-completed' : 'objective-active'}">
-                      <div class="flex items-center justify-between">
-                        <span class="text-white/80 text-sm">\${obj.description}</span>
-                        <span class="text-white/60 text-xs">\${obj.progress || obj.completed ? '✓' : obj.current + '/' + obj.required}</span>
-                      </div>
-                    </div>
-                  \`).join('')}
-                </div>
-              </div>
-            \` : ''}
-
-            \${Object.keys(quest.rewards).length > 0 ? \`
-              <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-                <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Rewards</h4>
-                <div class="space-y-2">
-                  \${quest.rewards.xp ? \`
-                    <div class="flex justify-between items-center">
-                      <span class="text-white/70 text-sm">Experience</span>
-                      <span class="text-green-400 font-bold">+\${quest.rewards.xp} XP</span>
-                    </div>
-                  \` : ''}
-                  \${quest.rewards.gold ? \`
-                    <div class="flex justify-between items-center">
-                      <span class="text-white/70 text-sm">Gold</span>
-                      <span class="text-yellow-400 font-bold">+\${quest.rewards.gold}g</span>
-                    </div>
-                  \` : ''}
-                  \${quest.rewards.items ? \`
-                    <div class="space-y-1">
-                      <span class="text-white/70 text-sm">Items:</span>
-                      \${quest.rewards.items.map(item => \`
-                        <div class="text-blue-400 text-sm ml-4">• \${item}</div>
-                      \`).join('')}
-                    </div>
-                  \` : ''}
-                </div>
-              </div>
-            \` : ''}
-
-            \${quest.status === 'active' ? \`
-              <div class="space-y-2">
-                <button class="w-full px-4 py-2 bg-gradient-to-r from-green-500/80 to-green-600/80 hover:from-green-400 hover:to-green-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                  📍 Track Quest
-                </button>
-                <button class="w-full px-4 py-2 bg-gradient-to-r from-blue-500/80 to-blue-600/80 hover:from-blue-400 hover:to-blue-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                  📤 Share Quest
-                </button>
-                <button class="w-full px-4 py-2 bg-gradient-to-r from-red-500/80 to-red-600/80 hover:from-red-400 hover:to-red-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                  ❌ Abandon Quest
-                </button>
-              </div>
-            \` : ''}
-          </div>
-        \`;
-      }
-    </script>
   `;
 }
 
@@ -688,4 +423,345 @@ function generateAvailableQuests(): string {
       </div>
     </div>
   `).join('');
+}
+
+// Initialize quest functionality - can be called after content is loaded
+export function initializeQuests() {
+  console.log('📜 Initializing quest functionality...');
+  
+  // Search functionality
+  const searchInput = document.getElementById('quest-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', handleQuestSearch);
+    console.log('📜 Search functionality initialized');
+  }
+
+  // Filter functionality
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  if (filterBtns.length > 0) {
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', handleQuestFilter);
+    });
+    console.log(`📜 Filter functionality initialized (${filterBtns.length} buttons)`);
+  }
+
+  // Sort functionality
+  const sortSelect = document.getElementById('quest-sort');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', handleQuestSort);
+    console.log('📜 Sort functionality initialized');
+  }
+
+  // Quest interaction
+  const questItems = document.querySelectorAll('.quest-item');
+  console.log(`📜 Found ${questItems.length} quest items`);
+  
+  if (questItems.length > 0) {
+    questItems.forEach(item => {
+      item.addEventListener('click', handleQuestClick);
+    });
+    console.log('📜 Quest interaction events attached');
+  }
+
+  // Button functionality
+  const searchQuestBtn = document.getElementById('search-quest-btn');
+  const trackQuestBtn = document.getElementById('track-quest-btn');
+  const abandonQuestBtn = document.getElementById('abandon-quest-btn');
+  const shareQuestBtn = document.getElementById('share-quest-btn');
+
+  if (searchQuestBtn) {
+    searchQuestBtn.addEventListener('click', () => {
+      console.log('📜 Opening quest search modal...');
+      showQuestSearchModal();
+    });
+  }
+
+  if (trackQuestBtn) {
+    trackQuestBtn.addEventListener('click', () => {
+      if (selectedQuest) {
+        console.log('📜 Tracking quest:', selectedQuest.dataset.questName);
+      } else {
+        alert('Please select a quest to track');
+      }
+    });
+  }
+
+  if (abandonQuestBtn) {
+    abandonQuestBtn.addEventListener('click', () => {
+      if (selectedQuest) {
+        const questName = selectedQuest.dataset.questName;
+        if (confirm(`Are you sure you want to abandon "${questName}"?`)) {
+          console.log('📜 Abandoning quest:', questName);
+        }
+      } else {
+        alert('Please select a quest to abandon');
+      }
+    });
+  }
+
+  if (shareQuestBtn) {
+    shareQuestBtn.addEventListener('click', () => {
+      if (selectedQuest) {
+        console.log('📜 Sharing quest:', selectedQuest.dataset.questName);
+      } else {
+        alert('Please select a quest to share');
+      }
+    });
+  }
+
+  // Modal functionality
+  const modal = document.getElementById('quest-search-modal');
+  const closeModalBtns = document.querySelectorAll('.close-modal');
+  
+  if (modal && closeModalBtns.length > 0) {
+    closeModalBtns.forEach(btn => {
+      btn.addEventListener('click', hideQuestSearchModal);
+    });
+    console.log('📜 Modal functionality initialized');
+  }
+  
+  console.log('📜 Quest initialization complete');
+}
+
+// Global variable for quest state
+let selectedQuest: HTMLElement | null = null;
+
+function showQuestSearchModal() {
+  const modal = document.getElementById('quest-search-modal');
+  if (modal) {
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.classList.add('opacity-100', 'pointer-events-auto');
+  }
+}
+
+function hideQuestSearchModal() {
+  const modal = document.getElementById('quest-search-modal');
+  if (modal) {
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    modal.classList.remove('opacity-100', 'pointer-events-auto');
+  }
+}
+
+function handleQuestSearch(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const searchTerm = target.value.toLowerCase();
+  const items = document.querySelectorAll('.quest-item');
+  
+  items.forEach(item => {
+    const itemElement = item as HTMLElement;
+    const questName = itemElement.dataset.questName?.toLowerCase() || '';
+    const questType = itemElement.dataset.questType?.toLowerCase() || '';
+    const questLocation = itemElement.dataset.questLocation?.toLowerCase() || '';
+    
+    if (questName.includes(searchTerm) || questType.includes(searchTerm) || questLocation.includes(searchTerm)) {
+      itemElement.style.display = 'block';
+    } else {
+      itemElement.style.display = 'none';
+    }
+  });
+}
+
+function handleQuestFilter(event: Event) {
+  const target = event.target as HTMLElement;
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => btn.classList.remove('active'));
+  target.classList.add('active');
+  
+  const filter = target.dataset.filter;
+  const items = document.querySelectorAll('.quest-item');
+  
+  items.forEach(item => {
+    const itemElement = item as HTMLElement;
+    const questStatus = itemElement.dataset.questStatus;
+    const questType = itemElement.dataset.questType;
+    
+    if (filter === 'active' && questStatus === 'active') {
+      itemElement.style.display = 'block';
+    } else if (filter === 'completed' && questStatus === 'completed') {
+      itemElement.style.display = 'block';
+    } else if (filter === 'failed' && questStatus === 'failed') {
+      itemElement.style.display = 'block';
+    } else if (filter === 'main' && questType === 'main') {
+      itemElement.style.display = 'block';
+    } else if (filter === 'side' && questType === 'side') {
+      itemElement.style.display = 'block';
+    } else if (filter === 'daily' && questType === 'daily') {
+      itemElement.style.display = 'block';
+    } else if (filter === 'guild' && questType === 'guild') {
+      itemElement.style.display = 'block';
+    } else {
+      itemElement.style.display = 'none';
+    }
+  });
+}
+
+function handleQuestSort(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  const sortBy = target.value;
+  const container = document.getElementById('quest-list');
+  if (!container) return;
+  
+  const items = Array.from(container.querySelectorAll('.quest-item')) as HTMLElement[];
+  
+  items.sort((a, b) => {
+    const aValue = getQuestSortValue(a, sortBy);
+    const bValue = getQuestSortValue(b, sortBy);
+    return aValue.localeCompare(bValue);
+  });
+  
+  // Re-append sorted items
+  items.forEach(item => container.appendChild(item));
+}
+
+function getQuestSortValue(item: HTMLElement, sortBy: string): string {
+  switch (sortBy) {
+    case 'name':
+      return item.dataset.questName || '';
+    case 'level':
+      return item.dataset.questLevel || '';
+    case 'type':
+      return item.dataset.questType || '';
+    case 'location':
+      return item.dataset.questLocation || '';
+    case 'progress':
+      return item.dataset.questProgress || '';
+    default:
+      return item.dataset.questName || '';
+  }
+}
+
+function handleQuestClick(event: Event) {
+  const item = event.currentTarget as HTMLElement;
+  console.log('📜 Quest clicked:', item.dataset.questName);
+  
+  // Remove active class from all items
+  document.querySelectorAll('.quest-item').forEach(i => i.classList.remove('active'));
+  
+  // Add active class to clicked item
+  item.classList.add('active');
+  
+  // Show quest details
+  showQuestDetails(item);
+  selectedQuest = item;
+}
+
+function showQuestDetails(item: HTMLElement) {
+  console.log('🔍 Showing quest details for:', item.dataset.questName);
+  
+  const panel = document.getElementById('quest-details-panel');
+  if (!panel) return;
+  
+  const questData = {
+    name: item.dataset.questName || 'Unknown Quest',
+    type: item.dataset.questType || 'side',
+    status: item.dataset.questStatus || 'active',
+    level: item.dataset.questLevel || '1',
+    location: item.dataset.questLocation || 'Unknown',
+    giver: item.dataset.questGiver || 'Unknown',
+    description: item.dataset.questDescription || 'No description available.',
+    objectives: JSON.parse(item.dataset.questObjectives || '[]'),
+    rewards: JSON.parse(item.dataset.questRewards || '{}'),
+    progress: item.dataset.questProgress || '0'
+  };
+  
+  panel.innerHTML = generateQuestDetailsContent(questData);
+}
+
+function generateQuestDetailsContent(quest: any): string {
+  const typeColors: { [key: string]: string } = {
+    main: '#F59E0B',
+    side: '#3B82F6',
+    daily: '#22C55E',
+    guild: '#8B5CF6',
+    failed: '#EF4444'
+  };
+
+  const typeIcons: { [key: string]: string } = {
+    main: '⭐',
+    side: '📋',
+    daily: '🔄',
+    guild: '🏰',
+    failed: '❌'
+  };
+  
+  return \`
+    <div class="space-y-4">
+      <div class="text-center">
+        <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: \${typeColors[quest.type] || typeColors.side}">
+          <span>\${typeIcons[quest.type] || '📋'}</span>
+        </div>
+        <h3 class="font-bold text-xl mb-1" style="color: \${typeColors[quest.type] || typeColors.side}">\${quest.name}</h3>
+        <p class="text-white/70 text-sm capitalize">\${quest.type} Quest • Level \${quest.level}</p>
+        <p class="text-white/50 text-xs">\${quest.location} • \${quest.giver}</p>
+      </div>
+
+      <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+        <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
+        <p class="text-white/80 text-sm leading-relaxed">\${quest.description}</p>
+      </div>
+
+      \${quest.objectives && quest.objectives.length > 0 ? \`
+        <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+          <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Objectives</h4>
+          <div class="space-y-2">
+            \${quest.objectives.map((obj: any) => \`
+              <div class="flex items-start gap-2">
+                <div class="w-4 h-4 mt-0.5 rounded border-2 \${obj.completed ? 'bg-green-500 border-green-500' : 'border-white/30'} flex items-center justify-center">
+                  \${obj.completed ? '<span class="text-white text-xs">✓</span>' : ''}
+                </div>
+                <div class="flex-1">
+                  <span class="text-white/80 text-sm \${obj.completed ? 'line-through' : ''}">\${obj.description}</span>
+                  \${obj.current !== undefined ? \`
+                    <div class="text-white/50 text-xs mt-1">\${obj.current}/\${obj.required}</div>
+                  \` : ''}
+                </div>
+              </div>
+            \`).join('')}
+          </div>
+        </div>
+      \` : ''}
+
+      \${quest.rewards && Object.keys(quest.rewards).length > 0 ? \`
+        <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+          <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Rewards</h4>
+          <div class="space-y-2">
+            \${quest.rewards.xp ? \`
+              <div class="flex justify-between items-center">
+                <span class="text-white/70 text-sm">Experience</span>
+                <span class="text-blue-400 font-bold">+\${quest.rewards.xp} XP</span>
+              </div>
+            \` : ''}
+            \${quest.rewards.gold ? \`
+              <div class="flex justify-between items-center">
+                <span class="text-white/70 text-sm">Gold</span>
+                <span class="text-yellow-400 font-bold">+\${quest.rewards.gold}g</span>
+              </div>
+            \` : ''}
+            \${quest.rewards.items ? \`
+              <div class="space-y-1">
+                <span class="text-white/70 text-sm">Items:</span>
+                \${quest.rewards.items.map((item: string) => \`
+                  <div class="text-blue-400 text-sm ml-4">• \${item}</div>
+                \`).join('')}
+              </div>
+            \` : ''}
+          </div>
+        </div>
+      \` : ''}
+
+      \${quest.status === 'active' ? \`
+        <div class="space-y-2">
+          <button class="w-full px-4 py-2 bg-gradient-to-r from-green-500/80 to-green-600/80 hover:from-green-400 hover:to-green-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+            📍 Track Quest
+          </button>
+          <button class="w-full px-4 py-2 bg-gradient-to-r from-blue-500/80 to-blue-600/80 hover:from-blue-400 hover:to-blue-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+            📤 Share Quest
+          </button>
+          <button class="w-full px-4 py-2 bg-gradient-to-r from-red-500/80 to-red-600/80 hover:from-red-400 hover:to-red-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+            ❌ Abandon Quest
+          </button>
+        </div>
+      \` : ''}
+    </div>
+  \`;
 } 

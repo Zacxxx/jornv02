@@ -220,7 +220,7 @@ export function createCraftingContent(): string {
       .recipe-level {
         position: absolute;
         top: 2px;
-        right: 2px;
+        left: 2px;
         background: rgba(0, 0, 0, 0.8);
         color: white;
         font-size: 10px;
@@ -231,290 +231,43 @@ export function createCraftingContent(): string {
         text-align: center;
       }
 
-      .recipe-favorite {
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        color: #fbbf24;
-        font-size: 12px;
-        text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
-      }
-
       .recipe-status {
         position: absolute;
         bottom: 2px;
         right: 2px;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
+        font-size: 12px;
+        font-weight: bold;
+        padding: 1px 3px;
+        border-radius: 3px;
+        min-width: 14px;
+        text-align: center;
       }
 
-      .status-available { background: rgba(34, 197, 94, 0.8); }
-      .status-missing { background: rgba(245, 158, 11, 0.8); }
-      .status-locked { background: rgba(156, 163, 175, 0.8); }
-
-      .crafting-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin-bottom: 16px;
+      .status-available {
+        background: rgba(34, 197, 94, 0.8);
+        color: white;
       }
 
-      .crafting-slot {
-        aspect-ratio: 1;
-        background: rgba(0, 0, 0, 0.3);
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        transition: all 0.2s ease;
+      .status-missing {
+        background: rgba(245, 158, 11, 0.8);
+        color: white;
       }
 
-      .crafting-slot.filled {
-        border-color: rgba(245, 158, 11, 0.6);
-        background: rgba(245, 158, 11, 0.1);
+      .status-locked {
+        background: rgba(156, 163, 175, 0.8);
+        color: white;
       }
 
-      .material-requirement {
-        padding: 8px 12px;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 6px;
-        border-left: 3px solid transparent;
-        margin-bottom: 8px;
+      @keyframes craftingAnimation {
+        0% { transform: scale(1) rotate(0deg); }
+        50% { transform: scale(1.1) rotate(180deg); box-shadow: 0 0 30px rgba(245, 158, 11, 0.6); }
+        100% { transform: scale(1) rotate(360deg); }
       }
 
-      .material-available {
-        border-left-color: #22C55E;
-        background: rgba(34, 197, 94, 0.1);
-      }
-
-      .material-missing {
-        border-left-color: #EF4444;
-        background: rgba(239, 68, 68, 0.1);
+      .crafting-animation {
+        animation: craftingAnimation 1s cubic-bezier(0.4, 0, 0.2, 1);
       }
     </style>
-
-    <script>
-      let selectedRecipe = null;
-
-      document.addEventListener('DOMContentLoaded', function() {
-        initializeCrafting();
-      });
-
-      function initializeCrafting() {
-        // Modal functionality
-        const searchRecipeBtn = document.getElementById('search-recipe-btn');
-        const modal = document.getElementById('recipe-search-modal');
-        const closeModalBtns = document.querySelectorAll('.close-modal');
-
-        searchRecipeBtn?.addEventListener('click', () => {
-          modal.classList.remove('opacity-0', 'pointer-events-none');
-          modal.classList.add('opacity-100', 'pointer-events-auto');
-        });
-
-        closeModalBtns.forEach(btn => {
-          btn.addEventListener('click', () => {
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.classList.remove('opacity-100', 'pointer-events-auto');
-          });
-        });
-
-        // Search functionality
-        const searchInput = document.getElementById('recipe-search');
-        if (searchInput) {
-          searchInput.addEventListener('input', handleRecipeSearch);
-        }
-
-        // Filter functionality
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => {
-          btn.addEventListener('click', handleRecipeFilter);
-        });
-
-        // Recipe interaction
-        const recipeCards = document.querySelectorAll('.recipe-card');
-        recipeCards.forEach(card => {
-          card.addEventListener('click', handleRecipeClick);
-        });
-
-        // Action buttons
-        document.getElementById('learn-recipe-btn')?.addEventListener('click', () => {
-          console.log('Opening recipe learning interface...');
-        });
-
-        document.getElementById('auto-craft-btn')?.addEventListener('click', () => {
-          if (selectedRecipe) {
-            console.log('Setting up auto-craft for:', selectedRecipe.dataset.recipeName);
-          } else {
-            alert('Please select a recipe for auto-crafting');
-          }
-        });
-
-        document.getElementById('craft-queue-btn')?.addEventListener('click', () => {
-          console.log('Opening craft queue...');
-        });
-      }
-
-      function handleRecipeSearch(event) {
-        const searchTerm = event.target.value.toLowerCase();
-        const cards = document.querySelectorAll('.recipe-card');
-        
-        cards.forEach(card => {
-          const recipeName = card.dataset.recipeName?.toLowerCase() || '';
-          const recipeCategory = card.dataset.recipeCategory?.toLowerCase() || '';
-          
-          if (recipeName.includes(searchTerm) || recipeCategory.includes(searchTerm)) {
-            card.style.display = 'block';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-      }
-
-      function handleRecipeFilter(event) {
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        
-        const filter = event.target.dataset.filter;
-        const cards = document.querySelectorAll('.recipe-card');
-        
-        cards.forEach(card => {
-          if (filter === 'all' || card.dataset.recipeCategory === filter) {
-            card.style.display = 'block';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-      }
-
-      function handleRecipeClick(event) {
-        const card = event.currentTarget;
-        document.querySelectorAll('.recipe-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-        showCraftingStation(card);
-        selectedRecipe = card;
-      }
-
-      function showCraftingStation(card) {
-        const panel = document.getElementById('crafting-panel');
-        const recipeData = {
-          name: card.dataset.recipeName || 'Unknown Recipe',
-          category: card.dataset.recipeCategory || 'misc',
-          level: card.dataset.recipeLevel || '1',
-          difficulty: card.dataset.recipeDifficulty || 'easy',
-          description: card.dataset.recipeDescription || 'No description available.',
-          materials: JSON.parse(card.dataset.recipeMaterials || '[]'),
-          result: JSON.parse(card.dataset.recipeResult || '{}'),
-          status: card.dataset.recipeStatus || 'available'
-        };
-        
-        panel.innerHTML = generateCraftingStationContent(recipeData);
-      }
-
-      function generateCraftingStationContent(recipe) {
-        const difficultyColors = {
-          easy: '#22C55E',
-          medium: '#F59E0B',
-          hard: '#EF4444',
-          expert: '#8B5CF6'
-        };
-
-        const categoryIcons = {
-          weapons: '⚔️',
-          armor: '🛡️',
-          tools: '🔧',
-          consumables: '🧪',
-          materials: '💎'
-        };
-        
-        return \`
-          <div class="space-y-4">
-            <div class="text-center">
-              <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: \${difficultyColors[recipe.difficulty]}">
-                <span>\${categoryIcons[recipe.category] || '📦'}</span>
-              </div>
-              <h3 class="font-bold text-xl mb-1 text-white">\${recipe.name}</h3>
-              <p class="text-white/70 text-sm capitalize">\${recipe.category} • Level \${recipe.level}</p>
-              <p class="text-white/50 text-xs uppercase tracking-wide" style="color: \${difficultyColors[recipe.difficulty]}">\${recipe.difficulty}</p>
-            </div>
-
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Crafting Grid</h4>
-              <div class="crafting-grid">
-                \${Array.from({ length: 9 }, (_, i) => \`
-                  <div class="crafting-slot" data-slot="\${i}">
-                    <div class="w-6 h-6 border border-white/20 rounded border-dashed opacity-30"></div>
-                  </div>
-                \`).join('')}
-              </div>
-              
-              <div class="flex items-center justify-center mb-4">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-amber-400">
-                  <path d="m9 18 6-6-6-6"/>
-                </svg>
-              </div>
-              
-              <div class="text-center">
-                <div class="w-16 h-16 mx-auto bg-black/40 border-2 border-amber-500/60 rounded-lg flex items-center justify-center text-2xl mb-2">
-                  <span>\${categoryIcons[recipe.category] || '📦'}</span>
-                </div>
-                <p class="text-white/80 text-sm">\${recipe.result.name || recipe.name}</p>
-                <p class="text-white/60 text-xs">Quantity: \${recipe.result.quantity || 1}</p>
-              </div>
-            </div>
-
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Required Materials</h4>
-              <div class="space-y-2">
-                \${recipe.materials.map(material => \`
-                  <div class="material-requirement \${material.available ? 'material-available' : 'material-missing'}">
-                    <div class="flex items-center justify-between">
-                      <span class="text-white/80 text-sm">\${material.name}</span>
-                      <span class="text-white/60 text-xs">\${material.current}/\${material.required}</span>
-                    </div>
-                  </div>
-                \`).join('')}
-              </div>
-            </div>
-
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
-              <p class="text-white/80 text-sm leading-relaxed">\${recipe.description}</p>
-            </div>
-
-            <div class="space-y-2">
-              \${recipe.status === 'available' ? \`
-                <button class="w-full px-4 py-2 bg-gradient-to-r from-green-500/80 to-green-600/80 hover:from-green-400 hover:to-green-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                  🔨 Craft Item
-                </button>
-                <div class="flex gap-2">
-                  <button class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500/80 to-blue-600/80 hover:from-blue-400 hover:to-blue-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                    🤖 Auto Craft
-                  </button>
-                  <button class="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500/80 to-purple-600/80 hover:from-purple-400 hover:to-purple-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                    📋 Add to Queue
-                  </button>
-                </div>
-              \` : \`
-                <button class="w-full px-4 py-2 bg-gradient-to-r from-gray-500/80 to-gray-600/80 text-white text-sm font-bold rounded-lg cursor-not-allowed" disabled>
-                  \${recipe.status === 'missing' ? '⚠️ Missing Materials' : '🔒 Recipe Locked'}
-                </button>
-              \`}
-              <button class="w-full px-4 py-2 bg-gradient-to-r from-amber-500/80 to-amber-600/80 hover:from-amber-400 hover:to-amber-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                ⭐ Add to Favorites
-              </button>
-            </div>
-          </div>
-        \`;
-      }
-    </script>
   `;
 }
 
@@ -682,4 +435,342 @@ function generateAvailableRecipes(): string {
       </div>
     </div>
   `).join('');
+}
+
+// Initialize crafting functionality - can be called after content is loaded
+export function initializeCrafting() {
+  console.log('🔨 Initializing crafting functionality...');
+  
+  // Search functionality
+  const searchInput = document.getElementById('recipe-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', handleRecipeSearch);
+    console.log('🔨 Search functionality initialized');
+  }
+
+  // Filter functionality
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  if (filterBtns.length > 0) {
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', handleRecipeFilter);
+    });
+    console.log(`🔨 Filter functionality initialized (${filterBtns.length} buttons)`);
+  }
+
+  // Sort functionality
+  const sortSelect = document.getElementById('recipe-sort');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', handleRecipeSort);
+    console.log('🔨 Sort functionality initialized');
+  }
+
+  // Filter select functionality
+  const filterSelect = document.getElementById('recipe-filter');
+  if (filterSelect) {
+    filterSelect.addEventListener('change', handleRecipeFilterSelect);
+    console.log('🔨 Filter select functionality initialized');
+  }
+
+  // Recipe interaction
+  const recipeCards = document.querySelectorAll('.recipe-card');
+  console.log(`🔨 Found ${recipeCards.length} recipe cards`);
+  
+  if (recipeCards.length > 0) {
+    recipeCards.forEach(card => {
+      card.addEventListener('click', handleRecipeClick);
+    });
+    console.log('🔨 Recipe interaction events attached');
+  }
+
+  // Button functionality
+  const searchRecipeBtn = document.getElementById('search-recipe-btn');
+  const learnRecipeBtn = document.getElementById('learn-recipe-btn');
+  const autoCraftBtn = document.getElementById('auto-craft-btn');
+  const craftQueueBtn = document.getElementById('craft-queue-btn');
+
+  if (searchRecipeBtn) {
+    searchRecipeBtn.addEventListener('click', () => {
+      console.log('🔨 Opening recipe search modal...');
+      showRecipeSearchModal();
+    });
+  }
+
+  if (learnRecipeBtn) {
+    learnRecipeBtn.addEventListener('click', () => {
+      console.log('🔨 Opening learn recipe interface...');
+    });
+  }
+
+  if (autoCraftBtn) {
+    autoCraftBtn.addEventListener('click', () => {
+      if (selectedRecipe) {
+        console.log('🔨 Starting auto craft for:', selectedRecipe.dataset.recipeName);
+      } else {
+        alert('Please select a recipe for auto crafting');
+      }
+    });
+  }
+
+  if (craftQueueBtn) {
+    craftQueueBtn.addEventListener('click', () => {
+      console.log('🔨 Opening craft queue...');
+    });
+  }
+
+  // Modal functionality
+  const modal = document.getElementById('recipe-search-modal');
+  const closeModalBtns = document.querySelectorAll('.close-modal');
+  
+  if (modal && closeModalBtns.length > 0) {
+    closeModalBtns.forEach(btn => {
+      btn.addEventListener('click', hideRecipeSearchModal);
+    });
+    console.log('🔨 Modal functionality initialized');
+  }
+  
+  console.log('🔨 Crafting initialization complete');
+}
+
+// Global variable for crafting state
+let selectedRecipe: HTMLElement | null = null;
+
+function showRecipeSearchModal() {
+  const modal = document.getElementById('recipe-search-modal');
+  if (modal) {
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.classList.add('opacity-100', 'pointer-events-auto');
+  }
+}
+
+function hideRecipeSearchModal() {
+  const modal = document.getElementById('recipe-search-modal');
+  if (modal) {
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    modal.classList.remove('opacity-100', 'pointer-events-auto');
+  }
+}
+
+function handleRecipeSearch(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const searchTerm = target.value.toLowerCase();
+  const cards = document.querySelectorAll('.recipe-card[data-recipe-name]');
+  
+  cards.forEach(card => {
+    const cardElement = card as HTMLElement;
+    const recipeName = cardElement.dataset.recipeName?.toLowerCase() || '';
+    const recipeCategory = cardElement.dataset.recipeCategory?.toLowerCase() || '';
+    
+    if (recipeName.includes(searchTerm) || recipeCategory.includes(searchTerm)) {
+      cardElement.style.display = 'flex';
+    } else {
+      cardElement.style.display = 'none';
+    }
+  });
+}
+
+function handleRecipeFilter(event: Event) {
+  const target = event.target as HTMLElement;
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => btn.classList.remove('active'));
+  target.classList.add('active');
+  
+  const filter = target.dataset.filter;
+  const cards = document.querySelectorAll('.recipe-card');
+  
+  cards.forEach(card => {
+    const cardElement = card as HTMLElement;
+    if (filter === 'all' || cardElement.dataset.recipeCategory === filter || !cardElement.dataset.recipeName) {
+      cardElement.style.display = 'flex';
+    } else {
+      cardElement.style.display = 'none';
+    }
+  });
+}
+
+function handleRecipeFilterSelect(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  const filter = target.value;
+  const cards = document.querySelectorAll('.recipe-card[data-recipe-name]');
+  
+  cards.forEach(card => {
+    const cardElement = card as HTMLElement;
+    const status = cardElement.dataset.recipeStatus;
+    
+    if (filter === 'all') {
+      cardElement.style.display = 'flex';
+    } else if (filter === 'available' && status === 'available') {
+      cardElement.style.display = 'flex';
+    } else if (filter === 'missing' && status === 'missing') {
+      cardElement.style.display = 'flex';
+    } else if (filter === 'locked' && status === 'locked') {
+      cardElement.style.display = 'flex';
+    } else {
+      cardElement.style.display = 'none';
+    }
+  });
+}
+
+function handleRecipeSort(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  const sortBy = target.value;
+  const grid = document.getElementById('recipe-grid');
+  if (!grid) return;
+  
+  const cards = Array.from(grid.querySelectorAll('.recipe-card[data-recipe-name]')) as HTMLElement[];
+  
+  cards.sort((a, b) => {
+    const aValue = getRecipeSortValue(a, sortBy);
+    const bValue = getRecipeSortValue(b, sortBy);
+    return aValue.localeCompare(bValue);
+  });
+  
+  // Re-append sorted cards
+  cards.forEach(card => grid.appendChild(card));
+}
+
+function getRecipeSortValue(card: HTMLElement, sortBy: string): string {
+  switch (sortBy) {
+    case 'name':
+      return card.dataset.recipeName || '';
+    case 'level':
+      return card.dataset.recipeLevel || '';
+    case 'category':
+      return card.dataset.recipeCategory || '';
+    case 'difficulty':
+      return card.dataset.recipeDifficulty || '';
+    case 'materials':
+      return card.dataset.recipeMaterials || '';
+    default:
+      return card.dataset.recipeName || '';
+  }
+}
+
+function handleRecipeClick(event: Event) {
+  const card = event.currentTarget as HTMLElement;
+  console.log('🔨 Recipe clicked:', card.dataset.recipeName);
+  
+  if (card.dataset.recipeName) {
+    // Remove active class from all cards
+    document.querySelectorAll('.recipe-card').forEach(c => c.classList.remove('active'));
+    
+    // Add active class to clicked card
+    card.classList.add('active');
+    
+    // Show recipe details
+    showRecipeDetails(card);
+    selectedRecipe = card;
+  }
+}
+
+function showRecipeDetails(card: HTMLElement) {
+  console.log('🔍 Showing recipe details for:', card.dataset.recipeName);
+  
+  const panel = document.getElementById('crafting-panel');
+  if (!panel) return;
+  
+  const recipeData = {
+    name: card.dataset.recipeName || 'Unknown Recipe',
+    category: card.dataset.recipeCategory || 'materials',
+    level: card.dataset.recipeLevel || '1',
+    difficulty: card.dataset.recipeDifficulty || 'easy',
+    status: card.dataset.recipeStatus || 'available',
+    description: card.dataset.recipeDescription || 'No description available.',
+    materials: JSON.parse(card.dataset.recipeMaterials || '[]'),
+    result: JSON.parse(card.dataset.recipeResult || '{}')
+  };
+  
+  panel.innerHTML = generateRecipeDetailsContent(recipeData);
+}
+
+function generateRecipeDetailsContent(recipe: any): string {
+  const categoryColors: { [key: string]: string } = {
+    weapons: '#EF4444',
+    armor: '#3B82F6',
+    tools: '#F59E0B',
+    consumables: '#22C55E',
+    materials: '#8B5CF6'
+  };
+
+  const categoryIcons: { [key: string]: string } = {
+    weapons: '⚔️',
+    armor: '🛡️',
+    tools: '🔧',
+    consumables: '🧪',
+    materials: '💎'
+  };
+
+  const difficultyColors: { [key: string]: string } = {
+    easy: '#22C55E',
+    medium: '#F59E0B',
+    hard: '#EF4444',
+    expert: '#8B5CF6'
+  };
+  
+  return `
+    <div class="space-y-4">
+      <div class="text-center">
+        <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: ${categoryColors[recipe.category] || categoryColors.materials}">
+          <span>${categoryIcons[recipe.category] || '💎'}</span>
+        </div>
+        <h3 class="font-bold text-xl mb-1" style="color: ${categoryColors[recipe.category] || categoryColors.materials}">${recipe.name}</h3>
+        <p class="text-white/70 text-sm capitalize">${recipe.category} • Level ${recipe.level}</p>
+        <p class="text-white/50 text-xs" style="color: ${difficultyColors[recipe.difficulty] || difficultyColors.easy}">${recipe.difficulty} difficulty</p>
+      </div>
+
+      <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+        <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
+        <p class="text-white/80 text-sm leading-relaxed">${recipe.description}</p>
+      </div>
+
+      ${recipe.materials && recipe.materials.length > 0 ? `
+        <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+          <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Required Materials</h4>
+          <div class="space-y-2">
+            ${recipe.materials.map((material: any) => `
+              <div class="flex items-center justify-between">
+                <span class="text-white/80 text-sm">${material.name}</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-white/60 text-xs">${material.current}/${material.required}</span>
+                  <div class="w-3 h-3 rounded-full ${material.available ? 'bg-green-500' : 'bg-red-500'}"></div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      ${recipe.result ? `
+        <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+          <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Result</h4>
+          <div class="flex items-center justify-between">
+            <span class="text-white/80 text-sm">${recipe.result.name}</span>
+            <span class="text-amber-400 font-bold">x${recipe.result.quantity}</span>
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="space-y-2">
+        ${recipe.status === 'available' ? `
+          <button class="w-full px-4 py-2 bg-gradient-to-r from-green-500/80 to-green-600/80 hover:from-green-400 hover:to-green-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+            🔨 Craft Item
+          </button>
+          <div class="flex gap-2">
+            <button class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500/80 to-blue-600/80 hover:from-blue-400 hover:to-blue-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+              🤖 Auto Craft
+            </button>
+            <button class="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500/80 to-purple-600/80 hover:from-purple-400 hover:to-purple-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+              📋 Add to Queue
+            </button>
+          </div>
+        ` : `
+          <button class="w-full px-4 py-2 bg-gradient-to-r from-gray-500/80 to-gray-600/80 text-white text-sm font-bold rounded-lg cursor-not-allowed" disabled>
+            ${recipe.status === 'missing' ? '⚠️ Missing Materials' : '🔒 Recipe Locked'}
+          </button>
+        `}
+        <button class="w-full px-4 py-2 bg-gradient-to-r from-amber-500/80 to-amber-600/80 hover:from-amber-400 hover:to-amber-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+          ⭐ Add to Favorites
+        </button>
+      </div>
+    </div>
+  `;
 } 
