@@ -1,6 +1,6 @@
 import { Actor, Engine } from "excalibur";
 import { NPC_BEHAVIOR } from "../../models";
-import { floatingHealthBarManager } from "../../managers/floating-health-bar.manager";
+import { excaliburHealthBarManager } from "../../managers/excalibur-health-bar.manager";
 import { combatManager } from "../../managers/combat.manager";
 
 export interface NPCConfig {
@@ -49,16 +49,11 @@ export abstract class BaseNPC extends Actor {
     // Register for combat system
     combatManager.registerCombatant(this, this.health.current, this.health.max, this.defense);
     
-    // Initialize floating health bar manager if not already initialized
+    // Register for native health bar with name display
     try {
-      if (!floatingHealthBarManager['isInitialized']) {
-        floatingHealthBarManager.initialize();
-      }
-      
-      // Register for floating health bar with name display
-      floatingHealthBarManager.registerActor(this, this.npcName, true);
+      excaliburHealthBarManager.registerActor(this, true);
     } catch (error) {
-      console.warn(`Failed to register floating health bar for ${this.npcName}:`, error);
+      console.warn(`Failed to register health bar for ${this.npcName}:`, error);
     }
     
     // Call subclass initialization

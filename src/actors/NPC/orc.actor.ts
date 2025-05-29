@@ -12,7 +12,7 @@ import {
   } from "excalibur";
   import { assetManager } from "../../managers/asset.manager";
   import { gameManager, eventBus } from "../../managers/game.manager";
-  import { floatingHealthBarManager } from "../../managers/floating-health-bar.manager";
+  import { excaliburHealthBarManager } from "../../managers/excalibur-health-bar.manager";
   import { NPC_TYPE, PLAYER_STATE, COMBAT_EVENT, NPC_BEHAVIOR } from "../../models";
   import { BaseNPC, NPCConfig } from "./base-npc.actor";
   
@@ -59,54 +59,78 @@ import {
   }
   
   export class Orc extends BaseNPC {
-    type = NPC_TYPE.ORC;
+    type!: string;
     animations: any;
     
-    // AI Behavior properties
+    // Timers for various behaviors
     private wanderTimer?: Timer;
     private idleTimer?: Timer;
     private moodTimer?: Timer;
     private alertTimer?: Timer;
     
-    private isWandering = false;
-    private wanderDirection = vec(0, 0);
-    private originalPosition = vec(0, 0);
-    private wanderRadius = 32;
-    private random = new Random();
+    private isWandering!: boolean;
+    private wanderDirection!: Vector;
+    private originalPosition!: Vector;
+    private wanderRadius!: number;
+    private random!: Random;
     
-    // Advanced AI properties
-    private currentMood: OrcMood = OrcMood.CALM;
-    private detectionRadius = 64;
-    private isPlayerNearby = false;
-    private lastPlayerPosition = vec(0, 0);
-    private suspicionLevel = 0;
-    private patrolPoints: Vector[] = [];
-    private currentPatrolIndex = 0;
-    private isPatrolling = false;
+    // Mood and behavior tracking
+    private currentMood!: OrcMood;
+    private detectionRadius!: number;
+    private isPlayerNearby!: boolean;
+    private lastPlayerPosition!: Vector;
+    private suspicionLevel!: number;
+    private patrolPoints!: Vector[];
+    private currentPatrolIndex!: number;
+    private isPatrolling!: boolean;
     
-    // Visual feedback
-    private moodColor: Color = Color.Green;
+    // Visual mood indicator
+    private moodColor!: Color;
 
-    // Override base health and defense for orcs
-    public health = { current: 30, max: 30 };
-    public defense = 2;
-  
     constructor(config: NPCConfig) {
-      super({
-        ...config,
-        color: config.color || Color.Green,
-      });
+      console.log(`🏗️ Creating Orc with config:`, config);
       
-      // Set collision type
-      this.body.collisionType = CollisionType.Active;
-      this.scale = vec(0.8, 0.8);
-      this.originalPosition = vec(config.x, config.y);
-      
-      // Apply behavior-specific configurations
-      this.applyBehaviorConfig();
-      
-      // Setup patrol points around spawn location
-      this.setupPatrolPoints();
+      try {
+        super({
+          ...config,
+          color: config.color || Color.Green,
+        });
+        
+        // Initialize properties after super call
+        this.type = NPC_TYPE.ORC;
+        this.isWandering = false;
+        this.wanderDirection = vec(0, 0);
+        this.originalPosition = vec(0, 0);
+        this.wanderRadius = 32;
+        this.random = new Random();
+        this.currentMood = OrcMood.CALM;
+        this.detectionRadius = 64;
+        this.isPlayerNearby = false;
+        this.lastPlayerPosition = vec(0, 0);
+        this.suspicionLevel = 0;
+        this.patrolPoints = [];
+        this.currentPatrolIndex = 0;
+        this.isPatrolling = false;
+        this.moodColor = Color.Green;
+        
+        console.log(`✅ BaseNPC constructor completed for ${config.name || 'Unknown'}`);
+        
+        // Set collision type
+        this.body.collisionType = CollisionType.Active;
+        this.scale = vec(0.8, 0.8);
+        this.originalPosition = vec(config.x, config.y);
+        
+        // Apply behavior-specific configurations
+        this.applyBehaviorConfig();
+        
+        // Setup patrol points around spawn location
+        this.setupPatrolPoints();
+        
+        console.log(`✅ Orc ${this.npcName} created successfully at (${config.x}, ${config.y})`);
+      } catch (error) {
+        console.error(`❌ Error creating Orc:`, error);
+        throw error;
+      }
     }
 
     private applyBehaviorConfig() {
@@ -178,8 +202,7 @@ import {
           this.health.current = data.newHealth;
           this.health.max = data.maxHealth;
           
-          // Update floating health bar
-          floatingHealthBarManager.updateActorHealth(this);
+          // Health bar will be updated automatically by the manager
           
           // React to being attacked
           this.reactToAttack();
@@ -511,7 +534,7 @@ import {
 
     kill() {
       // Unregister from floating health bar system
-      floatingHealthBarManager.unregisterActor(this);
+      excaliburHealthBarManager.unregisterActor(this);
       
       // Cancel timers
       this.wanderTimer?.cancel();

@@ -360,25 +360,30 @@ class GameManager {
     this.game_state.next(GAME_STATES.LOADING);
   }
   start_game(slot_id: number) {
+    console.log(`🎮 Starting game with slot ${slot_id}`);
     dataManager.set_slot(slot_id);
     // TODO: send to checkpoint based on data
     // TODO: get music from scene
 
     audioManager.play_bg(SONGS.APPLE_CIDER);
     this.game_state.next(GAME_STATES.PLAYING);
+    console.log(`🗺️ Loading map: ${MAPS.INDOOR_PLAYER_HOUSE}`);
     this.go_to(MAPS.INDOOR_PLAYER_HOUSE);
   }
 
   go_to(scene: string) {
-    console.log(`go to: ${scene}`);
+    console.log(`🚀 go_to called with scene: ${scene}`);
 
     switch (scene) {
       case MAPS.MAIN_MENU:
+        console.log(`📋 Loading main menu`);
         levelManager.reset_levels();
         this.game_state.next(GAME_STATES.READY);
         break;
       default:
+        console.log(`🗺️ Loading scene: ${scene}`);
         dataManager.set_current_map(scene);
+        console.log(`🎬 Calling game.goToScene(${scene})`);
         this.game.goToScene(scene);
         break;
     }

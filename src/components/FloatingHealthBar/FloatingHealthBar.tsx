@@ -28,6 +28,23 @@ const FloatingHealthBar: React.FC<FloatingHealthBarProps> = ({
   const isCritical = percentage <= 10;
   const isDead = health <= 0;
 
+  // Debug logging
+  console.log(`🎯 FloatingHealthBar rendering: ${name}`, {
+    position,
+    health: `${health}/${maxHealth}`,
+    percentage: `${percentage}%`,
+    visible,
+    showName,
+    level,
+    isDead,
+    calculatedStyle: {
+      left: `${position.x}px`,
+      top: `${position.y}px`,
+      transform: 'translate(-50%, -100%)',
+      zIndex: 1000
+    }
+  });
+
   return (
     <motion.div
       className="floating-health-bar"
