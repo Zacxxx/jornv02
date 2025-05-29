@@ -985,6 +985,7 @@ body {
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
           animation: panelSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 1000;
+          pointer-events: auto; /* Ensure character panel can receive clicks */
 
           .panel_header {
             display: flex;
@@ -1011,6 +1012,7 @@ body {
               font-size: 12px;
               cursor: pointer;
               transition: all 0.2s ease;
+              pointer-events: auto; /* Ensure close button can be clicked */
               &:hover {
                 background: rgba(255, 255, 255, 0.2);
                 transform: scale(1.05);
@@ -1035,6 +1037,8 @@ body {
               cursor: pointer;
               transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
               min-height: 70px;
+              pointer-events: auto; /* Ensure panel items can be clicked */
+
               &:hover {
                 background: rgba(255, 255, 255, 0.1);
                 border-color: rgba(255, 255, 255, 0.2);
@@ -1267,6 +1271,17 @@ body {
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
           animation: windowSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 1500;
+          pointer-events: auto; /* Ensure character window can receive clicks */
+        }
+
+        /* Ensure all interactive elements in character window can receive clicks */
+        .character-window button,
+        .character-window .window-tab,
+        .character-window [role="button"],
+        .character-window input,
+        .character-window select,
+        .character-window textarea {
+          pointer-events: auto !important;
         }
 
         /* Fix for beige texture/glitch in character window buttons */

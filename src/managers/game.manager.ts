@@ -1,5 +1,5 @@
 // import { DevTool } from '@excaliburjs/dev-tools';
-import { Color, Engine, EngineOptions } from "excalibur";
+import { Color, Engine, EngineOptions, PointerScope } from "excalibur";
 import { assetManager } from "./asset.manager";
 import { levelManager } from "./level.manager";
 import { Subject } from "../utils";
@@ -479,6 +479,7 @@ const options: EngineOptions = {
   backgroundColor: Color.Transparent,
   suppressConsoleBootMessage: true,
   antialiasing: false,
+  pointerScope: PointerScope.Canvas,
 };
 
 console.log('🎮 Game Manager: Creating engine with options:', options);
