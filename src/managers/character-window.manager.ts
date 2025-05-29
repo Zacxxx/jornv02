@@ -5,7 +5,7 @@ import { createInventoryContent, initializeInventory } from '../components/chara
 import { createCraftingContent, initializeCrafting } from '../components/character-window/crafting-interface';
 // import { CraftingMenu } from '../components/character-window/crafting-menu';
 import { createSpellBookContent, initializeSpells } from '../components/character-window/spell-book';
-import { createResearchContent } from '../components/character-window/traits';
+import { createResearchContent, initializeResearch } from '../components/character-window/traits';
 import { createAbilityListContent } from '../components/character-window/ability-list';
 import { createQuestLogContent, initializeQuests } from '../components/character-window/quest-log';
 import { createEncyclopediaContent, initializeEncyclopedia } from '../components/character-window/encyclopedia-entries';
@@ -460,6 +460,10 @@ class CharacterWindowManager {
     } else if (this.state.activeTab === 'encyclopedia') {
       setTimeout(() => {
         initializeEncyclopedia();
+      }, 100);
+    } else if (this.state.activeTab === 'traits') {
+      setTimeout(() => {
+        initializeResearch();
       }, 100);
     }
   }
