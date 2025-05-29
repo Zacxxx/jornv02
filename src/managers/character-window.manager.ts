@@ -1,7 +1,7 @@
 import { CHARACTER_WINDOW_TABS, CharacterWindowState } from '../components/character-window';
 import { createCharacterStatsContent } from '../components/character-window/character-stats';
 import { createCharacterSheetContent } from '../components/character-window/character-sheet';
-import { createInventoryContent } from '../components/character-window/inventory-grid';
+import { createInventoryContent, initializeInventory } from '../components/character-window/inventory-grid';
 import { createCraftingContent } from '../components/character-window/crafting-interface';
 // import { CraftingMenu } from '../components/character-window/crafting-menu';
 import { createSpellBookContent } from '../components/character-window/spell-book';
@@ -434,6 +434,14 @@ class CharacterWindowManager {
     
     const content = await this.renderContent(this.state.activeTab);
     this.contentElement.innerHTML = content;
+    
+    // Initialize specific functionality based on the active tab
+    if (this.state.activeTab === 'inventory') {
+      // Use a small delay to ensure DOM is fully rendered
+      setTimeout(() => {
+        initializeInventory();
+      }, 50);
+    }
   }
 
   isOpen(): boolean {

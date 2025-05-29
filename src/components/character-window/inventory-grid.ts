@@ -283,437 +283,193 @@ export function createInventoryContent(): string {
         transition: width 0.3s ease;
       }
     </style>
+  `;
+}
 
-    <script>
-      let selectedItem = null;
-      let contextMenuTarget = null;
+// Global variables for inventory state
+let contextMenuTarget: HTMLElement | null = null;
 
-      // Initialize inventory functionality
-      document.addEventListener('DOMContentLoaded', function() {
-        initializeInventory();
-      });
+// Initialize inventory functionality - can be called after content is loaded
+export function initializeInventory() {
+  console.log('🎒 Initializing inventory functionality...');
+  
+  // Search functionality
+  const searchInput = document.getElementById('inventory-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', handleSearch);
+    console.log('🎒 Search functionality initialized');
+  }
 
-      function initializeInventory() {
-        // Search functionality
-        const searchInput = document.getElementById('inventory-search');
-        if (searchInput) {
-          searchInput.addEventListener('input', handleSearch);
-        }
+  // Filter functionality
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  if (filterBtns.length > 0) {
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', handleFilter);
+    });
+    console.log(`🎒 Filter functionality initialized (${filterBtns.length} buttons)`);
+  }
 
-        // Filter functionality
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => {
-          btn.addEventListener('click', handleFilter);
-        });
+  // Sort functionality
+  const sortSelect = document.getElementById('inventory-sort');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', handleSort);
+    console.log('🎒 Sort functionality initialized');
+  }
 
-        // Sort functionality
-        const sortSelect = document.getElementById('inventory-sort');
-        if (sortSelect) {
-          sortSelect.addEventListener('change', handleSort);
-        }
+  // Item interaction
+  const inventorySlots = document.querySelectorAll('.inventory-slot');
+  console.log(`🎒 Found ${inventorySlots.length} inventory slots`);
+  
+  if (inventorySlots.length > 0) {
+    inventorySlots.forEach(slot => {
+      slot.addEventListener('click', handleItemClick);
+      slot.addEventListener('mouseenter', handleItemHover);
+      slot.addEventListener('mouseleave', handleItemLeave);
+      slot.addEventListener('contextmenu', handleRightClick);
+      slot.addEventListener('dragstart', handleDragStart as EventListener);
+      slot.addEventListener('dragover', handleDragOver as EventListener);
+      slot.addEventListener('drop', handleDrop as EventListener);
+    });
+    console.log('🎒 Item interaction events attached');
+  }
 
-        // Item interaction
-        const inventorySlots = document.querySelectorAll('.inventory-slot');
-        inventorySlots.forEach(slot => {
-          slot.addEventListener('click', handleItemClick);
-          slot.addEventListener('mouseenter', handleItemHover);
-          slot.addEventListener('mouseleave', handleItemLeave);
-          slot.addEventListener('contextmenu', handleRightClick);
-          slot.addEventListener('dragstart', handleDragStart);
-          slot.addEventListener('dragover', handleDragOver);
-          slot.addEventListener('drop', handleDrop);
-        });
+  // Context menu functionality
+  const contextMenu = document.getElementById('context-menu');
+  const contextMenuItems = document.querySelectorAll('.context-menu-item');
+  
+  if (contextMenu && contextMenuItems.length > 0) {
+    contextMenuItems.forEach(item => {
+      item.addEventListener('click', handleContextMenuAction);
+    });
+    console.log(`🎒 Context menu functionality initialized (${contextMenuItems.length} items)`);
+  }
 
-        // Context menu functionality
-        const contextMenu = document.getElementById('context-menu');
-        const contextMenuItems = document.querySelectorAll('.context-menu-item');
-        
-        contextMenuItems.forEach(item => {
-          item.addEventListener('click', handleContextMenuAction);
-        });
-
-        // Close context menu on outside click
-        document.addEventListener('click', hideContextMenu);
-        document.addEventListener('contextmenu', (e) => {
-          if (!e.target.closest('.inventory-slot')) {
-            hideContextMenu();
-          }
-        });
-      }
-
-      function handleSearch(event) {
-        const searchTerm = event.target.value.toLowerCase();
-        const slots = document.querySelectorAll('.inventory-slot[data-item]');
-        
-        slots.forEach(slot => {
-          const itemName = slot.dataset.itemName?.toLowerCase() || '';
-          const itemType = slot.dataset.itemType?.toLowerCase() || '';
-          
-          if (itemName.includes(searchTerm) || itemType.includes(searchTerm)) {
-            slot.style.display = 'block';
-          } else {
-            slot.style.display = 'none';
-          }
-        });
-      }
-
-      function handleFilter(event) {
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        
-        const filter = event.target.dataset.filter;
-        const slots = document.querySelectorAll('.inventory-slot');
-        
-        slots.forEach(slot => {
-          if (filter === 'all' || slot.dataset.itemType === filter || !slot.dataset.item) {
-            slot.style.display = 'block';
-          } else {
-            slot.style.display = 'none';
-          }
-        });
-      }
-
-      function handleSort(event) {
-        const sortBy = event.target.value;
-        const grid = document.getElementById('inventory-grid');
-        const slots = Array.from(grid.querySelectorAll('.inventory-slot[data-item]'));
-        
-        slots.sort((a, b) => {
-          const aValue = a.dataset[sortBy] || '';
-          const bValue = b.dataset[sortBy] || '';
-          return aValue.localeCompare(bValue);
-        });
-        
-        // Re-append sorted items
-        slots.forEach(slot => grid.appendChild(slot));
-      }
-
-      function handleItemClick(event) {
-        const slot = event.currentTarget;
-        if (slot.dataset.item) {
-          // Remove active class from all slots
-          document.querySelectorAll('.inventory-slot').forEach(s => s.classList.remove('active'));
-          
-          // Add active class to clicked slot
-          slot.classList.add('active');
-          
-          // Show item details
-          showItemDetails(slot);
-          selectedItem = slot;
-        }
-      }
-
-      function handleItemHover(event) {
-        const slot = event.currentTarget;
-        if (slot.dataset.item) {
-          showTooltip(slot, event);
-        }
-      }
-
-      function handleItemLeave(event) {
-        hideTooltip();
-      }
-
-      function handleRightClick(event) {
-        event.preventDefault();
-        const slot = event.currentTarget;
-        
-        if (slot.dataset.item) {
-          contextMenuTarget = slot;
-          showContextMenu(event);
-        }
-      }
-
-      function showItemDetails(slot) {
-        const panel = document.getElementById('item-details-panel');
-        const itemData = {
-          name: slot.dataset.itemName || 'Unknown Item',
-          type: slot.dataset.itemType || 'misc',
-          rarity: slot.dataset.rarity || 'common',
-          level: slot.dataset.level || '1',
-          value: slot.dataset.value || '0',
-          description: slot.dataset.description || 'No description available.',
-          stats: JSON.parse(slot.dataset.stats || '{}'),
-          isFavorite: slot.dataset.favorite === 'true'
-        };
-        
-        panel.innerHTML = generateItemDetailsContent(itemData);
-      }
-
-      function generateItemDetailsContent(item) {
-        const rarityColors = {
-          common: '#9CA3AF',
-          uncommon: '#22C55E',
-          rare: '#3B82F6',
-          epic: '#A855F7',
-          legendary: '#F59E0B',
-          mythic: '#EF4444'
-        };
-
-        const typeIcons = {
-          weapons: '⚔️',
-          armor: '🛡️',
-          consumables: '🧪',
-          materials: '🔧',
-          quest: '📜',
-          misc: '💎'
-        };
-        
-        return \`
-          <div class="space-y-4">
-            <!-- Item Header -->
-            <div class="text-center">
-              <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: \${rarityColors[item.rarity]}">
-                <span>\${typeIcons[item.type] || '📦'}</span>
-              </div>
-              <h3 class="font-bold text-xl mb-1" style="color: \${rarityColors[item.rarity]}">\${item.name}</h3>
-              <p class="text-white/70 text-sm capitalize">\${item.type} • Level \${item.level}</p>
-              <p class="text-white/50 text-xs uppercase tracking-wide">\${item.rarity}</p>
-            </div>
-
-            <!-- Item Stats -->
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Statistics</h4>
-              <div class="space-y-2">
-                \${item.stats.damage ? \`
-                  <div class="flex justify-between items-center">
-                    <span class="text-white/70 text-sm">Damage</span>
-                    <span class="text-red-400 font-bold">\${item.stats.damage}</span>
-                  </div>
-                \` : ''}
-                \${item.stats.defense ? \`
-                  <div class="flex justify-between items-center">
-                    <span class="text-white/70 text-sm">Defense</span>
-                    <span class="text-blue-400 font-bold">\${item.stats.defense}</span>
-                  </div>
-                \` : ''}
-                \${item.stats.durability ? \`
-                  <div class="flex justify-between items-center">
-                    <span class="text-white/70 text-sm">Durability</span>
-                    <div class="flex items-center gap-2">
-                      <div class="stat-bar w-16">
-                        <div class="stat-bar-fill bg-green-500" style="width: \${(item.stats.durability / item.stats.maxDurability) * 100}%"></div>
-                      </div>
-                      <span class="text-white text-xs">\${item.stats.durability}/\${item.stats.maxDurability}</span>
-                    </div>
-                  </div>
-                \` : ''}
-                <div class="flex justify-between items-center">
-                  <span class="text-white/70 text-sm">Value</span>
-                  <span class="text-yellow-400 font-bold">\${item.value}g</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Item Description -->
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
-              <p class="text-white/80 text-sm leading-relaxed">\${item.description}</p>
-            </div>
-
-            <!-- Item Actions -->
-            <div class="space-y-2">
-              <button class="w-full px-4 py-2 bg-gradient-to-r from-blue-500/80 to-blue-600/80 hover:from-blue-400 hover:to-blue-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                🔧 Use Item
-              </button>
-              <button class="w-full px-4 py-2 bg-gradient-to-r from-purple-500/80 to-purple-600/80 hover:from-purple-400 hover:to-purple-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                ⚔️ Equip
-              </button>
-              <button class="w-full px-4 py-2 bg-gradient-to-r from-amber-500/80 to-amber-600/80 hover:from-amber-400 hover:to-amber-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                \${item.isFavorite ? '⭐ Remove from Favorites' : '☆ Add to Favorites'}
-              </button>
-            </div>
-          </div>
-        \`;
-      }
-
-      function showTooltip(slot, event) {
-        const tooltip = document.getElementById('item-tooltip');
-        const content = tooltip.querySelector('.tooltip-content');
-        
-        const itemData = {
-          name: slot.dataset.itemName || 'Unknown Item',
-          type: slot.dataset.itemType || 'misc',
-          rarity: slot.dataset.rarity || 'common',
-          level: slot.dataset.level || '1',
-          value: slot.dataset.value || '0',
-          description: slot.dataset.description || 'No description available.',
-          stats: JSON.parse(slot.dataset.stats || '{}')
-        };
-        
-        content.innerHTML = generateTooltipContent(itemData);
-        
-        // Position tooltip
-        const rect = slot.getBoundingClientRect();
-        tooltip.style.left = rect.right + 10 + 'px';
-        tooltip.style.top = rect.top + 'px';
-        
-        // Show tooltip
-        tooltip.classList.remove('opacity-0', 'translate-y-2');
-        tooltip.classList.add('opacity-100', 'translate-y-0');
-      }
-
-      function hideTooltip() {
-        const tooltip = document.getElementById('item-tooltip');
-        tooltip.classList.add('opacity-0', 'translate-y-2');
-        tooltip.classList.remove('opacity-100', 'translate-y-0');
-      }
-
-      function generateTooltipContent(item) {
-        const rarityColors = {
-          common: '#9CA3AF',
-          uncommon: '#22C55E',
-          rare: '#3B82F6',
-          epic: '#A855F7',
-          legendary: '#F59E0B',
-          mythic: '#EF4444'
-        };
-        
-        return \`
-          <div class="space-y-3">
-            <div class="text-center">
-              <div class="font-bold text-lg mb-1" style="color: \${rarityColors[item.rarity]}">\${item.name}</div>
-              <div class="text-sm text-white/70 capitalize">\${item.type} • Level \${item.level}</div>
-              <div class="text-xs text-white/50 uppercase tracking-wide">\${item.rarity}</div>
-            </div>
-            
-            \${Object.keys(item.stats).length > 0 ? \`
-              <div class="border-t border-white/20 pt-2">
-                <div class="text-xs text-white/60 mb-1 uppercase tracking-wide">Stats</div>
-                \${item.stats.damage ? \`<div class="text-sm text-red-400">+\${item.stats.damage} Damage</div>\` : ''}
-                \${item.stats.defense ? \`<div class="text-sm text-blue-400">+\${item.stats.defense} Defense</div>\` : ''}
-                \${item.stats.durability ? \`<div class="text-sm text-green-400">Durability: \${item.stats.durability}/\${item.stats.maxDurability}</div>\` : ''}
-              </div>
-            \` : ''}
-            
-            <div class="border-t border-white/20 pt-2">
-              <div class="text-sm text-white/80 mb-2">\${item.description}</div>
-              <div class="flex justify-between text-xs text-white/60">
-                <span>Value: \${item.value}g</span>
-                <span class="capitalize">\${item.rarity}</span>
-              </div>
-            </div>
-          </div>
-        \`;
-      }
-
-      function showContextMenu(event) {
-        const contextMenu = document.getElementById('context-menu');
-        
-        contextMenu.style.left = event.pageX + 'px';
-        contextMenu.style.top = event.pageY + 'px';
-        
-        contextMenu.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-        contextMenu.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
-      }
-
-      function hideContextMenu() {
-        const contextMenu = document.getElementById('context-menu');
-        contextMenu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-        contextMenu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-      }
-
-      function handleContextMenuAction(event) {
-        const action = event.currentTarget.dataset.action;
-        
-        if (contextMenuTarget) {
-          switch (action) {
-            case 'use':
-              console.log('Using item:', contextMenuTarget.dataset.itemName);
-              break;
-            case 'equip':
-              console.log('Equipping item:', contextMenuTarget.dataset.itemName);
-              break;
-            case 'split':
-              console.log('Splitting stack:', contextMenuTarget.dataset.itemName);
-              break;
-            case 'favorite':
-              toggleFavorite(contextMenuTarget);
-              break;
-            case 'sell':
-              console.log('Selling item:', contextMenuTarget.dataset.itemName);
-              break;
-            case 'delete':
-              console.log('Deleting item:', contextMenuTarget.dataset.itemName);
-              break;
-          }
-        }
-        
+  // Close context menu on outside click (only add once to prevent multiple listeners)
+  if (!document.body.hasAttribute('data-inventory-listeners-added')) {
+    document.addEventListener('click', hideContextMenu);
+    document.addEventListener('contextmenu', (e) => {
+      const target = e.target as HTMLElement;
+      if (!target?.closest('.inventory-slot')) {
         hideContextMenu();
       }
+    });
+    document.body.setAttribute('data-inventory-listeners-added', 'true');
+    console.log('🎒 Global context menu listeners added');
+  }
+  
+  console.log('🎒 Inventory initialization complete');
+}
 
-      function toggleFavorite(slot) {
-        const isFavorite = slot.dataset.favorite === 'true';
-        slot.dataset.favorite = (!isFavorite).toString();
-        
-        if (!isFavorite) {
-          const favoriteIcon = document.createElement('div');
-          favoriteIcon.className = 'item-favorite';
-          favoriteIcon.textContent = '⭐';
-          slot.appendChild(favoriteIcon);
-        } else {
-          const favoriteIcon = slot.querySelector('.item-favorite');
-          if (favoriteIcon) {
-            favoriteIcon.remove();
-          }
-        }
-        
-        // Update details panel if this item is selected
-        if (slot.classList.contains('active')) {
-          showItemDetails(slot);
-        }
-      }
+function handleSearch(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const searchTerm = target.value.toLowerCase();
+  const slots = document.querySelectorAll('.inventory-slot[data-item]');
+  
+  slots.forEach(slot => {
+    const slotElement = slot as HTMLElement;
+    const itemName = slotElement.dataset.itemName?.toLowerCase() || '';
+    const itemType = slotElement.dataset.itemType?.toLowerCase() || '';
+    
+    if (itemName.includes(searchTerm) || itemType.includes(searchTerm)) {
+      slotElement.style.display = 'block';
+    } else {
+      slotElement.style.display = 'none';
+    }
+  });
+}
 
-      function updateSelectedCount() {
-        const selected = document.querySelectorAll('.inventory-slot.selected').length;
-        const countElement = document.getElementById('selected-count');
-        if (countElement) {
-          countElement.textContent = selected;
-        }
-      }
+function handleFilter(event: Event) {
+  const target = event.target as HTMLElement;
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => btn.classList.remove('active'));
+  target.classList.add('active');
+  
+  const filter = target.dataset.filter;
+  const slots = document.querySelectorAll('.inventory-slot');
+  
+  slots.forEach(slot => {
+    const slotElement = slot as HTMLElement;
+    if (filter === 'all' || slotElement.dataset.itemType === filter || !slotElement.dataset.item) {
+      slotElement.style.display = 'block';
+    } else {
+      slotElement.style.display = 'none';
+    }
+  });
+}
 
-      function handleDragStart(event) {
-        event.dataTransfer.setData('text/plain', event.target.dataset.slotIndex);
-        event.target.classList.add('dragging');
-      }
+function handleSort(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  const sortBy = target.value;
+  const grid = document.getElementById('inventory-grid');
+  if (!grid) return;
+  
+  const slots = Array.from(grid.querySelectorAll('.inventory-slot[data-item]')) as HTMLElement[];
+  
+  slots.sort((a, b) => {
+    const aValue = (a.dataset as any)[sortBy] || '';
+    const bValue = (b.dataset as any)[sortBy] || '';
+    return aValue.localeCompare(bValue);
+  });
+  
+  // Re-append sorted items
+  slots.forEach(slot => grid.appendChild(slot));
+}
 
-      function handleDragOver(event) {
-        event.preventDefault();
-      }
+function handleItemClick(event: Event) {
+  const slot = event.currentTarget as HTMLElement;
+  console.log('🖱️ Item clicked:', slot.dataset.itemName);
+  
+  if (slot.dataset.item) {
+    // Remove active class from all slots
+    document.querySelectorAll('.inventory-slot').forEach(s => s.classList.remove('active'));
+    
+    // Add active class to clicked slot
+    slot.classList.add('active');
+    
+    // Show item details
+    showItemDetails(slot);
+  }
+}
 
-      function handleDrop(event) {
-        event.preventDefault();
-        const draggedIndex = event.dataTransfer.getData('text/plain');
-        const draggedSlot = document.querySelector(\`[data-slot-index="\${draggedIndex}"]\`);
-        const targetSlot = event.currentTarget;
-        
-        if (draggedSlot && targetSlot && draggedSlot !== targetSlot) {
-          // Swap items
-          const tempData = { ...draggedSlot.dataset };
-          const tempHTML = draggedSlot.innerHTML;
-          
-          // Copy target to dragged
-          Object.keys(targetSlot.dataset).forEach(key => {
-            if (key.startsWith('item')) {
-              draggedSlot.dataset[key] = targetSlot.dataset[key];
-            }
-          });
-          draggedSlot.innerHTML = targetSlot.innerHTML;
-          
-          // Copy temp to target
-          Object.keys(tempData).forEach(key => {
-            if (key.startsWith('item')) {
-              targetSlot.dataset[key] = tempData[key];
-            }
-          });
-          targetSlot.innerHTML = tempHTML;
-        }
-        
-        draggedSlot?.classList.remove('dragging');
-      }
-    </script>
-  `;
+function handleItemHover(event: Event) {
+  const slot = event.currentTarget as HTMLElement;
+  if (slot.dataset.item) {
+    showTooltip(slot);
+  }
+}
+
+function handleItemLeave() {
+  hideTooltip();
+}
+
+function handleRightClick(event: Event) {
+  event.preventDefault();
+  const slot = event.currentTarget as HTMLElement;
+  
+  if (slot.dataset.item) {
+    contextMenuTarget = slot;
+    showContextMenu(event as MouseEvent);
+  }
+}
+
+function showItemDetails(slot: HTMLElement) {
+  console.log('🔍 Showing item details for:', slot.dataset.itemName);
+  
+  const panel = document.getElementById('item-details-panel');
+  if (!panel) return;
+  
+  const itemData = {
+    name: slot.dataset.itemName || 'Unknown Item',
+    type: slot.dataset.itemType || 'misc',
+    rarity: slot.dataset.rarity || 'common',
+    level: slot.dataset.level || '1',
+    value: slot.dataset.value || '0',
+    description: slot.dataset.description || 'No description available.',
+    stats: JSON.parse(slot.dataset.stats || '{}'),
+    isFavorite: slot.dataset.favorite === 'true'
+  };
+  
+  panel.innerHTML = generateItemDetailsContent(itemData);
 }
 
 function generateInventorySlots(): string {
@@ -772,19 +528,292 @@ function generateInventorySlots(): string {
   return slots;
 }
 
+function showTooltip(slot: HTMLElement) {
+  const tooltip = document.getElementById('item-tooltip');
+  if (!tooltip) return;
+  
+  const content = tooltip.querySelector('.tooltip-content');
+  if (!content) return;
+  
+  const itemData = {
+    name: slot.dataset.itemName || 'Unknown Item',
+    type: slot.dataset.itemType || 'misc',
+    rarity: slot.dataset.rarity || 'common',
+    level: slot.dataset.level || '1',
+    value: slot.dataset.value || '0',
+    description: slot.dataset.description || 'No description available.',
+    stats: JSON.parse(slot.dataset.stats || '{}')
+  };
+  
+  content.innerHTML = generateTooltipContent(itemData);
+  
+  // Position tooltip
+  const rect = slot.getBoundingClientRect();
+  tooltip.style.left = rect.right + 10 + 'px';
+  tooltip.style.top = rect.top + 'px';
+  
+  // Show tooltip
+  tooltip.classList.remove('opacity-0', 'translate-y-2');
+  tooltip.classList.add('opacity-100', 'translate-y-0');
+}
+
+function hideTooltip() {
+  const tooltip = document.getElementById('item-tooltip');
+  if (!tooltip) return;
+  
+  tooltip.classList.add('opacity-0', 'translate-y-2');
+  tooltip.classList.remove('opacity-100', 'translate-y-0');
+}
+
+function generateTooltipContent(item: any): string {
+  const rarityColors: { [key: string]: string } = {
+    common: '#9CA3AF',
+    uncommon: '#22C55E',
+    rare: '#3B82F6',
+    epic: '#A855F7',
+    legendary: '#F59E0B',
+    mythic: '#EF4444'
+  };
+  
+  return `
+    <div class="space-y-3">
+      <div class="text-center">
+        <div class="font-bold text-lg mb-1" style="color: ${rarityColors[item.rarity] || rarityColors.common}">${item.name}</div>
+        <div class="text-sm text-white/70 capitalize">${item.type} • Level ${item.level}</div>
+        <div class="text-xs text-white/50 uppercase tracking-wide">${item.rarity}</div>
+      </div>
+      
+      ${Object.keys(item.stats).length > 0 ? `
+        <div class="border-t border-white/20 pt-2">
+          <div class="text-xs text-white/60 mb-1 uppercase tracking-wide">Stats</div>
+          ${item.stats.damage ? `<div class="text-sm text-red-400">+${item.stats.damage} Damage</div>` : ''}
+          ${item.stats.defense ? `<div class="text-sm text-blue-400">+${item.stats.defense} Defense</div>` : ''}
+          ${item.stats.durability ? `<div class="text-sm text-green-400">Durability: ${item.stats.durability}/${item.stats.maxDurability}</div>` : ''}
+        </div>
+      ` : ''}
+      
+      <div class="border-t border-white/20 pt-2">
+        <div class="text-sm text-white/80 mb-2">${item.description}</div>
+        <div class="flex justify-between text-xs text-white/60">
+          <span>Value: ${item.value}g</span>
+          <span class="capitalize">${item.rarity}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function showContextMenu(event: MouseEvent) {
+  const contextMenu = document.getElementById('context-menu');
+  if (!contextMenu) return;
+  
+  contextMenu.style.left = event.pageX + 'px';
+  contextMenu.style.top = event.pageY + 'px';
+  
+  contextMenu.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+  contextMenu.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+}
+
+function hideContextMenu() {
+  const contextMenu = document.getElementById('context-menu');
+  if (!contextMenu) return;
+  
+  contextMenu.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+  contextMenu.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+}
+
+function handleContextMenuAction(event: Event) {
+  const target = event.currentTarget as HTMLElement;
+  const action = target.dataset.action;
+  
+  if (contextMenuTarget) {
+    switch (action) {
+      case 'use':
+        console.log('Using item:', contextMenuTarget.dataset.itemName);
+        break;
+      case 'equip':
+        console.log('Equipping item:', contextMenuTarget.dataset.itemName);
+        break;
+      case 'split':
+        console.log('Splitting stack:', contextMenuTarget.dataset.itemName);
+        break;
+      case 'favorite':
+        toggleFavorite(contextMenuTarget);
+        break;
+      case 'sell':
+        console.log('Selling item:', contextMenuTarget.dataset.itemName);
+        break;
+      case 'delete':
+        console.log('Deleting item:', contextMenuTarget.dataset.itemName);
+        break;
+    }
+  }
+  
+  hideContextMenu();
+}
+
+function toggleFavorite(slot: HTMLElement) {
+  const isFavorite = slot.dataset.favorite === 'true';
+  slot.dataset.favorite = (!isFavorite).toString();
+  
+  if (!isFavorite) {
+    const favoriteIcon = document.createElement('div');
+    favoriteIcon.className = 'item-favorite';
+    favoriteIcon.textContent = '⭐';
+    slot.appendChild(favoriteIcon);
+  } else {
+    const favoriteIcon = slot.querySelector('.item-favorite');
+    if (favoriteIcon) {
+      favoriteIcon.remove();
+    }
+  }
+  
+  // Update details panel if this item is selected
+  if (slot.classList.contains('active')) {
+    showItemDetails(slot);
+  }
+}
+
+function handleDragStart(event: Event) {
+  const dragEvent = event as DragEvent;
+  const target = dragEvent.target as HTMLElement;
+  if (dragEvent.dataTransfer && target.dataset.slotIndex) {
+    dragEvent.dataTransfer.setData('text/plain', target.dataset.slotIndex);
+    target.classList.add('dragging');
+  }
+}
+
+function handleDragOver(event: Event) {
+  event.preventDefault();
+}
+
+function handleDrop(event: Event) {
+  event.preventDefault();
+  const dragEvent = event as DragEvent;
+  const draggedIndex = dragEvent.dataTransfer?.getData('text/plain');
+  const draggedSlot = document.querySelector(`[data-slot-index="${draggedIndex}"]`) as HTMLElement;
+  const targetSlot = dragEvent.currentTarget as HTMLElement;
+  
+  if (draggedSlot && targetSlot && draggedSlot !== targetSlot) {
+    // Swap items
+    const tempData = { ...draggedSlot.dataset };
+    const tempHTML = draggedSlot.innerHTML;
+    
+    // Copy target to dragged
+    Object.keys(targetSlot.dataset).forEach(key => {
+      if (key.startsWith('item')) {
+        draggedSlot.dataset[key] = targetSlot.dataset[key];
+      }
+    });
+    draggedSlot.innerHTML = targetSlot.innerHTML;
+    
+    // Copy temp to target
+    Object.keys(tempData).forEach(key => {
+      if (key.startsWith('item')) {
+        targetSlot.dataset[key] = tempData[key];
+      }
+    });
+    targetSlot.innerHTML = tempHTML;
+  }
+  
+  draggedSlot?.classList.remove('dragging');
+}
+
+function generateItemDetailsContent(item: any): string {
+  const rarityColors: { [key: string]: string } = {
+    common: '#9CA3AF',
+    uncommon: '#22C55E',
+    rare: '#3B82F6',
+    epic: '#A855F7',
+    legendary: '#F59E0B',
+    mythic: '#EF4444'
+  };
+
+  const typeIcons: { [key: string]: string } = {
+    weapons: '⚔️',
+    armor: '🛡️',
+    consumables: '🧪',
+    materials: '🔧',
+    quest: '📜',
+    misc: '💎'
+  };
+  
+  return `
+    <div class="space-y-4">
+      <!-- Item Header -->
+      <div class="text-center">
+        <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: ${rarityColors[item.rarity] || rarityColors.common}">
+          <span>${typeIcons[item.type] || '📦'}</span>
+        </div>
+        <h3 class="font-bold text-xl mb-1" style="color: ${rarityColors[item.rarity] || rarityColors.common}">${item.name}</h3>
+        <p class="text-white/70 text-sm capitalize">${item.type} • Level ${item.level}</p>
+        <p class="text-white/50 text-xs uppercase tracking-wide">${item.rarity}</p>
+      </div>
+
+      <!-- Item Stats -->
+      <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+        <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Statistics</h4>
+        <div class="space-y-2">
+          ${item.stats.damage ? `
+            <div class="flex justify-between items-center">
+              <span class="text-white/70 text-sm">Damage</span>
+              <span class="text-red-400 font-bold">${item.stats.damage}</span>
+            </div>
+          ` : ''}
+          ${item.stats.defense ? `
+            <div class="flex justify-between items-center">
+              <span class="text-white/70 text-sm">Defense</span>
+              <span class="text-blue-400 font-bold">${item.stats.defense}</span>
+            </div>
+          ` : ''}
+          ${item.stats.durability ? `
+            <div class="flex justify-between items-center">
+              <span class="text-white/70 text-sm">Durability</span>
+              <div class="flex items-center gap-2">
+                <div class="stat-bar w-16">
+                  <div class="stat-bar-fill bg-green-500" style="width: ${(item.stats.durability / item.stats.maxDurability) * 100}%"></div>
+                </div>
+                <span class="text-white text-xs">${item.stats.durability}/${item.stats.maxDurability}</span>
+              </div>
+            </div>
+          ` : ''}
+          <div class="flex justify-between items-center">
+            <span class="text-white/70 text-sm">Value</span>
+            <span class="text-yellow-400 font-bold">${item.value}g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item Description -->
+      <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+        <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
+        <p class="text-white/80 text-sm leading-relaxed">${item.description}</p>
+      </div>
+
+      <!-- Item Actions -->
+      <div class="space-y-2">
+        <button class="w-full px-4 py-2 bg-gradient-to-r from-blue-500/80 to-blue-600/80 hover:from-blue-400 hover:to-blue-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+          🔧 Use Item
+        </button>
+        <button class="w-full px-4 py-2 bg-gradient-to-r from-purple-500/80 to-purple-600/80 hover:from-purple-400 hover:to-purple-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+          ⚔️ Equip
+        </button>
+        <button class="w-full px-4 py-2 bg-gradient-to-r from-amber-500/80 to-amber-600/80 hover:from-amber-400 hover:to-amber-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+          ${item.isFavorite ? '⭐ Remove from Favorites' : '☆ Add to Favorites'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 // Allow UI refresh from outside (e.g., after crafting)
 export function updateInventoryUI() {
   const content = document.getElementById('character_window_content');
   if (content) {
     content.innerHTML = createInventoryContent();
-    // Enable mouse wheel scrolling for inventory-categories
-    const categories = content.querySelector('.inventory-categories');
-    if (categories) {
-      categories.addEventListener('wheel', (e) => {
-        const evt = e as WheelEvent;
-        evt.preventDefault();
-        categories.scrollTop += evt.deltaY;
-      }, { passive: false });
-    }
+    // Initialize the inventory after the content is loaded
+    setTimeout(() => {
+      initializeInventory();
+    }, 100);
   }
 }
