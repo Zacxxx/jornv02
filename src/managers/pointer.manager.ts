@@ -146,6 +146,14 @@ class PointerManager {
       this.tooltipElement.style.display = 'block';
       this.updateTooltipContent();
       this.updateTooltipPosition(data.position);
+      
+      // Animate in with smooth transition
+      requestAnimationFrame(() => {
+        if (this.tooltipElement) {
+          this.tooltipElement.style.opacity = '1';
+          this.tooltipElement.style.transform = 'translateY(0)';
+        }
+      });
     }
     
     console.log(`🖱️ PointerManager: Showing tooltip: ${data.title}`);
@@ -155,12 +163,20 @@ class PointerManager {
    * Hide the current tooltip
    */
   public hideTooltip(): void {
-    this.currentTooltip = null;
-    
     if (this.tooltipElement) {
-      this.tooltipElement.style.display = 'none';
+      // Animate out with smooth transition
+      this.tooltipElement.style.opacity = '0';
+      this.tooltipElement.style.transform = 'translateY(-5px)';
+      
+      // Hide after animation completes
+      setTimeout(() => {
+        if (this.tooltipElement) {
+          this.tooltipElement.style.display = 'none';
+        }
+      }, 200);
     }
     
+    this.currentTooltip = null;
     console.log('🖱️ PointerManager: Hiding tooltip');
   }
 
@@ -172,24 +188,28 @@ class PointerManager {
     this.tooltipElement.id = 'game-tooltip';
     this.tooltipElement.style.cssText = `
       position: absolute;
-      background: rgba(0, 0, 0, 0.9);
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 20, 0.95));
       color: white;
-      padding: 8px 12px;
-      border-radius: 4px;
+      padding: 10px 14px;
+      border-radius: 6px;
       font-family: 'Arial', sans-serif;
-      font-size: 12px;
+      font-size: 13px;
       line-height: 1.4;
       pointer-events: none;
-      z-index: 1000;
+      z-index: 10000;
       display: none;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      max-width: 200px;
+      border: 2px solid rgba(255, 255, 150, 0.8);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 150, 0.3);
+      max-width: 220px;
       word-wrap: break-word;
+      backdrop-filter: blur(4px);
+      transform: translateY(-5px);
+      transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+      opacity: 0;
     `;
 
     document.body.appendChild(this.tooltipElement);
-    console.log('🖱️ PointerManager: Tooltip element created');
+    console.log('🖱️ PointerManager: Enhanced tooltip element created');
   }
 
   /**
@@ -199,11 +219,15 @@ class PointerManager {
     if (!this.tooltipElement || !this.currentTooltip) return;
 
     const { title, subtitle } = this.currentTooltip;
-    let content = `<div style="font-weight: bold;">${title}</div>`;
+    
+    let content = `<div style="font-weight: bold; color: #FFD700; margin-bottom: 4px; font-size: 14px;">${title}</div>`;
     
     if (subtitle) {
-      content += `<div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">${subtitle}</div>`;
+      content += `<div style="font-size: 11px; color: #CCCCCC; font-style: italic;">${subtitle}</div>`;
     }
+    
+    // Add a subtle glow effect indicator
+    content = `<div style="position: relative;">${content}<div style="position: absolute; top: -2px; right: -2px; width: 6px; height: 6px; background: rgba(255, 255, 150, 0.8); border-radius: 50%; box-shadow: 0 0 4px rgba(255, 255, 150, 0.6);"></div></div>`;
     
     this.tooltipElement.innerHTML = content;
   }

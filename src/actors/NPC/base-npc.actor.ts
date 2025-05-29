@@ -187,32 +187,46 @@ export abstract class BaseNPC extends Actor implements IHoverable {
    */
   private applyHoverHighlight(): void {
     try {
-      // Method 1: Try to tint the current graphic
-      const currentGraphic = this.graphics.current;
+      // Method 1: Try to get the current animation/sprite and apply tint
+      const graphics = this.graphics;
       
-      if (currentGraphic && currentGraphic[0]) {
-        const graphic = currentGraphic[0].graphic;
+      if (graphics && graphics.current) {
+        // Get the current graphic (could be an animation or sprite)
+        const currentGraphics = graphics.current;
         
-        // Store original tint if not already stored
+        if (currentGraphics.length > 0) {
+          const currentGraphic = currentGraphics[0];
+          
+          // Store original tint if not already stored
+          if (!this.originalTint) {
+            this.originalTint = currentGraphic.graphic.tint ? currentGraphic.graphic.tint.clone() : Color.White;
+            console.log(`💾 Stored original tint for ${this.npcName}:`, this.originalTint);
+          }
+          
+          // Apply bright highlight tint - using a more noticeable yellow-white
+          currentGraphic.graphic.tint = Color.fromRGB(255, 255, 200, 1);
+          console.log(`✨ Applied graphic tint hover highlight to ${this.npcName}`);
+          return;
+        }
+      }
+      
+      // Method 2: Try using graphics show/use method to force re-render with tint
+      if (graphics && graphics.visible) {
+        // Store original color
         if (!this.originalTint) {
-          this.originalTint = graphic.tint ? graphic.tint.clone() : Color.White;
+          this.originalTint = this.color.clone();
         }
         
-        // Apply bright highlight tint
-        graphic.tint = Color.fromRGB(255, 255, 150); // Bright yellow tint
-        console.log(`✨ Applied hover highlight to ${this.npcName}`);
+        // Apply color-based highlight as fallback
+        this.color = Color.fromRGB(255, 255, 150, 1);
+        console.log(`✨ Applied color-based hover highlight to ${this.npcName}`);
         return;
       }
       
-      // Method 2: Fallback to actor color if no graphics
-      if (!this.originalTint) {
-        this.originalTint = this.color.clone();
-      }
-      this.color = Color.fromRGB(255, 255, 150);
-      console.log(`✨ Applied color-based hover highlight to ${this.npcName}`);
+      console.warn(`⚠️ Could not apply hover highlight to ${this.npcName} - no graphics found`);
       
     } catch (error) {
-      console.warn(`Failed to apply hover highlight to ${this.npcName}:`, error);
+      console.warn(`❌ Failed to apply hover highlight to ${this.npcName}:`, error);
     }
   }
 
@@ -222,23 +236,27 @@ export abstract class BaseNPC extends Actor implements IHoverable {
   private removeHoverHighlight(): void {
     try {
       // Method 1: Try to restore graphic tint
-      const currentGraphic = this.graphics.current;
+      const graphics = this.graphics;
       
-      if (currentGraphic && currentGraphic[0] && this.originalTint) {
-        const graphic = currentGraphic[0].graphic;
-        graphic.tint = this.originalTint;
-        console.log(`🔄 Restored original tint for ${this.npcName}`);
-        return;
+      if (graphics && graphics.current && this.originalTint) {
+        const currentGraphics = graphics.current;
+        
+        if (currentGraphics.length > 0) {
+          const currentGraphic = currentGraphics[0];
+          currentGraphic.graphic.tint = this.originalTint;
+          console.log(`🔄 Restored graphic tint for ${this.npcName}`);
+          return;
+        }
       }
       
       // Method 2: Fallback to actor color restoration
       if (this.originalTint) {
         this.color = this.originalTint;
-        console.log(`🔄 Restored original color for ${this.npcName}`);
+        console.log(`🔄 Restored actor color for ${this.npcName}`);
       }
       
     } catch (error) {
-      console.warn(`Failed to remove hover highlight from ${this.npcName}:`, error);
+      console.warn(`❌ Failed to remove hover highlight from ${this.npcName}:`, error);
     }
   }
 

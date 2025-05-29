@@ -19,6 +19,24 @@ export const CHARACTER_WINDOW_TABS: CharacterWindowTab[] = [
     component: 'character-stats'
   },
   {
+    id: 'character-sheet',
+    name: 'Character Sheet',
+    icon: 'file-text',
+    component: 'character-sheet'
+  },
+  {
+    id: 'equipment',
+    name: 'Equipment',
+    icon: 'shield',
+    component: 'equipment-sets'
+  },
+  {
+    id: 'transmog',
+    name: 'Transmog',
+    icon: 'palette',
+    component: 'transmog-wardrobe'
+  },
+  {
     id: 'crafting',
     name: 'Crafting',
     icon: 'hammer',
@@ -41,6 +59,18 @@ export const CHARACTER_WINDOW_TABS: CharacterWindowTab[] = [
     name: 'Traits',
     icon: 'star',
     component: 'trait-tree'
+  },
+  {
+    id: 'hero-journey',
+    name: 'Hero Journey',
+    icon: 'compass',
+    component: 'hero-journey'
+  },
+  {
+    id: 'professions',
+    name: 'Professions',
+    icon: 'tools',
+    component: 'professions'
   },
   {
     id: 'abilities',
