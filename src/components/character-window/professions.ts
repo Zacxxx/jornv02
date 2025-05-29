@@ -260,222 +260,339 @@ export function createProfessionsContent(): string {
         background: linear-gradient(to right, #F59E0B, #D97706);
       }
     </style>
+  `;
+}
 
-    <script>
-      let selectedProfession = null;
+// Global variable for profession state
+let selectedProfession: HTMLElement | null = null;
 
-      document.addEventListener('DOMContentLoaded', function() {
-        initializeProfessions();
-      });
+// Initialize professions functionality - can be called after content is loaded
+export function initializeProfessions() {
+  console.log('🔨 Initializing professions functionality...');
+  
+  // Search functionality
+  const searchInput = document.getElementById('profession-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', handleProfessionSearch);
+    console.log('🔨 Search functionality initialized');
+  }
 
-      function initializeProfessions() {
-        // Modal functionality
-        const trainSkillBtn = document.getElementById('train-skill-btn');
-        const modal = document.getElementById('training-modal');
-        const closeModalBtns = document.querySelectorAll('.close-modal');
+  // Filter functionality
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  if (filterBtns.length > 0) {
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', handleProfessionFilter);
+    });
+    console.log(`🔨 Filter functionality initialized (${filterBtns.length} buttons)`);
+  }
 
-        trainSkillBtn?.addEventListener('click', () => {
-          modal.classList.remove('opacity-0', 'pointer-events-none');
-          modal.classList.add('opacity-100', 'pointer-events-auto');
-        });
+  // Sort functionality
+  const sortSelect = document.getElementById('profession-sort');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', handleProfessionSort);
+    console.log('🔨 Sort functionality initialized');
+  }
 
-        closeModalBtns.forEach(btn => {
-          btn.addEventListener('click', () => {
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.classList.remove('opacity-100', 'pointer-events-auto');
-          });
-        });
+  // Profession interaction
+  const professionCards = document.querySelectorAll('.profession-card');
+  console.log(`🔨 Found ${professionCards.length} profession cards`);
+  
+  if (professionCards.length > 0) {
+    professionCards.forEach(card => {
+      card.addEventListener('click', handleProfessionClick);
+      card.addEventListener('mouseenter', handleProfessionHover);
+      card.addEventListener('mouseleave', handleProfessionLeave);
+    });
+    console.log('🔨 Profession interaction events attached');
+  }
 
-        // Search functionality
-        const searchInput = document.getElementById('profession-search');
-        if (searchInput) {
-          searchInput.addEventListener('input', handleProfessionSearch);
-        }
+  // Button functionality
+  const trainSkillBtn = document.getElementById('train-skill-btn');
+  const practiceBtn = document.getElementById('practice-btn');
+  const findTrainerBtn = document.getElementById('find-trainer-btn');
+  const professionQuestsBtn = document.getElementById('profession-quests-btn');
 
-        // Filter functionality
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => {
-          btn.addEventListener('click', handleProfessionFilter);
-        });
+  if (trainSkillBtn) {
+    trainSkillBtn.addEventListener('click', () => {
+      console.log('🔨 Opening training modal...');
+      showTrainingModal();
+    });
+  }
 
-        // Profession interaction
-        const professionCards = document.querySelectorAll('.profession-card');
-        professionCards.forEach(card => {
-          card.addEventListener('click', handleProfessionClick);
-        });
-
-        // Action buttons
-        document.getElementById('practice-btn')?.addEventListener('click', () => {
-          if (selectedProfession) {
-            console.log('Starting practice session for:', selectedProfession.dataset.professionName);
-          } else {
-            alert('Please select a profession to practice');
-          }
-        });
-
-        document.getElementById('find-trainer-btn')?.addEventListener('click', () => {
-          console.log('Finding trainers...');
-        });
-
-        document.getElementById('profession-quests-btn')?.addEventListener('click', () => {
-          console.log('Opening profession quests...');
-        });
+  if (practiceBtn) {
+    practiceBtn.addEventListener('click', () => {
+      if (selectedProfession) {
+        console.log('🔨 Starting practice session for:', selectedProfession.dataset.professionName);
+      } else {
+        alert('Please select a profession to practice');
       }
+    });
+  }
 
-      function handleProfessionSearch(event) {
-        const searchTerm = event.target.value.toLowerCase();
-        const cards = document.querySelectorAll('.profession-card');
-        
-        cards.forEach(card => {
-          const professionName = card.dataset.professionName?.toLowerCase() || '';
-          const professionCategory = card.dataset.professionCategory?.toLowerCase() || '';
-          
-          if (professionName.includes(searchTerm) || professionCategory.includes(searchTerm)) {
-            card.style.display = 'block';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-      }
+  if (findTrainerBtn) {
+    findTrainerBtn.addEventListener('click', () => {
+      console.log('🔨 Finding trainers...');
+    });
+  }
 
-      function handleProfessionFilter(event) {
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        
-        const filter = event.target.dataset.filter;
-        const cards = document.querySelectorAll('.profession-card');
-        
-        cards.forEach(card => {
-          if (filter === 'all' || card.dataset.professionCategory === filter) {
-            card.style.display = 'block';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-      }
+  if (professionQuestsBtn) {
+    professionQuestsBtn.addEventListener('click', () => {
+      console.log('🔨 Opening profession quests...');
+    });
+  }
 
-      function handleProfessionClick(event) {
-        const card = event.currentTarget;
-        document.querySelectorAll('.profession-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-        showProfessionDetails(card);
-        selectedProfession = card;
-      }
+  // Modal functionality
+  const modal = document.getElementById('training-modal');
+  const closeModalBtns = document.querySelectorAll('.close-modal');
+  
+  if (modal && closeModalBtns.length > 0) {
+    closeModalBtns.forEach(btn => {
+      btn.addEventListener('click', hideTrainingModal);
+    });
+    console.log('🔨 Modal functionality initialized');
+  }
+  
+  console.log('🔨 Professions initialization complete');
+}
 
-      function showProfessionDetails(card) {
-        const panel = document.getElementById('profession-details-panel');
-        const professionData = {
-          name: card.dataset.professionName || 'Unknown Profession',
-          category: card.dataset.professionCategory || 'misc',
-          level: card.dataset.professionLevel || '1',
-          experience: card.dataset.professionExperience || '0',
-          maxExperience: card.dataset.professionMaxExperience || '100',
-          rank: card.dataset.professionRank || 'novice',
-          description: card.dataset.professionDescription || 'No description available.',
-          benefits: JSON.parse(card.dataset.professionBenefits || '[]'),
-          masteryPoints: card.dataset.professionMasteryPoints || '0',
-          maxMasteryPoints: card.dataset.professionMaxMasteryPoints || '100'
-        };
-        
-        panel.innerHTML = generateProfessionDetailsContent(professionData);
-      }
+function showTrainingModal() {
+  const modal = document.getElementById('training-modal');
+  if (modal) {
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    modal.classList.add('opacity-100', 'pointer-events-auto');
+  }
+}
 
-      function generateProfessionDetailsContent(profession) {
-        const categoryColors = {
-          crafting: '#F59E0B',
-          gathering: '#10B981',
-          combat: '#EF4444',
-          magic: '#8B5CF6',
-          social: '#3B82F6'
-        };
+function hideTrainingModal() {
+  const modal = document.getElementById('training-modal');
+  if (modal) {
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    modal.classList.remove('opacity-100', 'pointer-events-auto');
+  }
+}
 
-        const categoryIcons = {
-          crafting: '🔨',
-          gathering: '🌾',
-          combat: '⚔️',
-          magic: '✨',
-          social: '👥'
-        };
+function handleProfessionSearch(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const searchTerm = target.value.toLowerCase();
+  const cards = document.querySelectorAll('.profession-card');
+  
+  cards.forEach(card => {
+    const cardElement = card as HTMLElement;
+    const professionName = cardElement.dataset.professionName?.toLowerCase() || '';
+    const professionCategory = cardElement.dataset.professionCategory?.toLowerCase() || '';
+    const professionDescription = cardElement.dataset.professionDescription?.toLowerCase() || '';
+    
+    if (professionName.includes(searchTerm) || professionCategory.includes(searchTerm) || professionDescription.includes(searchTerm)) {
+      cardElement.style.display = 'block';
+    } else {
+      cardElement.style.display = 'none';
+    }
+  });
+}
 
-        const rankColors = {
-          novice: '#6B7280',
-          apprentice: '#22C55E',
-          journeyman: '#3B82F6',
-          expert: '#A855F7',
-          master: '#F59E0B',
-          grandmaster: '#EF4444'
-        };
-        
-        return \`
-          <div class="space-y-4">
-            <div class="text-center">
-              <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: \${categoryColors[profession.category]}">
-                <span>\${categoryIcons[profession.category] || '🛠️'}</span>
-              </div>
-              <h3 class="font-bold text-xl mb-1" style="color: \${categoryColors[profession.category]}">\${profession.name}</h3>
-              <p class="text-white/70 text-sm capitalize">\${profession.category} • Level \${profession.level}</p>
-              <p class="text-white/50 text-xs uppercase tracking-wide" style="color: \${rankColors[profession.rank as keyof typeof rankColors]}">\${profession.rank}</p>
-            </div>
+function handleProfessionFilter(event: Event) {
+  const target = event.target as HTMLElement;
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => btn.classList.remove('active'));
+  target.classList.add('active');
+  
+  const filter = target.dataset.filter;
+  const cards = document.querySelectorAll('.profession-card');
+  
+  cards.forEach(card => {
+    const cardElement = card as HTMLElement;
+    if (filter === 'all' || cardElement.dataset.professionCategory === filter) {
+      cardElement.style.display = 'block';
+    } else {
+      cardElement.style.display = 'none';
+    }
+  });
+}
 
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Experience Progress</h4>
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-white/70 text-sm">Experience</span>
-                <span class="text-green-400 font-bold">\${profession.experience}/\${profession.maxExperience}</span>
-              </div>
-              <div class="w-full bg-black/30 rounded-full h-3">
-                <div class="level-\${profession.rank} h-3 rounded-full transition-all duration-300" style="width: \${(parseInt(profession.experience) / parseInt(profession.maxExperience)) * 100}%"></div>
-              </div>
-              <div class="text-center mt-2">
-                <span class="text-white/60 text-xs">\${parseInt(profession.maxExperience) - parseInt(profession.experience)} XP to next level</span>
-              </div>
-            </div>
+function handleProfessionSort(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  const sortBy = target.value;
+  const grid = document.getElementById('professions-grid');
+  if (!grid) return;
+  
+  const cards = Array.from(grid.querySelectorAll('.profession-card')) as HTMLElement[];
+  
+  cards.sort((a, b) => {
+    const aValue = getProfessionSortValue(a, sortBy);
+    const bValue = getProfessionSortValue(b, sortBy);
+    
+    if (sortBy === 'level' || sortBy === 'progress') {
+      return parseInt(bValue) - parseInt(aValue); // Descending for numbers
+    }
+    return aValue.localeCompare(bValue); // Ascending for strings
+  });
+  
+  // Re-append sorted cards
+  cards.forEach(card => grid.appendChild(card));
+}
 
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Mastery Progress</h4>
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-white/70 text-sm">Mastery Points</span>
-                <span class="text-orange-400 font-bold">\${profession.masteryPoints}/\${profession.maxMasteryPoints}</span>
-              </div>
-              <div class="profession-mastery">
-                \${Array.from({ length: parseInt(profession.maxMasteryPoints) / 20 }, (_, i) => \`
-                  <div class="mastery-point \${i < Math.floor(parseInt(profession.masteryPoints) / 20) ? 'filled' : ''}"></div>
-                \`).join('')}
-              </div>
-            </div>
+function getProfessionSortValue(card: HTMLElement, sortBy: string): string {
+  switch (sortBy) {
+    case 'name':
+      return card.dataset.professionName || '';
+    case 'level':
+      return card.dataset.professionLevel || '0';
+    case 'category':
+      return card.dataset.professionCategory || '';
+    case 'progress':
+      const exp = parseInt(card.dataset.professionExperience || '0');
+      const maxExp = parseInt(card.dataset.professionMaxExperience || '1');
+      return ((exp / maxExp) * 100).toString();
+    default:
+      return card.dataset.professionName || '';
+  }
+}
 
-            <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-              <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
-              <p class="text-white/80 text-sm leading-relaxed">\${profession.description}</p>
-            </div>
+function handleProfessionClick(event: Event) {
+  const card = event.currentTarget as HTMLElement;
+  console.log('🔨 Profession clicked:', card.dataset.professionName);
+  
+  // Remove active class from all cards
+  document.querySelectorAll('.profession-card').forEach(c => c.classList.remove('active'));
+  
+  // Add active class to clicked card
+  card.classList.add('active');
+  
+  // Show profession details
+  showProfessionDetails(card);
+  selectedProfession = card;
+}
 
-            \${profession.benefits.length > 0 ? \`
-              <div class="bg-black/20 border border-white/10 rounded-lg p-3">
-                <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Benefits</h4>
-                <div class="space-y-1">
-                  \${profession.benefits.map(benefit => \`
-                    <div class="text-green-400 text-sm">• \${benefit}</div>
-                  \`).join('')}
-                </div>
-              </div>
-            \` : ''}
+function handleProfessionHover(event: Event) {
+  const card = event.currentTarget as HTMLElement;
+  if (!card.classList.contains('active')) {
+    card.style.transform = 'translateY(-2px)';
+    card.style.boxShadow = '0 8px 25px rgba(249, 115, 22, 0.3)';
+  }
+}
 
-            <div class="space-y-2">
-              <button class="w-full px-4 py-2 bg-gradient-to-r from-blue-500/80 to-blue-600/80 hover:from-blue-400 hover:to-blue-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                📚 Train Skill
-              </button>
-              <button class="w-full px-4 py-2 bg-gradient-to-r from-green-500/80 to-green-600/80 hover:from-green-400 hover:to-green-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                🏋️ Practice Session
-              </button>
-              <button class="w-full px-4 py-2 bg-gradient-to-r from-purple-500/80 to-purple-600/80 hover:from-purple-400 hover:to-purple-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
-                📋 View Recipes/Skills
-              </button>
-            </div>
+function handleProfessionLeave(event: Event) {
+  const card = event.currentTarget as HTMLElement;
+  if (!card.classList.contains('active')) {
+    card.style.transform = '';
+    card.style.boxShadow = '';
+  }
+}
+
+function showProfessionDetails(card: HTMLElement) {
+  console.log('🔍 Showing profession details for:', card.dataset.professionName);
+  
+  const panel = document.getElementById('profession-details-panel');
+  if (!panel) return;
+  
+  const professionData = {
+    name: card.dataset.professionName || 'Unknown Profession',
+    category: card.dataset.professionCategory || 'misc',
+    level: card.dataset.professionLevel || '1',
+    experience: card.dataset.professionExperience || '0',
+    maxExperience: card.dataset.professionMaxExperience || '100',
+    rank: card.dataset.professionRank || 'novice',
+    description: card.dataset.professionDescription || 'No description available.',
+    benefits: JSON.parse(card.dataset.professionBenefits || '[]'),
+    masteryPoints: card.dataset.professionMasteryPoints || '0',
+    maxMasteryPoints: card.dataset.professionMaxMasteryPoints || '100'
+  };
+  
+  panel.innerHTML = generateProfessionDetailsContent(professionData);
+}
+
+function generateProfessionDetailsContent(profession: any): string {
+  const categoryColors: { [key: string]: string } = {
+    crafting: '#F59E0B',
+    gathering: '#10B981',
+    combat: '#EF4444',
+    magic: '#8B5CF6',
+    social: '#3B82F6'
+  };
+
+  const categoryIcons: { [key: string]: string } = {
+    crafting: '🔨',
+    gathering: '🌾',
+    combat: '⚔️',
+    magic: '✨',
+    social: '👥'
+  };
+
+  const rankColors: { [key: string]: string } = {
+    novice: '#6B7280',
+    apprentice: '#22C55E',
+    journeyman: '#3B82F6',
+    expert: '#A855F7',
+    master: '#F59E0B',
+    grandmaster: '#EF4444'
+  };
+  
+  return `
+    <div class="space-y-4">
+      <div class="text-center">
+        <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: ${categoryColors[profession.category]}">
+          <span>${categoryIcons[profession.category] || '🛠️'}</span>
+        </div>
+        <h3 class="font-bold text-xl mb-1" style="color: ${categoryColors[profession.category]}">${profession.name}</h3>
+        <p class="text-white/70 text-sm capitalize">${profession.category} • Level ${profession.level}</p>
+        <p class="text-white/50 text-xs uppercase tracking-wide" style="color: ${rankColors[profession.rank]}">${profession.rank}</p>
+      </div>
+
+      <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+        <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Experience Progress</h4>
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-white/70 text-sm">Experience</span>
+          <span class="text-green-400 font-bold">${profession.experience}/${profession.maxExperience}</span>
+        </div>
+        <div class="w-full bg-black/30 rounded-full h-3">
+          <div class="h-3 rounded-full transition-all duration-300" style="width: ${(parseInt(profession.experience) / parseInt(profession.maxExperience)) * 100}%; background: ${rankColors[profession.rank]}"></div>
+        </div>
+        <div class="text-center mt-2">
+          <span class="text-white/60 text-xs">${parseInt(profession.maxExperience) - parseInt(profession.experience)} XP to next level</span>
+        </div>
+      </div>
+
+      <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+        <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Mastery Progress</h4>
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-white/70 text-sm">Mastery Points</span>
+          <span class="text-orange-400 font-bold">${profession.masteryPoints}/${profession.maxMasteryPoints}</span>
+        </div>
+        <div class="flex gap-1">
+          ${Array.from({ length: 5 }, (_, i) => `
+            <div class="flex-1 h-2 bg-black/30 rounded" style="background: ${i < Math.floor(parseInt(profession.masteryPoints) / 20) ? 'linear-gradient(to right, #F59E0B, #D97706)' : 'rgba(0, 0, 0, 0.3)'}"></div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+        <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
+        <p class="text-white/80 text-sm leading-relaxed">${profession.description}</p>
+      </div>
+
+      ${profession.benefits.length > 0 ? `
+        <div class="bg-black/20 border border-white/10 rounded-lg p-3">
+          <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Benefits</h4>
+          <div class="space-y-1">
+            ${profession.benefits.map((benefit: string) => `
+              <div class="text-green-400 text-sm">• ${benefit}</div>
+            `).join('')}
           </div>
-        \`;
-      }
-    </script>
+        </div>
+      ` : ''}
+
+      <div class="space-y-2">
+        <button class="w-full px-4 py-2 bg-gradient-to-r from-blue-500/80 to-blue-600/80 hover:from-blue-400 hover:to-blue-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+          📚 Train Skill
+        </button>
+        <button class="w-full px-4 py-2 bg-gradient-to-r from-green-500/80 to-green-600/80 hover:from-green-400 hover:to-green-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+          🏋️ Practice Session
+        </button>
+        <button class="w-full px-4 py-2 bg-gradient-to-r from-purple-500/80 to-purple-600/80 hover:from-purple-400 hover:to-purple-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
+          📋 View Recipes/Skills
+        </button>
+      </div>
+    </div>
   `;
 }
 

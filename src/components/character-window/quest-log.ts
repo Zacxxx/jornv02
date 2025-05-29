@@ -684,72 +684,72 @@ function generateQuestDetailsContent(quest: any): string {
     failed: '❌'
   };
   
-  return \`
+  return `
     <div class="space-y-4">
       <div class="text-center">
-        <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: \${typeColors[quest.type] || typeColors.side}">
-          <span>\${typeIcons[quest.type] || '📋'}</span>
+        <div class="w-20 h-20 mx-auto mb-3 bg-black/40 border-2 rounded-lg flex items-center justify-center text-3xl" style="border-color: ${typeColors[quest.type] || typeColors.side}">
+          <span>${typeIcons[quest.type] || '📋'}</span>
         </div>
-        <h3 class="font-bold text-xl mb-1" style="color: \${typeColors[quest.type] || typeColors.side}">\${quest.name}</h3>
-        <p class="text-white/70 text-sm capitalize">\${quest.type} Quest • Level \${quest.level}</p>
-        <p class="text-white/50 text-xs">\${quest.location} • \${quest.giver}</p>
+        <h3 class="font-bold text-xl mb-1" style="color: ${typeColors[quest.type] || typeColors.side}">${quest.name}</h3>
+        <p class="text-white/70 text-sm capitalize">${quest.type} Quest • Level ${quest.level}</p>
+        <p class="text-white/50 text-xs">${quest.location} • ${quest.giver}</p>
       </div>
 
       <div class="bg-black/20 border border-white/10 rounded-lg p-3">
         <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Description</h4>
-        <p class="text-white/80 text-sm leading-relaxed">\${quest.description}</p>
+        <p class="text-white/80 text-sm leading-relaxed">${quest.description}</p>
       </div>
 
-      \${quest.objectives && quest.objectives.length > 0 ? \`
+      ${quest.objectives && quest.objectives.length > 0 ? `
         <div class="bg-black/20 border border-white/10 rounded-lg p-3">
           <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Objectives</h4>
           <div class="space-y-2">
-            \${quest.objectives.map((obj: any) => \`
+            ${quest.objectives.map((obj: any) => `
               <div class="flex items-start gap-2">
-                <div class="w-4 h-4 mt-0.5 rounded border-2 \${obj.completed ? 'bg-green-500 border-green-500' : 'border-white/30'} flex items-center justify-center">
-                  \${obj.completed ? '<span class="text-white text-xs">✓</span>' : ''}
+                <div class="w-4 h-4 mt-0.5 rounded border-2 ${obj.completed ? 'bg-green-500 border-green-500' : 'border-white/30'} flex items-center justify-center">
+                  ${obj.completed ? '<span class="text-white text-xs">✓</span>' : ''}
                 </div>
                 <div class="flex-1">
-                  <span class="text-white/80 text-sm \${obj.completed ? 'line-through' : ''}">\${obj.description}</span>
-                  \${obj.current !== undefined ? \`
-                    <div class="text-white/50 text-xs mt-1">\${obj.current}/\${obj.required}</div>
-                  \` : ''}
+                  <span class="text-white/80 text-sm ${obj.completed ? 'line-through' : ''}">${obj.description}</span>
+                  ${obj.current !== undefined ? `
+                    <div class="text-white/50 text-xs mt-1">${obj.current}/${obj.required}</div>
+                  ` : ''}
                 </div>
               </div>
-            \`).join('')}
+            `).join('')}
           </div>
         </div>
-      \` : ''}
+      ` : ''}
 
-      \${quest.rewards && Object.keys(quest.rewards).length > 0 ? \`
+      ${quest.rewards && Object.keys(quest.rewards).length > 0 ? `
         <div class="bg-black/20 border border-white/10 rounded-lg p-3">
           <h4 class="text-white font-semibold mb-2 text-sm uppercase tracking-wide">Rewards</h4>
           <div class="space-y-2">
-            \${quest.rewards.xp ? \`
+            ${quest.rewards.xp ? `
               <div class="flex justify-between items-center">
                 <span class="text-white/70 text-sm">Experience</span>
-                <span class="text-blue-400 font-bold">+\${quest.rewards.xp} XP</span>
+                <span class="text-blue-400 font-bold">+${quest.rewards.xp} XP</span>
               </div>
-            \` : ''}
-            \${quest.rewards.gold ? \`
+            ` : ''}
+            ${quest.rewards.gold ? `
               <div class="flex justify-between items-center">
                 <span class="text-white/70 text-sm">Gold</span>
-                <span class="text-yellow-400 font-bold">+\${quest.rewards.gold}g</span>
+                <span class="text-yellow-400 font-bold">+${quest.rewards.gold}g</span>
               </div>
-            \` : ''}
-            \${quest.rewards.items ? \`
+            ` : ''}
+            ${quest.rewards.items ? `
               <div class="space-y-1">
                 <span class="text-white/70 text-sm">Items:</span>
-                \${quest.rewards.items.map((item: string) => \`
-                  <div class="text-blue-400 text-sm ml-4">• \${item}</div>
-                \`).join('')}
+                ${quest.rewards.items.map((item: string) => `
+                  <div class="text-blue-400 text-sm ml-4">• ${item}</div>
+                `).join('')}
               </div>
-            \` : ''}
+            ` : ''}
           </div>
         </div>
-      \` : ''}
+      ` : ''}
 
-      \${quest.status === 'active' ? \`
+      ${quest.status === 'active' ? `
         <div class="space-y-2">
           <button class="w-full px-4 py-2 bg-gradient-to-r from-green-500/80 to-green-600/80 hover:from-green-400 hover:to-green-500 text-white text-sm font-bold rounded-lg transition-all duration-200 hover:scale-105">
             📍 Track Quest
@@ -761,7 +761,7 @@ function generateQuestDetailsContent(quest: any): string {
             ❌ Abandon Quest
           </button>
         </div>
-      \` : ''}
+      ` : ''}
     </div>
-  \`;
+  `;
 } 

@@ -8,9 +8,10 @@ import { createSpellBookContent, initializeSpells } from '../components/characte
 import { createResearchContent } from '../components/character-window/traits';
 import { createAbilityListContent } from '../components/character-window/ability-list';
 import { createQuestLogContent, initializeQuests } from '../components/character-window/quest-log';
-import { createEncyclopediaContent } from '../components/character-window/encyclopedia-entries';
+import { createEncyclopediaContent, initializeEncyclopedia } from '../components/character-window/encyclopedia-entries';
 import { createHeroJourneyContent } from '../components/character-window/hero-journey';
 import { createEquipmentContent } from '../components/character-window/equipment';
+import { createProfessionsContent, initializeProfessions } from '../components/character-window/professions';
 
 class CharacterWindowManager {
   private state: CharacterWindowState;
@@ -247,7 +248,6 @@ class CharacterWindowManager {
       case 'hero-journey':
         return createHeroJourneyContent();
       case 'professions':
-        const { createProfessionsContent } = await import('../components/character-window/professions');
         return createProfessionsContent();
       case 'equipment-sets':
         const { createEquipmentSetsContent } = await import('../components/character-window/equipment-sets');
@@ -452,6 +452,14 @@ class CharacterWindowManager {
     } else if (this.state.activeTab === 'quests') {
       setTimeout(() => {
         initializeQuests();
+      }, 100);
+    } else if (this.state.activeTab === 'professions') {
+      setTimeout(() => {
+        initializeProfessions();
+      }, 100);
+    } else if (this.state.activeTab === 'encyclopedia') {
+      setTimeout(() => {
+        initializeEncyclopedia();
       }, 100);
     }
   }
