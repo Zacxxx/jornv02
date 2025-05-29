@@ -1,7 +1,10 @@
 import { CHARACTER_WINDOW_TABS, CharacterWindowState } from '../components/character-window';
 import { createCharacterStatsContent } from '../components/character-window/character-stats';
 import { createInventoryContent } from '../components/character-window/inventory-grid';
-import { createCraftingContent } from '../components/character-window/crafting-interface';
+// import { createCraftingContent } from '../components/character-window/crafting-interface';
+import { CraftingMenu } from '../components/character-window/crafting-menu';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
 import { createSpellBookContent } from '../components/character-window/spell-book';
 import { createTraitTreeContent } from '../components/character-window/trait-tree';
 import { createAbilityListContent } from '../components/character-window/ability-list';
@@ -135,8 +138,22 @@ class CharacterWindowManager {
     switch (tabId) {
       case 'character':
         return createCharacterStatsContent();
-      case 'crafting':
-        return createCraftingContent();
+      case 'crafting': {
+        // Mount React CraftingMenu into the content element
+        setTimeout(() => {
+          if (this.contentElement) {
+            this.contentElement.innerHTML = '';
+            try {
+              const root = createRoot(this.contentElement);
+              root.render(React.createElement(CraftingMenu));
+            } catch (e) {
+              this.contentElement.innerHTML = '<div style="color:red;">Crafting menu failed to load. Is React available?</div>';
+            }
+          }
+        }, 0);
+        // Return a placeholder for now (React will mount asynchronously)
+        return '<div id="crafting-menu-react-root"></div>';
+      }
       case 'inventory':
         return createInventoryContent();
       case 'spells':

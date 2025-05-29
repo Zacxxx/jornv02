@@ -37,6 +37,7 @@ class Datamanager {
     return {
       ts: Date.now(),
       current_map: null,
+      inventory: [] // Array of { name, icon, qty, category }
     };
   }
   private load() {
@@ -82,6 +83,30 @@ class Datamanager {
     const slot = this.data.slots.find((s: any) => s.id === slot_id);
     slot.data = null;
     this.save();
+  }
+  // --- Inventory Methods ---
+  addItemToInventory(item: { name: string; icon: string; qty: number; category: string }) {
+    if (!this.current_slot || !this.current_slot.data) return;
+    // Only allow these categories
+    const allowed = ['consumables', 'weapons', 'armor', 'tools'];
+    let cat = item.category;
+    // If the category is not allowed, do not add the item
+    if (!allowed.includes(cat)) return;
+    const inv = this.current_slot.data.inventory || [];
+    // Try to stack with existing item
+    const existing = inv.find((i: any) => i.name === item.name && i.category === cat);
+    if (existing) {
+      existing.qty += item.qty;
+    } else {
+      inv.push({ ...item, category: cat });
+    }
+    this.current_slot.data.inventory = inv;
+    this.save();
+  }
+
+  getInventory() {
+    if (!this.current_slot || !this.current_slot.data) return [];
+    return this.current_slot.data.inventory || [];
   }
 }
 
