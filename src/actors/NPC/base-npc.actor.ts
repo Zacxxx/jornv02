@@ -2,7 +2,7 @@ import { Actor, Engine, Color, Vector } from "excalibur";
 import { NPC_BEHAVIOR } from "../../models";
 import { excaliburHealthBarManager } from "../../managers/excalibur-health-bar.manager";
 import { combatManager } from "../../managers/combat.manager";
-import { pointerManager, IHoverable, TooltipData } from "../../managers/pointer.manager";
+import { pointerManager } from "../../managers/pointer.manager";
 
 export interface NPCConfig {
   x: number;
@@ -16,20 +16,16 @@ export interface NPCConfig {
   color?: any;
 }
 
-export abstract class BaseNPC extends Actor implements IHoverable {
+export abstract class BaseNPC extends Actor {
   // Core NPC properties
   public npcBehavior: NPC_BEHAVIOR = NPC_BEHAVIOR.PASSIVE;
   public npcLevel: number = 1;
   public npcName: string = "Unknown";
   public dialog_id: string = "";
-  
+
   // Health properties (can be overridden by subclasses)
   public health = { current: 100, max: 100 };
   public defense: number = 0;
-  
-  // Hover highlighting properties
-  private isHovered: boolean = false;
-  private originalTint: Color | undefined;
 
   constructor(config: NPCConfig) {
     super({
@@ -59,7 +55,7 @@ export abstract class BaseNPC extends Actor implements IHoverable {
   private scaleStatsForLevel(): void {
     const baseHealth = 100;
     const baseDefense = 0;
-    
+
     this.health.max = Math.floor(baseHealth * (1 + (this.npcLevel - 1) * 0.5));
     this.health.current = this.health.max;
     this.defense = Math.floor(baseDefense + (this.npcLevel - 1) * 2);
@@ -68,28 +64,22 @@ export abstract class BaseNPC extends Actor implements IHoverable {
   onInitialize(engine: Engine): void {
     // Register for combat system
     combatManager.registerCombatant(this, this.health.current, this.health.max, this.defense);
-    
+    console.log(`Registered ${this.npcName} with combatManager`);
+
     // Register for native health bar with name display
     try {
       excaliburHealthBarManager.registerActor(this, true);
+      console.log(`Registered ${this.npcName} with excaliburHealthBarManager`);
     } catch (error) {
       console.warn(`Failed to register health bar for ${this.npcName}:`, error);
     }
-    
+
     // Call subclass initialization FIRST so graphics are available
     this.onNPCInitialize(engine);
-    
+
     // Debug pointer bounds setup
     this.setupPointerDetection();
-    
-    // Register with pointer manager for hover events AFTER graphics are set up
-    try {
-      pointerManager.registerHoverableActor(this);
-      console.log(`🖱️ Registered ${this.npcName} with pointer manager`);
-    } catch (error) {
-      console.error(`❌ Failed to register ${this.npcName} with pointer manager:`, error);
-    }
-    
+
     console.log(`✅ BaseNPC initialized: ${this.npcName} (Level ${this.npcLevel})`);
   }
 
@@ -99,14 +89,14 @@ export abstract class BaseNPC extends Actor implements IHoverable {
   private setupPointerDetection(): void {
     // Method 1: Try graphics bounds
     this.pointer.useGraphicsBounds = true;
-    
+
     // Method 2: Ensure we have a collision box for pointer detection
     if (!this.collider.bounds || this.collider.bounds.width === 0 || this.collider.bounds.height === 0) {
       // Set a default collision box if none exists
       this.collider.useBoxCollider(this.width || 32, this.height || 32);
       console.log(`🔧 Set collision box for ${this.npcName}: ${this.width || 32}x${this.height || 32}`);
     }
-    
+
     // Method 3: Log current bounds for debugging
     console.log(`🔍 ${this.npcName} bounds:`, {
       graphics: this.graphics.current?.length > 0,
@@ -117,55 +107,7 @@ export abstract class BaseNPC extends Actor implements IHoverable {
   }
 
   kill(): void {
-    // Unregister from pointer manager
-    pointerManager.unregisterHoverableActor(this);
-    
-    // Hide any active tooltip
-    if (this.isHovered) {
-      pointerManager.hideTooltip();
-    }
-    
     super.kill();
-  }
-
-  // IHoverable interface implementation
-  onHoverStart(): void {
-    if (this.isHovered) return; // Already hovering
-    
-    this.isHovered = true;
-    
-    // Apply visual highlight effect
-    this.applyHoverHighlight();
-    
-    // Show tooltip using pointer manager
-    const tooltipData: TooltipData = {
-      title: this.npcName,
-      subtitle: `Level ${this.npcLevel} ${this.getTypeDisplayName()}`,
-      position: this.pos
-    };
-    
-    pointerManager.showTooltip(tooltipData);
-    
-    console.log(`🎯 Hovering over ${this.npcName} (Level ${this.npcLevel})`);
-  }
-
-  onHoverEnd(): void {
-    if (!this.isHovered) return; // Not hovering
-    
-    this.isHovered = false;
-    
-    // Remove visual highlight effect
-    this.removeHoverHighlight();
-    
-    // Hide tooltip
-    pointerManager.hideTooltip();
-    
-    console.log(`🎯 Stopped hovering over ${this.npcName}`);
-  }
-
-  isPointInside(point: Vector): boolean {
-    // Use actor's built-in collision bounds
-    return this.collider.bounds.contains(point);
   }
 
   /**
@@ -177,87 +119,9 @@ export abstract class BaseNPC extends Actor implements IHoverable {
     if (npcType && typeof npcType === 'string') {
       return npcType;
     }
-    
+
     // Fall back to constructor name
     return this.constructor.name || "NPC";
-  }
-
-  /**
-   * Apply visual hover highlight effect
-   */
-  private applyHoverHighlight(): void {
-    try {
-      // Method 1: Try to get the current animation/sprite and apply tint
-      const graphics = this.graphics;
-      
-      if (graphics && graphics.current) {
-        // Get the current graphic (could be an animation or sprite)
-        const currentGraphics = graphics.current;
-        
-        if (currentGraphics.length > 0) {
-          const currentGraphic = currentGraphics[0];
-          
-          // Store original tint if not already stored
-          if (!this.originalTint) {
-            this.originalTint = currentGraphic.graphic.tint ? currentGraphic.graphic.tint.clone() : Color.White;
-            console.log(`💾 Stored original tint for ${this.npcName}:`, this.originalTint);
-          }
-          
-          // Apply bright highlight tint - using a more noticeable yellow-white
-          currentGraphic.graphic.tint = Color.fromRGB(255, 255, 200, 1);
-          console.log(`✨ Applied graphic tint hover highlight to ${this.npcName}`);
-          return;
-        }
-      }
-      
-      // Method 2: Try using graphics show/use method to force re-render with tint
-      if (graphics && graphics.visible) {
-        // Store original color
-        if (!this.originalTint) {
-          this.originalTint = this.color.clone();
-        }
-        
-        // Apply color-based highlight as fallback
-        this.color = Color.fromRGB(255, 255, 150, 1);
-        console.log(`✨ Applied color-based hover highlight to ${this.npcName}`);
-        return;
-      }
-      
-      console.warn(`⚠️ Could not apply hover highlight to ${this.npcName} - no graphics found`);
-      
-    } catch (error) {
-      console.warn(`❌ Failed to apply hover highlight to ${this.npcName}:`, error);
-    }
-  }
-
-  /**
-   * Remove hover highlight and restore original appearance
-   */
-  private removeHoverHighlight(): void {
-    try {
-      // Method 1: Try to restore graphic tint
-      const graphics = this.graphics;
-      
-      if (graphics && graphics.current && this.originalTint) {
-        const currentGraphics = graphics.current;
-        
-        if (currentGraphics.length > 0) {
-          const currentGraphic = currentGraphics[0];
-          currentGraphic.graphic.tint = this.originalTint;
-          console.log(`🔄 Restored graphic tint for ${this.npcName}`);
-          return;
-        }
-      }
-      
-      // Method 2: Fallback to actor color restoration
-      if (this.originalTint) {
-        this.color = this.originalTint;
-        console.log(`🔄 Restored actor color for ${this.npcName}`);
-      }
-      
-    } catch (error) {
-      console.warn(`❌ Failed to remove hover highlight from ${this.npcName}:`, error);
-    }
   }
 
   /**
@@ -282,8 +146,9 @@ export abstract class BaseNPC extends Actor implements IHoverable {
    * Update NPC health (used by combat system)
    */
   public updateHealth(newHealth: number): void {
+    console.log(`Updating health for ${this.npcName} to ${newHealth}`);
     this.health.current = Math.max(0, Math.min(newHealth, this.health.max));
-    
+
     // Health bar updates are handled automatically by the health bar manager
     // via its update() method called in the scene's onPreUpdate
   }
@@ -311,6 +176,7 @@ export abstract class BaseNPC extends Actor implements IHoverable {
         return {
           detectionRadius: 48,
           attackRange: 24,
+
           moveSpeed: 0.8,
           aggroTime: 5000, // 5 seconds
         };
@@ -338,4 +204,4 @@ export abstract class BaseNPC extends Actor implements IHoverable {
         };
     }
   }
-} 
+}

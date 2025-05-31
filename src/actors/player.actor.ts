@@ -385,11 +385,13 @@ export class Player extends Actor {
 
     // Handle NPC interactions
     if (this.nearToNPC) {
+      uiManager.display_dialog("npc", `Talk to ${this.nearToNPC.name}`, true);
       const keyboard = engine.input.keyboard;
-      if (keyboard.wasPressed(Input.Keys.Space)) {
+      if (keyboard.wasPressed(Input.Keys.F)) {
         gameManager.start_talk(this.nearToNPC);
       }
     }
+    // Dialog hiding is now handled in onCollisionEnd
   }
   // COLLISIONS
   onPreCollisionResolve(
@@ -409,6 +411,8 @@ export class Player extends Actor {
         break;
       case ACTOR_TYPE.NPC:
         this.nearToNPC = other.owner;
+        // Assuming other.owner has a 'name' property, which is typical for Actors.
+        console.log(`Player near NPC: ${(other.owner as Actor).name}`);
         break;
     }
   }
@@ -417,6 +421,15 @@ export class Player extends Actor {
       case ACTOR_TYPE.SCENE_NEXT:
         const area: SceneArea | any = other.owner;
         area.activated = true;
+        break;
+      case ACTOR_TYPE.NPC:
+        if (this.nearToNPC === other.owner) {
+          // Assuming other.owner has a 'name' property.
+          console.log(`Player left NPC: ${(other.owner as Actor).name}`);
+          this.nearToNPC = null;
+          uiManager.display_dialog("npc", "", true); // Clear the dialog
+          uiManager.dialog_container.style.display = "none"; // Hide the dialog container
+        }
         break;
     }
   }
@@ -504,7 +517,6 @@ export class Player extends Actor {
 
     // Normalize walking speed
     if (this.vel.x !== 0 || this.vel.y !== 0) {
-      this.nearToNPC = false;
       this.vel = this.vel.normalize();
       this.vel.x = this.vel.x * WALKING_SPEED;
       this.vel.y = this.vel.y * WALKING_SPEED;
