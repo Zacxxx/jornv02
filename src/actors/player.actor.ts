@@ -385,9 +385,17 @@ export class Player extends Actor {
 
     // Handle NPC interactions
     if (this.nearToNPC) {
+      uiManager.display_dialog("npc", `Talk to ${this.nearToNPC.name}`, true);
       const keyboard = engine.input.keyboard;
-      if (keyboard.wasPressed(Input.Keys.Space)) {
+      if (keyboard.wasPressed(Input.Keys.F)) {
         gameManager.start_talk(this.nearToNPC);
+      }
+    } else {
+      // TODO: This might be too aggressive in hiding the dialog.
+      // Consider a flag or a different mechanism if the dialog is hidden prematurely.
+      if (uiManager.dialog_container.style.display !== "none") {
+        uiManager.display_dialog("npc", "", true); // Clear the dialog
+        uiManager.dialog_container.style.display = "none"; // Hide the dialog container
       }
     }
   }
