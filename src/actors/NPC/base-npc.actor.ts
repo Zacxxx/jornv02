@@ -64,10 +64,12 @@ export abstract class BaseNPC extends Actor {
   onInitialize(engine: Engine): void {
     // Register for combat system
     combatManager.registerCombatant(this, this.health.current, this.health.max, this.defense);
+    console.log(`Registered ${this.npcName} with combatManager`);
 
     // Register for native health bar with name display
     try {
       excaliburHealthBarManager.registerActor(this, true);
+      console.log(`Registered ${this.npcName} with excaliburHealthBarManager`);
     } catch (error) {
       console.warn(`Failed to register health bar for ${this.npcName}:`, error);
     }
@@ -144,6 +146,7 @@ export abstract class BaseNPC extends Actor {
    * Update NPC health (used by combat system)
    */
   public updateHealth(newHealth: number): void {
+    console.log(`Updating health for ${this.npcName} to ${newHealth}`);
     this.health.current = Math.max(0, Math.min(newHealth, this.health.max));
 
     // Health bar updates are handled automatically by the health bar manager
